@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingia | Daftari Plus</title>
+<meta name="description" content="Ingia kwenye akaunti yako ya Daftari Plus kwa email na password.">
+<meta name="theme-color" content="#00274d">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">D+</span>
+      <span class="brand-name">Daftari <span>Plus</span></span>
+    </a>
+    <nav class="main-nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html">Nyumbani</a></li>
+        <li><a href="index.html#vipengele">Vipengele</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-amber btn-sm" href="register.html">Jisajili</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Karibu tena</h1>
+      <p class="auth-sub">Ingia kwenye akaunti yako kwa email na password.</p>
+
+      <div class="form-msg" id="formMsg"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">Barua pepe (Email)</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" id="pwToggle">ONYESHA</button>
+          </div>
+          <p class="hint"><a href="#" style="color:var(--navy)">Umesahau password?</a></p>
+        </div>
+
+        <button type="submit" class="btn btn-amber btn-block">Ingia</button>
+      </form>
+
+      <p class="auth-footer">Huna akaunti? <a href="register.html">Jisajili hapa</a></p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© 2026 Daftari Plus</p>
+    <ul class="footer-links">
+      <li><a href="register.html">Jisajili</a></li>
+      <li><a href="index.html">Nyumbani</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+document.getElementById('pwToggle').addEventListener('click', function(){
+  const input = document.getElementById('password');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  this.textContent = showing ? 'ONYESHA' : 'FICHA';
+});
+
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const msg = document.getElementById('formMsg');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) {
+    msg.className = 'form-msg error';
+    msg.textContent = 'Tafadhali jaza email na password.';
+    return;
+  }
+
+  const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Inaingia...';
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.className = 'form-msg error';
+      msg.textContent = data.error || 'Imeshindikana kuingia. Jaribu tena.';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Ingia';
+      return;
+    }
+
+    localStorage.setItem('daftari_token', data.token);
+    localStorage.setItem('daftari_user', JSON.stringify(data.user));
+
+    msg.className = 'form-msg success';
+    msg.textContent = 'Umeingia! Unaelekezwa...';
+    setTimeout(() => { window.location.href = 'index.html'; }, 700);
+  } catch (err) {
+    msg.className = 'form-msg error';
+    msg.textContent = 'Imeshindwa kufikia server. Hakikisha backend inaendesha (node server.js).';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Ingia';
+  }
+});
+</script>
+
+</body>
+</html>
