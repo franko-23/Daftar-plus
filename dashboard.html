@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | Daftari Plus</title>
+<meta name="theme-color" content="#00274d">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="dashboard.html">
+      <span class="brand-mark">D+</span>
+      <span class="brand-name">Daftari <span>Plus</span></span>
+    </a>
+    <div class="header-actions">
+      <span id="userBadge" class="role-badge">...</span>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Toka</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap dash-wrap">
+
+    <nav class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="uza">Uza</button>
+      <button class="tab-btn" data-tab="bidhaa">Bidhaa</button>
+      <button class="tab-btn" data-tab="matumizi">Matumizi</button>
+      <button class="tab-btn" data-tab="madeni">Madeni</button>
+      <button class="tab-btn" data-tab="ripoti" id="ripotiTabBtn">Ripoti</button>
+    </nav>
+
+    <div class="summary-strip" id="summaryStrip"></div>
+
+    <section class="tab-panel active" id="panel-uza">
+      <div class="panel-card">
+        <h3>Rekodi Mauzo</h3>
+        <div class="form-msg" id="saleMsg"></div>
+        <form id="saleForm" class="inline-form">
+          <div class="field">
+            <label for="saleProduct">Bidhaa</label>
+            <select id="saleProduct" required></select>
+          </div>
+          <div class="field">
+            <label for="saleQty">Idadi</label>
+            <input type="number" id="saleQty" min="1" value="1" required>
+          </div>
+          <button type="submit" class="btn btn-amber">Uza</button>
+        </form>
+      </div>
+
+      <div class="panel-card">
+        <h3>Mauzo ya Hivi Karibuni</h3>
+        <div class="table-wrap">
+          <table class="data-table" id="salesTable">
+            <thead><tr><th>Bidhaa</th><th>Idadi</th><th>Bei</th><th>Jumla</th><th>Muuzaji</th><th>Tarehe</th></tr></thead>
+            <tbody><tr><td colspan="6" class="empty-row">Inapakia...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="panel-bidhaa">
+      <div class="panel-card" id="addProductCard">
+        <h3>Ongeza Bidhaa (Admin)</h3>
+        <div class="form-msg" id="productMsg"></div>
+        <form id="productForm" class="inline-form">
+          <div class="field"><label for="pName">Jina la Bidhaa</label><input type="text" id="pName" required></div>
+          <div class="field"><label for="pBuy">Bei ya Kununua</label><input type="number" id="pBuy" min="0" step="1" required></div>
+          <div class="field"><label for="pSell">Bei ya Kuuza</label><input type="number" id="pSell" min="0" step="1" required></div>
+          <div class="field"><label for="pQty">Idadi (Stock)</label><input type="number" id="pQty" min="0" step="1" required></div>
+          <button type="submit" class="btn btn-amber">Ongeza Bidhaa</button>
+        </form>
+      </div>
+
+      <div class="panel-card">
+        <h3>Bidhaa Zote</h3>
+        <div class="table-wrap">
+          <table class="data-table" id="productsTable">
+            <thead><tr><th>Jina</th><th class="admin-only-col">Bei ya Kununua</th><th>Bei ya Kuuza</th><th>Stock</th></tr></thead>
+            <tbody><tr><td colspan="4" class="empty-row">Inapakia...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="panel-matumizi">
+      <div class="panel-card">
+        <h3>Ongeza Matumizi</h3>
+        <div class="form-msg" id="expenseMsg"></div>
+        <form id="expenseForm" class="inline-form">
+          <div class="field"><label for="eDesc">Maelezo</label><input type="text" id="eDesc" placeholder="mfano: Nauli, Umeme" required></div>
+          <div class="field"><label for="eAmount">Kiasi (TSh)</label><input type="number" id="eAmount" min="1" required></div>
+          <button type="submit" class="btn btn-amber">Ongeza</button>
+        </form>
+      </div>
+
+      <div class="panel-card">
+        <h3>Matumizi ya Hivi Karibuni</h3>
+        <div class="table-wrap">
+          <table class="data-table" id="expensesTable">
+            <thead><tr><th>Maelezo</th><th>Kiasi</th><th>Aliyeweka</th><th>Tarehe</th></tr></thead>
+            <tbody><tr><td colspan="4" class="empty-row">Inapakia...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="panel-madeni">
+      <div class="panel-card">
+        <h3>Ongeza Deni</h3>
+        <div class="form-msg" id="debtMsg"></div>
+        <form id="debtForm" class="inline-form">
+          <div class="field"><label for="dPerson">Jina la Mtu</label><input type="text" id="dPerson" required></div>
+          <div class="field"><label for="dDesc">Maelezo (hiari)</label><input type="text" id="dDesc"></div>
+          <div class="field"><label for="dAmount">Kiasi (TSh)</label><input type="number" id="dAmount" min="1" required></div>
+          <button type="submit" class="btn btn-amber">Ongeza Deni</button>
+        </form>
+      </div>
+
+      <div class="panel-card">
+        <h3>Madeni Yote</h3>
+        <div class="table-wrap">
+          <table class="data-table" id="debtsTable">
+            <thead><tr><th>Mtu</th><th>Maelezo</th><th>Kiasi</th><th>Hali</th><th></th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-row">Inapakia...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="panel-ripoti">
+      <div class="panel-card" id="businessCodeCard">
+        <h3>Business Code ya Biashara Yako</h3>
+        <div class="record-block" style="max-width:320px">
+          <div class="record-rows">
+            <div class="record-row"><span class="record-key">Biashara</span><span class="record-val" id="bizName">—</span></div>
+            <div class="record-row"><span class="record-key">Code</span><span class="record-val" id="bizCode" style="font-size:18px;font-weight:700;letter-spacing:0.06em">—</span></div>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:12px">Mpe hii code kwa mfanyakazi wako ili ajisajili kama Muuzaji wa biashara hii.</p>
+      </div>
+      <div class="panel-card">
+        <h3>Ripoti ya Faida</h3>
+        <div class="report-grid" id="reportGrid"></div>
+      </div>
+      <div class="panel-card">
+        <h3>Bidhaa Zinazokaribia Kuisha</h3>
+        <div class="table-wrap">
+          <table class="data-table" id="lowStockTable">
+            <thead><tr><th>Bidhaa</th><th>Stock</th></tr></thead>
+            <tbody><tr><td colspan="2" class="empty-row">Inapakia...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>
