@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftari Plus — Simamia Biashara Yako</title>
+  <meta name="description" content="Daftari Plus ni mfumo wa kusimamia mauzo, stock, matumizi, madeni na ripoti za biashara.">
+  <meta name="theme-color" content="#00274d">
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Landing page additions — zinatumia design system ya css/style.css */
+    .landing-hero{
+      padding:72px 0 58px;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent, transparent 37px,
+          rgba(0,39,77,.045) 38px
+        ),
+        var(--bg);
+      overflow:hidden;
+    }
+    .landing-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:48px;
+      align-items:center;
+    }
+    .landing-eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-family:var(--mono);
+      font-size:12px;
+      letter-spacing:.05em;
+      color:var(--navy);
+      background:rgba(0,39,77,.05);
+      border:1px solid rgba(0,39,77,.15);
+      border-radius:100px;
+      padding:7px 13px;
+      margin-bottom:20px;
+    }
+    .landing-eyebrow i{
+      width:7px;height:7px;border-radius:50%;background:var(--up);
+    }
+    .landing-hero h1{
+      font-family:var(--display);
+      font-weight:800;
+      color:var(--navy);
+      font-size:clamp(34px,5vw,58px);
+      line-height:1.08;
+      letter-spacing:-.02em;
+      margin:0 0 20px;
+    }
+    .landing-hero h1 span{color:var(--amber-deep)}
+    .landing-lead{
+      max-width:560px;
+      color:var(--dim);
+      font-size:17px;
+      margin:0 0 28px;
+    }
+    .landing-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+    .landing-trust{
+      display:flex;
+      gap:18px;
+      flex-wrap:wrap;
+      color:var(--dim);
+      font-family:var(--mono);
+      font-size:11.5px;
+    }
+
+    .preview{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:15px;
+      box-shadow:0 24px 55px -22px rgba(0,39,77,.28);
+      overflow:hidden;
+      transform:rotate(-.7deg);
+    }
+    .preview-head{
+      background:var(--navy);
+      color:#fff;
+      padding:14px 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-family:var(--mono);
+      font-size:11px;
+    }
+    .preview-head b{font-family:var(--display);font-size:14px}
+    .preview-head span{
+      background:rgba(255,255,255,.12);
+      padding:4px 9px;
+      border-radius:100px;
+    }
+    .preview-body{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:10px;
+      padding:12px;
+    }
+    .preview-side{
+      background:#f8fafc;
+      border:1px solid var(--border);
+      border-radius:9px;
+      padding:10px;
+    }
+    .preview-side strong{
+      display:block;
+      color:var(--navy);
+      font-family:var(--display);
+      font-size:11px;
+      margin-bottom:10px;
+    }
+    .preview-side div{
+      font-size:10px;
+      color:var(--dim);
+      padding:7px 6px;
+      border-radius:6px;
+    }
+    .preview-side .selected{
+      background:var(--navy);
+      color:#fff;
+    }
+    .preview-main{min-width:0}
+    .preview-stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:7px;
+    }
+    .preview-stat{
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:9px;
+    }
+    .preview-stat small{
+      display:block;
+      color:var(--dim);
+      font-family:var(--mono);
+      font-size:8px;
+    }
+    .preview-stat b{
+      display:block;
+      color:var(--navy);
+      font-size:12px;
+      margin-top:2px;
+    }
+    .preview-charts{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+    .preview-chart{
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:10px;
+    }
+    .preview-chart h4{
+      margin:0;
+      color:var(--navy);
+      font-family:var(--display);
+      font-size:10px;
+    }
+    .graph{
+      position:relative;
+      height:112px;
+      margin-top:7px;
+      background:repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 25px,
+        #edf0f4 26px
+      );
+      overflow:hidden;
+    }
+    .graph-line{
+      position:absolute;
+      left:4%;right:4%;top:56%;
+      height:42px;
+      border-top:3px solid var(--navy);
+      transform:skewY(-11deg);
+    }
+    .graph-line.profit{
+      top:60%;
+      border-color:var(--up);
+      transform:skewY(8deg);
+    }
+    .graph-dot{
+      position:absolute;
+      width:6px;height:6px;border-radius:50%;
+      background:var(--navy);
+    }
+    .graph-dot.d1{left:8%;top:70%}
+    .graph-dot.d2{left:25%;top:54%}
+    .graph-dot.d3{left:43%;top:61%}
+    .graph-dot.d4{left:61%;top:42%}
+    .graph-dot.d5{left:79%;top:47%}
+    .graph-dot.d6{left:93%;top:25%}
+
+    .landing-strip{
+      border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      background:#fff;
+      padding:20px 0;
+    }
+    .landing-strip-inner{
+      display:flex;
+      justify-content:space-around;
+      gap:15px;
+      flex-wrap:wrap;
+      color:var(--dim);
+      font-size:13px;
+      font-weight:600;
+    }
+
+    .landing-section{padding:68px 0}
+    .landing-section.alt{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .landing-title{
+      text-align:center;
+      font-family:var(--display);
+      font-weight:700;
+      font-size:clamp(25px,3vw,34px);
+      color:var(--navy);
+      margin:0 0 10px;
+    }
+    .landing-subtitle{
+      text-align:center;
+      color:var(--dim);
+      max-width:680px;
+      margin:0 auto 34px;
+    }
+    .landing-features{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+    .landing-feature{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:23px;
+    }
+    .landing-feature .feature-icon{
+      width:40px;height:40px;border-radius:9px;
+      background:rgba(0,39,77,.06);
+      display:grid;place-items:center;
+      color:var(--navy);
+      font-family:var(--display);
+      font-weight:800;
+    }
+    .landing-feature h3{
+      font-family:var(--display);
+      color:var(--navy);
+      font-size:16px;
+      margin:14px 0 7px;
+    }
+    .landing-feature p{margin:0;color:var(--dim);font-size:13.5px}
+
+    .landing-analytics{
+      background:var(--navy);
+      color:#fff;
+    }
+    .landing-analytics-grid{
+      display:grid;
+      grid-template-columns:.85fr 1.15fr;
+      gap:40px;
+      align-items:center;
+    }
+    .landing-analytics h2{
+      color:#fff;
+      font-family:var(--display);
+      font-size:32px;
+      margin:0 0 12px;
+    }
+    .landing-analytics p{color:#c5d0df}
+    .big-graph{
+      background:#082f59;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:13px;
+      padding:18px;
+    }
+    .big-graph-title{
+      font-family:var(--mono);
+      font-size:12px;
+      color:#fff;
+      margin-bottom:12px;
+    }
+    .bars{
+      height:205px;
+      display:flex;
+      align-items:flex-end;
+      gap:13px;
+      padding:0 14px;
+      border-bottom:1px solid rgba(255,255,255,.25);
+    }
+    .bar{
+      width:27px;
+      background:var(--amber);
+      border-radius:4px 4px 0 0;
+    }
+    .bar.green{background:#38b98a}
+    .bar.b1{height:44%}.bar.b2{height:61%}.bar.b3{height:53%}
+    .bar.b4{height:75%}.bar.b5{height:66%}.bar.b6{height:87%}
+    .bar.b7{height:72%}.bar.b8{height:94%}
+
+    .landing-steps{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+    }
+    .landing-step{text-align:center}
+    .landing-step .number{
+      width:42px;height:42px;border-radius:50%;
+      margin:auto;
+      background:var(--navy);
+      color:#fff;
+      display:grid;place-items:center;
+      font-family:var(--display);
+      font-weight:800;
+    }
+    .landing-step b{display:block;color:var(--navy);margin-top:12px}
+    .landing-step p{font-size:13px;color:var(--dim)}
+
+    .landing-pricing{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+    .landing-price{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:13px;
+      padding:25px;
+    }
+    .landing-price.featured{
+      border:2px solid var(--amber);
+      transform:translateY(-6px);
+    }
+    .landing-price h3{font-family:var(--display);color:var(--navy);margin:0}
+    .landing-price .amount{
+      font-family:var(--display);
+      color:var(--navy);
+      font-size:28px;
+      font-weight:800;
+      margin:13px 0;
+    }
+    .landing-price small{font-family:var(--sans);font-size:12px;color:var(--dim)}
+    .landing-price p,.landing-price li{font-size:13px;color:var(--dim)}
+    .landing-price ul{padding-left:18px}
+    .landing-price li{margin:8px 0}
+
+    .landing-cta{
+      margin:0 0 60px;
+      background:var(--navy);
+      border-radius:14px;
+      padding:42px 25px;
+      text-align:center;
+      color:#fff;
+    }
+    .landing-cta h2{
+      font-family:var(--display);
+      color:#fff;
+      margin:0 0 8px;
+    }
+    .landing-cta p{color:#c7d2e2}
+    .landing-cta .btn{margin:6px}
+
+    @media(max-width:900px){
+      .landing-grid,.landing-analytics-grid{grid-template-columns:1fr}
+      .landing-features{grid-template-columns:repeat(2,1fr)}
+      .landing-steps{grid-template-columns:repeat(2,1fr)}
+      .landing-pricing{grid-template-columns:1fr}
+      .preview{transform:none}
+    }
+    @media(max-width:650px){
+      .landing-hero{padding:45px 0}
+      .landing-features{grid-template-columns:1fr}
+      .preview-body{grid-template-columns:1fr}
+      .preview-side{display:none}
+      .preview-stats{grid-template-columns:repeat(2,1fr)}
+      .preview-charts{grid-template-columns:1fr}
+      .landing-steps{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">D+</span>
+      <span class="brand-name">Daftari <span>Plus</span></span>
+    </a>
+
+    <nav class="main-nav">
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#biashara">Kwa Biashara</a></li>
+        <li><a href="#bei">Bei</a></li>
+        <li><a href="#jinsi">Jinsi Inavyofanya Kazi</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a class="btn btn-ghost btn-sm" href="login.html">Login</a>
+      <a class="btn btn-amber btn-sm" href="register.html">Anza Bure</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="landing-hero">
+    <div class="wrap landing-grid">
+
+      <div>
+        <span class="landing-eyebrow">
+          <i></i>
+          MFUMO WA BIASHARA • TANZANIA
+        </span>
+
+        <h1>
+          Simamia Biashara Yako<br>
+          Kwa Urahisi na <span>Daftari Plus</span>
+        </h1>
+
+        <p class="landing-lead">
+          Mfumo rahisi wa kusimamia mauzo, stock, matumizi, madeni na
+          ripoti za biashara — kwenye simu, tablet au kompyuta.
+        </p>
+
+        <div class="landing-actions">
+          <a class="btn btn-amber" href="register.html">Anza Bure Sasa →</a>
+          <a class="btn btn-ghost" href="#features">Tazama Features</a>
+        </div>
+
+        <div class="landing-trust">
+          <span>✓ Salama</span>
+          <span>☁ Inapatikana Popote</span>
+          <span>◉ Rahisi Kutumia</span>
+        </div>
+      </div>
+
+      <div class="preview" aria-label="Daftari Plus dashboard preview">
+        <div class="preview-head">
+          <b>Daftari Plus Dashboard</b>
+          <span>LIVE</span>
+        </div>
+
+        <div class="preview-body">
+          <aside class="preview-side">
+            <strong>DAFTARI PLUS</strong>
+            <div class="selected">Dashboard</div>
+            <div>Mauzo</div>
+            <div>Bidhaa</div>
+            <div>Wateja</div>
+            <div>Matumizi</div>
+            <div>Madeni</div>
+            <div>Ripoti</div>
+          </aside>
+
+          <div class="preview-main">
+            <div class="preview-stats">
+              <div class="preview-stat"><small>MAUZO LEO</small><b>TSh 1.25M</b></div>
+              <div class="preview-stat"><small>FAIDA LEO</small><b>TSh 320K</b></div>
+              <div class="preview-stat"><small>MAUZO MWEZI</small><b>TSh 18.75M</b></div>
+              <div class="preview-stat"><small>BIDHAA</small><b>1,248</b></div>
+            </div>
+
+            <div class="preview-charts">
+              <div class="preview-chart">
+                <h4>Mauzo</h4>
+                <div class="graph">
+                  <div class="graph-line"></div>
+                  <i class="graph-dot d1"></i><i class="graph-dot d2"></i>
+                  <i class="graph-dot d3"></i><i class="graph-dot d4"></i>
+                  <i class="graph-dot d5"></i><i class="graph-dot d6"></i>
+                </div>
+              </div>
+
+              <div class="preview-chart">
+                <h4>Faida</h4>
+                <div class="graph">
+                  <div class="graph-line profit"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="landing-strip">
+    <div class="wrap landing-strip-inner">
+      <span>🏪 Maduka</span>
+      <span>🛒 Supermarket</span>
+      <span>✦ Viuo vya Urembo</span>
+      <span>⌂ Maghala</span>
+      <span>◫ Vifaa Vidogo</span>
+      <span>◉ Huduma</span>
+      <span>▣ Wafanyabiashara</span>
+    </div>
+  </div>
+
+  <section class="landing-section" id="features">
+    <div class="wrap">
+      <h2 class="landing-title">Vipengele Vikuu vya Daftari Plus</h2>
+      <p class="landing-subtitle">
+        Yote unayohitaji kusimamia biashara yako kwa ufanisi na kuona kinachoendelea.
+      </p>
+
+      <div class="landing-features">
+        <article class="landing-feature">
+          <div class="feature-icon">▣</div>
+          <h3>Mauzo & Stock</h3>
+          <p>Rekodi mauzo na fuatilia stock kwa wakati halisi.</p>
+        </article>
+
+        <article class="landing-feature">
+          <div class="feature-icon">₮</div>
+          <h3>Faida & Ripoti</h3>
+          <p>Angalia mapato, gharama, faida na mwenendo wa biashara.</p>
+        </article>
+
+        <article class="landing-feature">
+          <div class="feature-icon">👥</div>
+          <h3>Wafanyakazi</h3>
+          <p>Weka watumiaji wa biashara yako na fuatilia utendaji wao.</p>
+        </article>
+
+        <article class="landing-feature">
+          <div class="feature-icon">▤</div>
+          <h3>Matumizi</h3>
+          <p>Rekodi gharama za biashara na zijumuishe kwenye faida halisi.</p>
+        </article>
+
+        <article class="landing-feature">
+          <div class="feature-icon">▥</div>
+          <h3>Madeni</h3>
+          <p>Fuatilia madeni yanayodaiwa na yaliyolipwa.</p>
+        </article>
+
+        <article class="landing-feature">
+          <div class="feature-icon">☁</div>
+          <h3>Popote Ulipo</h3>
+          <p>Tumia mfumo kwenye simu, tablet au kompyuta.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section landing-analytics" id="biashara">
+    <div class="wrap landing-analytics-grid">
+      <div>
+        <h2>Uchambuzi wa Mauzo na Faida</h2>
+        <p>
+          Daftari Plus inakupa mwanga wa biashara yako kupitia grafu na
+          ripoti rahisi kusoma.
+        </p>
+        <p>
+          ✓ Mauzo kwa siku, wiki na mwezi<br>
+          ✓ Faida halisi<br>
+          ✓ Bidhaa zinazouza zaidi<br>
+          ✓ Performance ya wafanyakazi
+        </p>
+      </div>
+
+      <div class="big-graph">
+        <div class="big-graph-title">Mauzo na Faida — Mwenendo</div>
+        <div class="bars">
+          <span class="bar b1"></span>
+          <span class="bar green b2"></span>
+          <span class="bar b3"></span>
+          <span class="bar green b4"></span>
+          <span class="bar b5"></span>
+          <span class="bar green b6"></span>
+          <span class="bar b7"></span>
+          <span class="bar green b8"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section" id="jinsi">
+    <div class="wrap">
+      <h2 class="landing-title">Jinsi Daftari Plus Inavyofanya Kazi</h2>
+      <p class="landing-subtitle">
+        Anza kwa hatua chache na pata udhibiti wa biashara yako.
+      </p>
+
+      <div class="landing-steps">
+        <div class="landing-step">
+          <div class="number">1</div>
+          <b>Jisajili</b>
+          <p>Fungua akaunti ya biashara.</p>
+        </div>
+        <div class="landing-step">
+          <div class="number">2</div>
+          <b>Sanidi Biashara</b>
+          <p>Weka bidhaa na taarifa zako.</p>
+        </div>
+        <div class="landing-step">
+          <div class="number">3</div>
+          <b>Anza Kutumia</b>
+          <p>Rekodi mauzo na shughuli nyingine.</p>
+        </div>
+        <div class="landing-step">
+          <div class="number">4</div>
+          <b>Fuatilia</b>
+          <p>Tazama ripoti, faida na performance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section alt" id="bei">
+    <div class="wrap">
+      <h2 class="landing-title">Bei Rahisi, Thamani Kubwa</h2>
+      <p class="landing-subtitle">Chagua mpango unaokufaa.</p>
+
+      <div class="landing-pricing">
+        <article class="landing-price">
+          <h3>Basic</h3>
+          <div class="amount">TSh 20,000 <small>/ mwezi</small></div>
+          <p>Kwa biashara ndogo na zinazoanza.</p>
+          <ul>
+            <li>Mauzo & Stock</li>
+            <li>Matumizi</li>
+            <li>Ripoti za msingi</li>
+          </ul>
+          <a class="btn btn-primary" href="register.html">Anza</a>
+        </article>
+
+        <article class="landing-price featured">
+          <h3>Standard</h3>
+          <div class="amount">TSh 40,000 <small>/ mwezi</small></div>
+          <p>Kwa biashara zinazokua.</p>
+          <ul>
+            <li>Vipengele vya Basic</li>
+            <li>Wafanyakazi</li>
+            <li>Analytics za mauzo & faida</li>
+          </ul>
+          <a class="btn btn-amber" href="register.html">Anza</a>
+        </article>
+
+        <article class="landing-price">
+          <h3>Premium</h3>
+          <div class="amount">TSh 80,000 <small>/ mwezi</small></div>
+          <p>Kwa biashara kubwa.</p>
+          <ul>
+            <li>Vipengele vyote</li>
+            <li>Performance ya wafanyakazi</li>
+            <li>Reports za kina</li>
+          </ul>
+          <a class="btn btn-primary" href="register.html">Anza</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="landing-cta">
+      <h2>Anza Kusimamia Biashara Yako kwa Daftari Plus</h2>
+      <p>Jisajili na anza kutumia mfumo wako wa biashara.</p>
+      <a class="btn btn-amber" href="register.html">Anza Bure Sasa →</a>
+      <a class="btn btn-ghost" href="login.html">Login →</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© 2026 Daftari Plus. Mfumo wa biashara Tanzania.</p>
+    <ul class="footer-links">
+      <li><a href="login.html">Login</a></li>
+      <li><a href="register.html">Jisajili</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>
