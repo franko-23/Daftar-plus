@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftari Plus — Simamia Biashara Yako</title>
+<meta name="description" content="Daftari Plus ni mfumo wa kusimamia mauzo, stock, matumizi, madeni na ripoti za biashara.">
+<meta name="theme-color" content="#0757e8">
+<style>
+:root{--blue:#0757e8;--blue2:#0b6cff;--navy:#071a38;--text:#13213b;--muted:#61708b;--line:#e5eaf2;--bg:#f7f9fc;--card:#fff;--green:#16a56f}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);background:var(--bg);line-height:1.55}a{text-decoration:none;color:inherit}.wrap{max-width:1220px;margin:auto;padding:0 28px}
+.nav{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;position:sticky;top:0;z-index:10}.navin{display:flex;align-items:center;justify-content:space-between;width:100%}.logo{display:flex;gap:10px;align-items:center;font-size:20px;font-weight:800}.mark{width:34px;height:34px;border-radius:9px;background:var(--blue);color:white;display:grid;place-items:center;font-weight:900}.links{display:flex;gap:34px;color:#35445f;font-size:14px;font-weight:600}.actions{display:flex;gap:10px}.btn{border:1px solid var(--line);border-radius:8px;padding:11px 21px;font-weight:700;font-size:14px;background:#fff}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn:hover{transform:translateY(-1px)}
+.hero{padding:58px 0 42px;background:#fff}.hero-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:48px;align-items:center}.eyebrow{display:inline-block;color:var(--blue);background:#edf4ff;border:1px solid #d7e5ff;border-radius:30px;padding:6px 12px;font-size:12px;font-weight:800}.hero h1{font-size:clamp(38px,5vw,62px);line-height:1.04;margin:20px 0;color:var(--navy);letter-spacing:-1.5px}.hero h1 span{color:var(--blue)}.hero p{font-size:17px;color:var(--muted);max-width:570px}.hero-buttons{display:flex;gap:12px;margin:28px 0}.trust{display:flex;gap:28px;flex-wrap:wrap;font-size:12px;color:#52617a}.trust b{color:var(--navy)}
+.dashboard{background:#fff;border:1px solid #e1e7f0;border-radius:15px;box-shadow:0 25px 60px rgba(19,46,92,.14);padding:14px;display:grid;grid-template-columns:135px 1fr;gap:12px}.side{background:#f5f8fd;border-radius:10px;padding:14px}.side strong{display:block;margin-bottom:18px}.side div{padding:9px 8px;font-size:11px;color:#63718a}.side .sel{background:var(--blue);color:#fff;border-radius:6px}.main{min-width:0}.topcards{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.mini{border:1px solid var(--line);border-radius:8px;padding:10px}.mini small{display:block;color:#75829a;font-size:9px}.mini b{font-size:14px}.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.chart{border:1px solid var(--line);border-radius:9px;padding:12px;height:180px}.chart h4{font-size:11px;margin:0}.graph{height:125px;margin-top:8px;position:relative;background:repeating-linear-gradient(to bottom,transparent 0 29px,#edf1f6 30px)}.line{position:absolute;left:4%;right:4%;top:50%;height:55px;border-top:3px solid var(--blue);transform:skewY(-12deg)}.line.green{border-color:var(--green);top:57%;transform:skewY(8deg)}.dots{position:absolute;inset:0}.dots i{position:absolute;width:6px;height:6px;background:var(--blue);border-radius:50%}.dots i:nth-child(1){left:8%;top:68%}.dots i:nth-child(2){left:25%;top:52%}.dots i:nth-child(3){left:43%;top:58%}.dots i:nth-child(4){left:61%;top:38%}.dots i:nth-child(5){left:79%;top:45%}.dots i:nth-child(6){left:93%;top:22%}
+.strip{padding:24px 0;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.stripin{display:flex;justify-content:space-around;gap:20px;flex-wrap:wrap;color:#66758e;font-size:13px}
+.section{padding:64px 0}.section h2{text-align:center;font-size:30px;color:var(--navy);margin:0 0 10px}.lead{text-align:center;color:var(--muted);margin:0 auto 34px;max-width:650px}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.feature{background:#fff;border:1px solid var(--line);border-radius:12px;padding:23px}.icon{width:38px;height:38px;border-radius:10px;background:#edf4ff;color:var(--blue);display:grid;place-items:center;font-weight:900}.feature h3{font-size:16px;margin:14px 0 7px}.feature p{font-size:13px;color:var(--muted);margin:0}
+.analytics{background:var(--navy);color:#fff}.analytics-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:35px;align-items:center}.analytics h2{color:#fff;text-align:left}.analytics p{color:#bdc9dc}.bigchart{background:#0d2c55;border:1px solid #28466b;border-radius:13px;padding:18px;height:280px}.bars{height:205px;display:flex;align-items:end;gap:13px;border-bottom:1px solid #526a89;padding:0 15px}.bar{width:26px;background:#1871ff;border-radius:4px 4px 0 0}.bar.g{background:#18ad77}.bar:nth-child(1){height:45%}.bar:nth-child(2){height:63%}.bar:nth-child(3){height:52%}.bar:nth-child(4){height:75%}.bar:nth-child(5){height:67%}.bar:nth-child(6){height:87%}.bar:nth-child(7){height:72%}.bar:nth-child(8){height:94%}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.step{text-align:center}.step .icon{margin:auto}.step b{display:block;margin-top:12px}.step p{font-size:13px;color:var(--muted)}
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.price{background:#fff;border:1px solid var(--line);border-radius:13px;padding:26px}.price.featured{border:2px solid var(--blue);transform:translateY(-7px)}.price h3{margin:0}.amount{font-size:29px;font-weight:900;color:var(--navy);margin:14px 0}.price ul{padding-left:18px;color:var(--muted);font-size:13px}.price li{margin:8px 0}
+.cta{margin:0 0 55px;background:linear-gradient(120deg,#0757e8,#146cff);color:#fff;border-radius:14px;padding:40px;text-align:center}.cta h2{color:#fff;margin:0 0 8px}.cta p{color:#dce8ff}.cta .btn{margin:8px}
+footer{background:#06162f;color:#c9d3e4;padding:38px 0}.foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:30px}.foot h4{color:#fff;margin-top:0}.foot p,.foot a{font-size:12px;color:#aebbd0;display:block;margin:7px 0}
+@media(max-width:900px){.links{display:none}.hero-grid,.analytics-grid{grid-template-columns:1fr}.features{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:repeat(2,1fr)}.pricing{grid-template-columns:1fr}.topcards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.wrap{padding:0 17px}.hero{padding-top:38px}.dashboard{grid-template-columns:1fr}.side{display:none}.charts{grid-template-columns:1fr}.features{grid-template-columns:1fr}.hero-buttons{flex-direction:column}.hero-buttons .btn{text-align:center}.foot{grid-template-columns:1fr 1fr}.trust{gap:12px}}
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap navin">
+<a class="logo" href="#"><span class="mark">D+</span>Daftari Plus</a>
+<nav class="links"><a href="#features">Features</a><a href="#biashara">Kwa Biashara</a><a href="#bei">Bei</a><a href="#resources">Rasilimali</a><a href="#about">Kuhusu</a></nav>
+<div class="actions"><a class="btn" href="login.html">Login</a><a class="btn primary" href="register.html">Anza Bure</a></div>
+</div></header>
+
+<main>
+<section class="hero"><div class="wrap hero-grid">
+<div>
+<span class="eyebrow">MFUMO WA BIASHARA • TANZANIA</span>
+<h1>Simamia Biashara Yako<br>Kwa Urahisi na <span>Daftari Plus</span></h1>
+<p>Programu rahisi ya kusimamia mauzo, manunuzi, stock, madeni na ripoti — popote ulipo, kwenye simu, tablet au kompyuta.</p>
+<div class="hero-buttons"><a class="btn primary" href="register.html">Anza Bure Sasa →</a><a class="btn" href="#features">Tazama Features</a></div>
+<div class="trust"><span>✓ <b>Salama & Imehifadhiwa</b></span><span>☁ <b>Inapatikana Popote</b></span><span>◉ <b>Msaada wa Haraka</b></span></div>
+</div>
+<div class="dashboard">
+<div class="side"><strong>Daftari Plus</strong><div class="sel">Dashboard</div><div>Mauzo</div><div>Manunuzi</div><div>Bidhaa (Stock)</div><div>Wateja</div><div>Wasambazaji</div><div>Matumizi</div><div>Ripoti</div></div>
+<div class="main">
+<div class="topcards"><div class="mini"><small>Mauzo Leo</small><b>TZS 1,250,000</b></div><div class="mini"><small>Faida Leo</small><b>TZS 320,000</b></div><div class="mini"><small>Mauzo Mwezi</small><b>TZS 18.75M</b></div><div class="mini"><small>Bidhaa Zote</small><b>1,248</b></div></div>
+<div class="charts"><div class="chart"><h4>Mauzo (Sales)</h4><div class="graph"><div class="line"></div><div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div class="chart"><h4>Faida (Profit)</h4><div class="graph"><div class="line green"></div></div></div></div>
+</div></div>
+</div></section>
+
+<div class="strip"><div class="wrap stripin"><span>🏪 Maduka</span><span>🛒 Supermarket</span><span>☁ Viuo vya Urembo</span><span>⌂ Maghala</span><span>◫ Vifaa Vidogo</span><span>◉ Huduma</span><span>▣ Wafanyabiashara</span></div></div>
+
+<section class="section" id="features"><div class="wrap">
+<h2>Vipengele Vikuu vya Daftari Plus</h2><p class="lead">Yote unayohitaji kusimamia biashara yako kwa ufanisi.</p>
+<div class="features">
+<div class="feature"><div class="icon">▣</div><h3>Mauzo & Stock</h3><p>Fanya mauzo, fuatilia stock kwa wakati halisi na upate taarifa za bidhaa.</p></div>
+<div class="feature"><div class="icon">🛒</div><h3>Manunuzi</h3><p>Simamia manunuzi kutoka kwa wasambazaji na gharama zako za ununuzi.</p></div>
+<div class="feature"><div class="icon">👥</div><h3>Wateja & Wasambazaji</h3><p>Hifadhi taarifa na shughuli za wateja na wasambazaji wako.</p></div>
+<div class="feature"><div class="icon">▥</div><h3>Ripoti & Uchambuzi</h3><p>Pata ripoti za mauzo, faida, stock na utendaji wa biashara yako.</p></div>
+<div class="feature"><div class="icon">▤</div><h3>Matumizi</h3><p>Fuatilia matumizi yote ya biashara yako kwa uwazi.</p></div>
+<div class="feature"><div class="icon">↗</div><h3>Kufanya Kazi Popote</h3><p>Tumia kwenye simu, tablet au kompyuta popote ulipo.</p></div>
+</div></div></section>
+
+<section class="section analytics" id="biashara"><div class="wrap analytics-grid">
+<div><h2>Uchambuzi wa Mauzo na Faida</h2><p>Daftari Plus inakupa mwanga wa kina kuhusu biashara yako kupitia grafu na ripoti rahisi kusoma.</p><p>✓ Mauzo kwa siku, wiki, mwezi na mwaka<br>✓ Faida halisi na profit margin<br>✓ Bidhaa zinazouza zaidi<br>✓ Njia za malipo zinazotumika</p></div>
+<div class="bigchart"><b>Uchambuzi wa Mauzo na Faida</b><div class="bars"><span class="bar"></span><span class="bar g"></span><span class="bar"></span><span class="bar g"></span><span class="bar"></span><span class="bar g"></span><span class="bar"></span><span class="bar g"></span></div></div>
+</div></section>
+
+<section class="section" id="resources"><div class="wrap"><h2>Jinsi Daftari Plus Inavyofanya Kazi</h2><p class="lead">Anza kwa hatua chache na pata udhibiti wa biashara yako.</p>
+<div class="steps"><div class="step"><div class="icon">1</div><b>Jisajili</b><p>Fungua akaunti yako kwa dakika chache.</p></div><div class="step"><div class="icon">2</div><b>Sanidi Biashara</b><p>Weka taarifa za biashara na bidhaa.</p></div><div class="step"><div class="icon">3</div><b>Anza Kutumia</b><p>Fanya mauzo, manunuzi na matumizi.</p></div><div class="step"><div class="icon">4</div><b>Pata Mfanikio</b><p>Fuatilia ripoti na ukuaji wa biashara.</p></div></div></div></section>
+
+<section class="section" id="bei"><div class="wrap"><h2>Bei Rahisi, Thamani Kubwa</h2><p class="lead">Chagua mpango unaokufaa.</p>
+<div class="pricing">
+<div class="price"><h3>Basic</h3><div class="amount">TZS 20,000 <small>/ mwezi</small></div><p>Inafaa kwa biashara ndogo na za mwanzo.</p><ul><li>Mauzo & Stock</li><li>Matumizi</li><li>Ripoti za msingi</li></ul><a class="btn primary" href="register.html">Anza</a></div>
+<div class="price featured"><h3>Standard</h3><div class="amount">TZS 40,000 <small>/ mwezi</small></div><p>Inafaa kwa biashara zinazokua.</p><ul><li>Vipengele vyote vya Basic</li><li>Wafanyakazi</li><li>Analytics za mauzo & faida</li></ul><a class="btn primary" href="register.html">Anza</a></div>
+<div class="price"><h3>Premium</h3><div class="amount">TZS 80,000 <small>/ mwezi</small></div><p>Inafaa kwa biashara kubwa.</p><ul><li>Vipengele vyote</li><li>Performance ya wafanyakazi</li><li>Reports za kina</li></ul><a class="btn primary" href="register.html">Anza</a></div>
+</div></div></section>
+
+<section class="wrap"><div class="cta" id="about"><h2>Anza Safari Yako ya Mfanikio na Daftari Plus</h2><p>Jiunge na wafanyabiashara wanaosimamia biashara zao kwa ufanisi.</p><a class="btn" href="register.html">Anza Bure Sasa →</a><a class="btn" href="login.html">Wasiliana Nasi →</a></div></section>
+</main>
+
+<footer><div class="wrap foot">
+<div><h4>Daftari Plus</h4><p>Programu rahisi ya kusimamia biashara yako kwa mafanikio.</p></div>
+<div><h4>Bidhaa</h4><a href="#features">Vipengele</a><a href="#bei">Bei</a><a href="register.html">Demo</a></div>
+<div><h4>Rasilimali</h4><a href="#biashara">Msaada</a><a href="#resources">Miongozo</a><a href="#">Blog</a></div>
+<div><h4>Kampuni</h4><a href="#about">Kuhusu Sisi</a><a href="#">Maahari</a><a href="#">Faragha</a></div>
+</div></footer>
+</body>
+</html>
