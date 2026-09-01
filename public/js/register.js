@@ -1,14 +1,30 @@
-const f=document.getElementById('f'),msg=document.getElementById('msg'),bn=document.getElementById('businessName'),bc=document.getElementById('businessCode');
+const f=document.getElementById('f'),msg=document.getElementById('msg');
+const bn=document.getElementById('businessName'),bl=document.getElementById('businessLocation'),bc=document.getElementById('businessCode');
+const adminFields=document.getElementById('adminFields'),salerFields=document.getElementById('salerFields');
+
 document.querySelectorAll('input[name=role]').forEach(r=>r.onchange=()=>{
   const admin=document.querySelector('input[name=role]:checked').value==='admin';
-  bn.style.display=admin?'block':'none';bn.required=admin;
-  bc.style.display=admin?'none':'block';bc.required=!admin;
+  adminFields.style.display=admin?'block':'none';
+  salerFields.style.display=admin?'none':'block';
+  bn.required=admin; bl.required=admin;
+  bc.required=!admin;
 });
+
 f.onsubmit=async e=>{
   e.preventDefault();
+  msg.className=''; msg.textContent='';
   try{
     const role=document.querySelector('input[name=role]:checked').value;
-    const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName:fullName.value,businessName:bn.value,businessCode:bc.value,email:email.value,password:password.value,role})});
+    const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      fullName:fullName.value,
+      phone:phone.value,
+      businessName:bn.value,
+      businessLocation:bl.value,
+      businessCode:bc.value,
+      email:email.value,
+      password:password.value,
+      role
+    })});
     const d=await r.json();
     if(!r.ok)throw Error(d.error);
     localStorage.setItem('daftari_token',d.token);
