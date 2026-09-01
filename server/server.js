@@ -10,12 +10,14 @@ CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY AUTOINCREMENT,busines
 CREATE TABLE IF NOT EXISTS sales(id INTEGER PRIMARY KEY AUTOINCREMENT,business_id INTEGER NOT NULL,product_id INTEGER NOT NULL,product_name TEXT NOT NULL,quantity INTEGER NOT NULL,sell_price REAL NOT NULL,buy_price REAL NOT NULL,total REAL NOT NULL,sold_by INTEGER NOT NULL,sold_by_name TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT(datetime('now')));
 CREATE TABLE IF NOT EXISTS expenses(id INTEGER PRIMARY KEY AUTOINCREMENT,business_id INTEGER NOT NULL,description TEXT NOT NULL,amount REAL NOT NULL,created_by INTEGER NOT NULL,created_by_name TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT(datetime('now')));
 CREATE TABLE IF NOT EXISTS debts(id INTEGER PRIMARY KEY AUTOINCREMENT,business_id INTEGER NOT NULL,person_name TEXT NOT NULL,description TEXT,amount REAL NOT NULL,status TEXT NOT NULL DEFAULT 'unpaid',created_by INTEGER NOT NULL,created_by_name TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT(datetime('now')));`);
+try { db.exec("ALTER TABLE users ADD COLUMN phone TEXT"); } catch {}
+try { db.exec("ALTER TABLE businesses ADD COLUMN location TEXT"); } catch {}
 function hash(p){const s=crypto.randomBytes(16).toString('hex');return s+':'+crypto.scryptSync(p,s,64).toString('hex')}
 function verify(p,x){try{const [s,h]=x.split(':');const c=crypto.scryptSync(p,s,64);return crypto.timingSafeEqual(Buffer.from(h,'hex'),c)}catch{return false}}
 function code(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let a=0;a<30;a++){let x='';for(let i=0;i<6;i++)x+=c[crypto.randomInt(c.length)];if(!db.prepare('SELECT 1 FROM businesses WHERE code=?').get(x))return x}throw Error('code')}
 function seedOwner(){const email=(process.env.SUPER_ADMIN_EMAIL||'owner@daftariplus.com').trim().toLowerCase(),pw=process.env.SUPER_ADMIN_PASSWORD||'DaftariPlus@2026';let u=db.prepare("SELECT id FROM users WHERE email=? AND role='super_admin'").get(email);if(!u){db.prepare('INSERT INTO users(full_name,business_id,email,password_hash,role) VALUES(?,?,?,?,?)').run('Daftari Plus Owner',0,email,hash(pw),'super_admin')}}seedOwner();
 function token(uid){const t=crypto.randomBytes(32).toString('hex'),e=new Date(Date.now()+1000*60*60*24*30).toISOString();db.prepare('INSERT INTO sessions VALUES(?,?,?,datetime(\'now\'))').run(t,uid,e);return t}
-function user(req){const h=req.headers.authorization||'',m=h.match(/^Bearer (.+)$/);if(!m)return null;const s=db.prepare('SELECT * FROM sessions WHERE token=?').get(m[1]);if(!s||new Date(s.expires_at)<new Date()){if(s)db.prepare('DELETE FROM sessions WHERE token=?').run(m[1]);return null}return db.prepare('SELECT id,full_name,business_id,email,role FROM users WHERE id=?').get(s.user_id)}
+function user(req){const h=req.headers.authorization||'',m=h.match(/^Bearer (.+)$/);if(!m)return null;const s=db.prepare('SELECT * FROM sessions WHERE token=?').get(m[1]);if(!s||new Date(s.expires_at)<new Date()){if(s)db.prepare('DELETE FROM sessions WHERE token=?').run(m[1]);return null}return db.prepare('SELECT id,full_name,phone,business_id,email,role FROM users WHERE id=?').get(s.user_id)}
 function auth(req,res,role){const u=user(req);if(!u){json(res,401,{error:'Haujaingia.'});return null}if(role&&u.role!==role){json(res,403,{error:'Ruhusa haitoshi.'});return null}return u}
 function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization','Access-Control-Allow-Methods':'GET,POST,PUT,OPTIONS'});res.end(JSON.stringify(data))}
 function body(req){return new Promise((ok,bad)=>{let d='';req.on('data',c=>{d+=c;if(d.length>2e6)req.destroy()});req.on('end',()=>{try{ok(d?JSON.parse(d):{})}catch(e){bad(e)}});req.on('error',bad)})}
@@ -29,20 +31,23 @@ function superUsers(req,res){const u=auth(req,res,'super_admin');if(!u)return;js
 function superPerf(req,res){const u=auth(req,res,'super_admin');if(!u)return;json(res,200,{performance:db.prepare(`SELECT b.id,b.name,b.status,COUNT(s.id) sales,COALESCE(SUM(s.total),0) revenue,COALESCE(SUM((s.sell_price-s.buy_price)*s.quantity),0) gross_profit,(SELECT COALESCE(SUM(amount),0) FROM expenses e WHERE e.business_id=b.id) expenses FROM businesses b LEFT JOIN sales s ON s.business_id=b.id GROUP BY b.id ORDER BY revenue DESC`).all()})}
 function serve(req,res){let p=req.url.split('?')[0];if(p==='/')p='/index.html';const fp=path.join(ROOT,'public',p);if(!fp.startsWith(path.join(ROOT,'public')))return res.writeHead(403).end();fs.readFile(fp,(e,c)=>{if(e)return res.writeHead(404).end('Not found');const ext=path.extname(fp),m={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'};res.writeHead(200,{'Content-Type':m[ext]||'application/octet-stream'});res.end(c)})}
 async function api(req,res){const p=req.url.split('?')[0],method=req.method;if(method==='OPTIONS')return json(res,204,{});
-if(p==='/api/login'&&method==='POST'){const x=await body(req);const e=(x.email||'').trim().toLowerCase(),pw=x.password||'',u=db.prepare('SELECT * FROM users WHERE email=?').get(e);if(!u||!verify(pw,u.password_hash))return json(res,401,{error:'Email au password si sahihi.'});if(u.role!=='super_admin'&&db.prepare('SELECT status FROM businesses WHERE id=?').get(u.business_id)?.status==='suspended')return json(res,403,{error:'Biashara imesimamishwa.'});return json(res,200,{token:token(u.id),user:{id:u.id,full_name:u.full_name,email:u.email,role:u.role,business_id:u.business_id}})}
+if(p==='/api/login'&&method==='POST'){const x=await body(req);const e=(x.email||'').trim().toLowerCase(),pw=x.password||'',u=db.prepare('SELECT * FROM users WHERE email=?').get(e);if(!u||!verify(pw,u.password_hash))return json(res,401,{error:'Email au password si sahihi.'});if(u.role!=='super_admin'&&db.prepare('SELECT status FROM businesses WHERE id=?').get(u.business_id)?.status==='suspended')return json(res,403,{error:'Biashara imesimamishwa.'});return json(res,200,{token:token(u.id),user:{id:u.id,full_name:u.full_name,phone:u.phone,email:u.email,role:u.role,business_id:u.business_id}})}
 if(p==='/api/register'&&method==='POST'){
   const x=await body(req),
         name=(x.fullName||'').trim(),
+        phone=(x.phone||'').trim(),
         email=(x.email||'').trim().toLowerCase(),
         pw=x.password||'',
         role=x.role==='saler'?'saler':'admin';
-  if(!name||!email||pw.length<8)return json(res,400,{error:'Jina, email na password (min 8) vinahitajika.'});
+  if(!name||!phone||!email||pw.length<8)return json(res,400,{error:'Jina, namba ya simu, email na password (min 8) vinahitajika.'});
   if(db.prepare('SELECT id FROM users WHERE email=?').get(email))return json(res,409,{error:'Email hii tayari imesajiliwa.'});
   let bid;
   if(role==='admin'){
     const bn=(x.businessName||'').trim();
+    const bloc=(x.businessLocation||'').trim();
     if(!bn)return json(res,400,{error:'Jina la biashara linahitajika.'});
-    const c=code(),br=db.prepare('INSERT INTO businesses(name,code) VALUES(?,?)').run(bn,c);
+    if(!bloc)return json(res,400,{error:'Mahali biashara ilipo panahitajika.'});
+    const c=code(),br=db.prepare('INSERT INTO businesses(name,code,location) VALUES(?,?,?)').run(bn,c,bloc);
     bid=Number(br.lastInsertRowid);
   }else{
     const bc=(x.businessCode||'').trim().toUpperCase();
@@ -52,13 +57,13 @@ if(p==='/api/register'&&method==='POST'){
     if(biz.status==='suspended')return json(res,403,{error:'Biashara hii imesimamishwa.'});
     bid=biz.id;
   }
-  const ur=db.prepare('INSERT INTO users(full_name,business_id,email,password_hash,role) VALUES(?,?,?,?,?)').run(name,bid,email,hash(pw),role);
+  const ur=db.prepare('INSERT INTO users(full_name,phone,business_id,email,password_hash,role) VALUES(?,?,?,?,?,?)').run(name,phone,bid,email,hash(pw),role);
   const uid=Number(ur.lastInsertRowid);
   if(role==='admin')db.prepare('UPDATE businesses SET owner_id=? WHERE id=?').run(uid,bid);
-  const biz2=db.prepare('SELECT name,code FROM businesses WHERE id=?').get(bid);
-  return json(res,201,{token:token(uid),user:{id:uid,full_name:name,email,role,business_id:bid},business:biz2});
+  const biz2=db.prepare('SELECT name,code,location FROM businesses WHERE id=?').get(bid);
+  return json(res,201,{token:token(uid),user:{id:uid,full_name:name,phone,email,role,business_id:bid},business:biz2});
 }
-if(p==='/api/me'){const u=auth(req,res);if(!u)return;return json(res,200,{user:u,business:u.role==='super_admin'?null:db.prepare('SELECT name,code,status FROM businesses WHERE id=?').get(u.business_id)})}
+if(p==='/api/me'){const u=auth(req,res);if(!u)return;return json(res,200,{user:u,business:u.role==='super_admin'?null:db.prepare('SELECT name,code,status,location FROM businesses WHERE id=?').get(u.business_id)})}
 if(p==='/api/logout'){const h=req.headers.authorization||'',m=h.match(/^Bearer (.+)$/);if(m)db.prepare('DELETE FROM sessions WHERE token=?').run(m[1]);return json(res,200,{ok:true})}
 if(p==='/api/dashboard')return dashboard(req,res);if(p==='/api/reports')return reports(req,res);
 if(p==='/api/products'&&method==='GET'){const u=auth(req,res);if(!u)return;return json(res,200,{products:db.prepare('SELECT id,name,sell_price,quantity,buy_price FROM products WHERE business_id=? ORDER BY name').all(u.business_id)})}
@@ -74,3 +79,4 @@ if(p==='/api/super/businesses')return superBusinesses(req,res);if(p==='/api/supe
 m=p.match(/^\/api\/super\/businesses\/(\d+)\/(suspend|activate)$/);if(m&&method==='PUT'){const u=auth(req,res,'super_admin');if(!u)return;db.prepare('UPDATE businesses SET status=? WHERE id=?').run(m[2]==='suspend'?'suspended':'active',Number(m[1]));return json(res,200,{ok:true})}
 return json(res,404,{error:'Not found'})}
 http.createServer((req,res)=>{if(req.url.startsWith('/api/'))api(req,res).catch(e=>json(res,500,{error:e.message}));else serve(req,res)}).listen(PORT,()=>console.log(`Daftari Plus SaaS: http://localhost:${PORT}`));
+
