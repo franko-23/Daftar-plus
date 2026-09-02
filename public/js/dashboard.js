@@ -54,8 +54,26 @@ async function loadReport(){
   if(to.value)z.set('to',to.value);
   const d=await api('/api/reports?'+z);
   const s=d.summary;
-  const max=Math.max(...d.sales.map(x=>x.total),1);
-  r.innerHTML=`<div class="grid"><div class="stat"><small>Mauzo</small><strong>${money(s.revenue)}</strong></div><div class="stat"><small>Gross Profit</small><strong>${money(s.grossProfit)}</strong></div><div class="stat"><small>Matumizi</small><strong>${money(s.expenses)}</strong></div><div class="stat"><small>Faida Halisi</small><strong>${money(s.profit)}</strong></div><div class="stat"><small>Profit Margin</small><strong>${s.margin.toFixed(1)}%</strong></div></div><h3>Sales line</h3><div class="linechart">${d.sales.slice(-20).map(x=>`<div style="height:${Math.max(4,x.total/max*220)}px;width:${Math.max(3,90/d.sales.slice(-20).length)}%;display:inline-block;margin-right:4px;background:#0757e8" title="${money(x.total)}"></div>`).join('')}</div>`;
+
+  const byDay={};
+  d.sales.forEach(x=>{
+    const day=x.created_at.slice(0,10);
+    byDay[day]=(byDay[day]||0)+x.total;
+  });
+  const days=Object.keys(byDay).sort();
+  const maxDay=Math.max(...days.map(k=>byDay[k]),1);
+
+  const bars=days.map(day=>{
+    const val=byDay[day];
+    const h=Math.max(4,Math.round(val/maxDay*190));
+    const lbl=new Date(day+'T00:00:00Z').toLocaleDateString('sw-TZ',{day:'2-digit',month:'short'});
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:0 0 auto">
+      <div style="height:${h}px;width:22px;background:#0757e8;border-radius:4px 4px 0 0" title="${lbl}: ${money(val)}"></div>
+      <small style="font-size:9px;color:#8592a8;white-space:nowrap">${lbl}</small>
+    </div>`;
+  }).join('');
+
+  r.innerHTML=`<div class="grid"><div class="stat"><small>Mauzo</small><strong>${money(s.revenue)}</strong></div><div class="stat"><small>Gross Profit</small><strong>${money(s.grossProfit)}</strong></div><div class="stat"><small>Matumizi</small><strong>${money(s.expenses)}</strong></div><div class="stat"><small>Faida Halisi</small><strong>${money(s.profit)}</strong></div><div class="stat"><small>Profit Margin</small><strong>${s.margin.toFixed(1)}%</strong></div></div><h3>Mwenendo wa Mauzo kwa Siku</h3><div class="linechart" style="display:flex;align-items:end;gap:10px;overflow-x:auto;padding:16px 12px 10px">${days.length?bars:'<span class="muted" style="font-size:13px">Hakuna mauzo kwa kipindi hiki.</span>'}</div>`;
 }
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>render(b.dataset.p));
