@@ -1,0 +1,1 @@
+{"name":"daftari-plus-saas","version":"7.2.0","private":true,"scripts":{"start":"node server/server.js"},"engines":{"node":">=22.5.0"}}
