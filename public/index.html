@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftari Plus — Endesha Biashara Yako Kitaalamu</title>
+<meta name="description" content="Daftari Plus ni mfumo kamili wa kusimamia mauzo, stock, matumizi na ripoti za biashara kwa wafanyabiashara wa Tanzania.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#181254;
+    --bg-2:#241D6B;
+    --panel:#231C5E;
+    --panel-brd:#3A2F8C;
+    --text:#F3F1FF;
+    --text-dim:#B9B3E0;
+    --text-faint:#867FB8;
+    --purple:#8B7CF6;
+    --purple-2:#6C5CE7;
+    --mint:#3DDC97;
+    --amber:#F5B948;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 700px at 20% -10%, #2C2380 0%, var(--bg-1) 55%) fixed, var(--bg-1);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Poppins',sans-serif; font-weight:600; margin:0; color:var(--text); letter-spacing:-0.01em;}
+  .mono{font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 24px;}
+  img,svg{display:block; max-width:100%;}
+
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:12px 22px; border-radius:100px; font-weight:700; font-size:14px; border:1.5px solid transparent; cursor:pointer; font-family:'Poppins',sans-serif; white-space:nowrap;}
+  .btn-white{background:var(--text); color:#181254;}
+  .btn-white:hover{background:#fff;}
+  .btn-outline{border-color:rgba(243,241,255,.25); color:var(--text); background:rgba(255,255,255,.04);}
+  .btn-outline:hover{border-color:rgba(243,241,255,.5);}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(24,18,84,.7); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.08);}
+  nav{display:flex; align-items:center; justify-content:space-between; padding:18px 24px; max-width:1140px; margin:0 auto;}
+  .brand{display:flex; align-items:center; gap:11px; font-family:'Poppins',sans-serif; font-weight:600; font-size:20px;}
+  .brand .plus{color:var(--purple);}
+  .brand-mark{
+    width:38px; height:38px; border-radius:11px;
+    background:linear-gradient(140deg,var(--purple),var(--purple-2));
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .brand-mark svg{width:19px; height:19px; stroke:#fff; fill:none; stroke-width:1.8;}
+  .nav-links{display:flex; gap:30px; font-size:14.5px; font-weight:600;}
+  .nav-links a{color:var(--text-dim);}
+  .nav-links a:hover{color:var(--text);}
+  .nav-actions{display:flex; align-items:center; gap:10px;}
+  .nav-login{font-weight:700; font-size:14.5px; color:var(--text-dim);}
+  .nav-toggle{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .nav-toggle span{width:20px; height:2px; background:var(--text);}
+
+  .hero{position:relative; padding:80px 0 60px; text-align:center; overflow:hidden;}
+  .hero::before{
+    content:""; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size:56px 56px;
+    mask-image:radial-gradient(circle at 50% 0%, black, transparent 70%);
+    pointer-events:none;
+  }
+  .hero-inner{position:relative; z-index:1; max-width:820px; margin:0 auto;}
+  .badge{
+    display:inline-flex; align-items:center; gap:9px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+    border-radius:100px; padding:9px 20px; font-size:13.5px; font-weight:600;
+    color:var(--text-dim); margin-bottom:28px;
+  }
+  .badge svg{width:15px; height:15px; stroke:var(--amber); fill:none;}
+  .hero h1{font-size:50px; line-height:1.1; margin-bottom:24px;}
+  .hero h1 .accent{color:var(--purple);}
+  .hero p.lede{font-size:17.5px; color:var(--text-dim); max-width:52ch; margin:0 auto 36px;}
+  .hero-ctas{display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:34px;}
+  .btn-white svg{width:16px; height:16px; stroke:#181254; fill:none; stroke-width:2.4;}
+  .btn-outline svg{width:14px; height:14px; fill:var(--text);}
+  .trust-row{display:flex; justify-content:center; gap:30px; flex-wrap:wrap; font-size:13.5px; color:var(--text-faint); font-weight:600;}
+  .trust-row span{display:flex; align-items:center; gap:7px;}
+  .trust-row svg{width:16px; height:16px; stroke:var(--mint); fill:none; stroke-width:1.8;}
+
+  .preview-card{
+    position:relative; z-index:1; max-width:960px; margin:0 auto; margin-top:12px;
+    background:var(--panel); border:1px solid var(--panel-brd); border-radius:20px;
+    padding:22px; box-shadow:0 40px 100px -30px rgba(10,6,50,.6);
+  }
+  .preview-top{display:flex; gap:7px; padding:4px 6px 16px;}
+  .preview-top i{width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.15);}
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:0 6px 18px;}
+  .stat-box{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px;}
+  .stat-box .l{font-size:12px; color:var(--text-faint);}
+  .stat-box .v{font-family:'JetBrains Mono',monospace; font-weight:600; font-size:18px; margin-top:4px;}
+  .stat-box .v.mint{color:var(--mint);}
+  .stat-box .v.amber{color:var(--amber);}
+  .preview-bars{display:flex; align-items:flex-end; gap:8px; height:110px; padding:0 6px 6px;}
+  .preview-bars i{flex:1; border-radius:4px 4px 0 0; background:rgba(255,255,255,.08);}
+  .preview-bars i.hi{background:linear-gradient(180deg,var(--purple),var(--purple-2));}
+
+  section{padding:100px 0; position:relative;}
+  .section-head{max-width:60ch; margin:0 auto 52px; text-align:center;}
+  .eyebrow{font-size:13.5px; color:var(--purple); font-weight:700; margin-bottom:14px;}
+  .section-head h2{font-size:34px; margin-bottom:14px;}
+  .section-head p{color:var(--text-dim); font-size:16px;}
+
+  .feat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  .feat-card{background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:28px; transition:border-color .2s ease, transform .2s ease;}
+  .feat-card:hover{border-color:var(--purple); transform:translateY(-3px);}
+  .feat-card .ic{width:44px; height:44px; border-radius:12px; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
+  .feat-card .ic svg{width:22px; height:22px; stroke:#fff; fill:none; stroke-width:1.7;}
+  .feat-card h3{font-size:17px; margin-bottom:8px;}
+  .feat-card p{color:var(--text-dim); font-size:14.5px; margin:0;}
+
+  .steps-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
+  .step{background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:26px;}
+  .step .num{width:36px; height:36px; border-radius:10px; background:rgba(139,124,246,.16); color:var(--purple); font-family:'JetBrains Mono',monospace; font-weight:600; display:flex; align-items:center; justify-content:center; margin-bottom:16px;}
+  .step h4{font-size:17px; margin-bottom:6px;}
+  .step p{color:var(--text-dim); font-size:14px; margin:0;}
+
+  .pricing-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .plan{background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:32px 26px; position:relative;}
+  .plan.featured{border-color:var(--purple); background:linear-gradient(180deg, rgba(139,124,246,.14), var(--panel) 45%);}
+  .stamp{position:absolute; top:-14px; left:26px; background:linear-gradient(140deg,var(--purple),var(--purple-2)); color:#fff; font-size:11.5px; font-weight:700; padding:7px 16px; border-radius:100px; font-family:'Poppins',sans-serif;}
+  .plan-name{font-size:19px; margin-bottom:6px;}
+  .plan-desc{font-size:13.5px; color:var(--text-faint); margin-bottom:24px; font-family:'Inter',sans-serif; font-weight:400;}
+  .price{display:flex; align-items:baseline; gap:6px; margin-bottom:26px;}
+  .price .amt{font-family:'JetBrains Mono',monospace; font-size:27px; font-weight:600;}
+  .price .per{font-size:13px; color:var(--text-faint);}
+  .plan ul{list-style:none; margin:0 0 28px; padding:0; display:flex; flex-direction:column; gap:12px;}
+  .plan ul li{display:flex; gap:9px; font-size:14px; color:var(--text-dim);}
+  .plan ul li svg{width:16px; height:16px; stroke:var(--mint); flex-shrink:0; margin-top:2px;}
+  .plan .btn{width:100%; justify-content:center;}
+
+  .testi-flag{display:inline-block; font-size:12.5px; color:var(--text-faint); background:var(--panel); border:1px solid rgba(255,255,255,.1); padding:7px 14px; border-radius:100px; margin-bottom:12px;}
+  .testi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  .testi-card{background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:26px;}
+  .testi-card p{font-size:14.5px; color:var(--text-dim); margin-bottom:20px; font-family:'Inter',sans-serif;}
+  .testi-who{display:flex; align-items:center; gap:10px;}
+  .testi-avatar{width:34px; height:34px; border-radius:50%; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; font-family:'Poppins',sans-serif;}
+  .testi-who .biz{font-size:12.5px; color:var(--text-faint); font-weight:400;}
+
+  .final-cta{text-align:center;}
+  .final-cta-box{background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:64px 40px;}
+  .final-cta h2{font-size:32px; margin-bottom:14px;}
+  .final-cta p{color:var(--text-dim); max-width:46ch; margin:0 auto 30px; font-family:'Inter',sans-serif; font-weight:400;}
+  .final-cta-ctas{display:flex; justify-content:center; gap:16px; flex-wrap:wrap;}
+
+  footer{padding:60px 0 30px; border-top:1px solid rgba(255,255,255,.08); color:var(--text-faint); font-size:14px;}
+  .footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:36px; padding-bottom:36px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:24px;}
+  .footer-brand p{margin-top:14px; max-width:32ch;}
+  .footer-col h5{color:var(--text); font-family:'Poppins',sans-serif; font-size:14px; margin-bottom:14px;}
+  .footer-col ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .footer-col a:hover{color:var(--text);}
+  .footer-bottom{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:13px;}
+
+  @media (max-width: 880px){
+    .nav-links{display:none;}
+    .nav-toggle{display:flex;}
+    .nav-ingia{display:none;}
+    .brand{font-size:16px;}
+    .brand-mark{width:30px; height:30px;}
+    .hero h1{font-size:34px;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .feat-grid, .steps-grid, .pricing-grid, .testi-grid{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .final-cta-box{padding:44px 24px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="#" class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>Daftari<span class="plus">+</span></a>
+    <div class="nav-links">
+      <a href="#features">Vipengele</a>
+      <a href="#jinsi">Jinsi Inavyofanya Kazi</a>
+      <a href="#bei">Bei</a>
+      <a href="#maoni">Maoni</a>
+      <a href="/login.html">Ingia</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/register.html" class="btn btn-white" style="padding:10px 20px; font-size:13.5px;">Anza Bure</a>
+    </div>
+    <button class="nav-toggle" aria-label="menu"><span></span><span></span><span></span></button>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="badge"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>Mfumo mpya wa kusimamia biashara — Tanzania</div>
+    <h1>Endesha Biashara Yako <span class="accent">Kitaalamu Zaidi</span></h1>
+    <p class="lede">Mfumo kamili wa biashara kwa wafanyabiashara wadogo na wa kati Tanzania. Fuatilia mauzo, simamia stock, shughulikia matumizi na madeni — rahisi, kwa simu yako.</p>
+    <div class="hero-ctas">
+      <a href="/register.html" class="btn btn-white">Anza Bure — Hauhitaji Kadi<svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#jinsi" class="btn btn-outline"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Tazama Demo</a>
+    </div>
+    <div class="trust-row">
+      <span><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>Salama &amp; Imehifadhiwa</span>
+      <span><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>Usanidi Dakika 2</span>
+      <span><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Msaada wa Kiswahili</span>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="preview-card">
+      <div class="preview-top"><i></i><i></i><i></i></div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="l">Mauzo Leo</div><div class="v mint mono">1,250,000</div></div>
+        <div class="stat-box"><div class="l">Faida Leo</div><div class="v mint mono">320,000</div></div>
+        <div class="stat-box"><div class="l">Madeni Wazi</div><div class="v amber mono">96,000</div></div>
+        <div class="stat-box"><div class="l">Bidhaa Zote</div><div class="v mono">1,248</div></div>
+      </div>
+      <div class="preview-bars">
+        <i style="height:30%"></i><i style="height:48%"></i><i style="height:38%" class="hi"></i>
+        <i style="height:62%"></i><i style="height:44%"></i><i style="height:78%" class="hi"></i>
+        <i style="height:56%"></i><i style="height:85%" class="hi"></i><i style="height:66%"></i><i style="height:50%"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">VIPENGELE</div>
+      <h2>Kila kitu unachohitaji, mahali pamoja</h2>
+      <p>Kuanzia duka moja hadi matawi kadhaa — Daftari Plus inakua pamoja na biashara yako.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 15h18M9 3v18"/></svg></div>
+        <h3>Mauzo &amp; Stock</h3>
+        <p>Fanya mauzo dukani, stock inapungua yenyewe, pata onyo kabla haijaisha.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l1.5 4h9L18 2M4 8h16l-1.5 12h-13z"/></svg></div>
+        <h3>Manunuzi</h3>
+        <p>Rekodi ununuzi kutoka kwa wasambazaji na jua gharama halisi ya kila bidhaa.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.4 6.5 6"/></svg></div>
+        <h3>Wateja &amp; Wasambazaji</h3>
+        <p>Hifadhi mawasiliano na madeni ya kila mteja mahali pamoja.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 3 4-6"/></svg></div>
+        <h3>Ripoti &amp; Uchambuzi</h3>
+        <p>Ona mauzo, faida na bidhaa zinazouza zaidi kwa muda wowote.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16"/></svg></div>
+        <h3>Matumizi</h3>
+        <p>Fuatilia kila shilingi inayotoka kwa uwazi kamili.</p>
+      </div>
+      <div class="feat-card">
+        <div class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 18h.01"/></svg></div>
+        <h3>Kufanya Kazi Popote</h3>
+        <p>Simu, tablet au kompyuta — data yako iko salama na sawa popote.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="jinsi">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">JINSI INAVYOFANYA KAZI</div>
+      <h2>Tayari kufanya kazi ndani ya dakika chache</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step"><div class="num mono">01</div><h4>Jisajili</h4><p>Fungua akaunti bure, bila kadi ya benki.</p></div>
+      <div class="step"><div class="num mono">02</div><h4>Sanidi Biashara</h4><p>Ongeza bidhaa, bei, na wafanyakazi wako.</p></div>
+      <div class="step"><div class="num mono">03</div><h4>Anza Kutumia</h4><p>Fanya mauzo, manunuzi na matumizi kila siku.</p></div>
+      <div class="step"><div class="num mono">04</div><h4>Fuatilia Ukuaji</h4><p>Soma ripoti na fanya maamuzi kwa data halisi.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="bei">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">BEI</div>
+      <h2>Bei rahisi, thamani kubwa</h2>
+      <p>Chagua mpango unaolingana na ukubwa wa biashara yako.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Basic</div>
+        <div class="plan-desc">Kwa biashara ndogo na za mwanzo.</div>
+        <div class="price"><span class="amt mono">20,000</span><span class="per">TZS / mwezi</span></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Mauzo &amp; Stock</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Matumizi</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Ripoti za msingi</li>
+        </ul>
+        <a href="/register.html" class="btn btn-outline">Anza na Basic</a>
+      </div>
+      <div class="plan featured">
+        <div class="stamp">MAARUFU ZAIDI</div>
+        <div class="plan-name">Standard</div>
+        <div class="plan-desc">Kwa biashara zinazokua.</div>
+        <div class="price"><span class="amt mono">40,000</span><span class="per">TZS / mwezi</span></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Vyote vya Basic</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Usimamizi wa Wafanyakazi</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Analytics za mauzo &amp; faida</li>
+        </ul>
+        <a href="/register.html" class="btn btn-white">Anza na Standard</a>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Premium</div>
+        <div class="plan-desc">Kwa biashara kubwa na matawi.</div>
+        <div class="price"><span class="amt mono">80,000</span><span class="per">TZS / mwezi</span></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Vyote vya Standard</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Performance ya wafanyakazi</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Ripoti za kina</li>
+        </ul>
+        <a href="/register.html" class="btn btn-outline">Anza na Premium</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="maoni">
+  <div class="wrap" style="text-align:center;">
+    <span class="testi-flag">Mfano wa maoni — badilisha na maoni halisi kabla ya kuchapisha</span>
+    <div class="section-head">
+      <div class="eyebrow">WANAOTUAMINI</div>
+      <h2>Biashara zinazotumia Daftari Plus</h2>
+    </div>
+    <div class="testi-grid" style="text-align:left;">
+      <div class="testi-card">
+        <p>"Sasa najua kila jioni faida yangu kiasi gani, bila kukaa saa moja kuhesabu kwa mkono."</p>
+        <div class="testi-who"><div class="testi-avatar">MJ</div><div><div>Mwl. Juma</div><div class="biz">Duka la Mchele, Dodoma</div></div></div>
+      </div>
+      <div class="testi-card">
+        <p>"Madeni ya wateja hayapotei tena. Nafuatilia kila mtu anayedaiwa kwa urahisi."</p>
+        <div class="testi-who"><div class="testi-avatar">AS</div><div><div>Amina S.</div><div class="biz">Saluni ya Urembo, Mwanza</div></div></div>
+      </div>
+      <div class="testi-card">
+        <p>"Stock inaonekana wazi kwenye simu yangu — sihitaji tena kupiga simu dukani kuuliza."</p>
+        <div class="testi-who"><div class="testi-avatar">RK</div><div><div>Rashid K.</div><div class="biz">Supermarket, Arusha</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap">
+    <div class="final-cta-box">
+      <h2>Anza kusimamia biashara yako leo</h2>
+      <p>Jiunge na wafanyabiashara wanaotumia Daftari Plus kuondoa usumbufu wa madaftari ya mkono.</p>
+      <div class="final-cta-ctas">
+        <a href="/register.html" class="btn btn-white">Anza Bure Sasa<svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="https://wa.me/255700000000" class="btn btn-outline">Wasiliana WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>Daftari<span class="plus">+</span></a>
+        <p>Mfumo kamili wa kusimamia mauzo, stock, matumizi na ripoti za biashara yako.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Bidhaa</h5>
+        <ul><li><a href="#features">Vipengele</a></li><li><a href="#bei">Bei</a></li><li><a href="/register.html">Anza Bure</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h5>Msaada</h5>
+        <ul><li><a href="https://wa.me/255700000000">WhatsApp</a></li><li><a href="tel:+255700000000">+255 700 000 000</a></li><li><a href="mailto:msaada@daftariplus.store">msaada@daftariplus.store</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h5>Kampuni</h5>
+        <ul><li><a href="#">Kuhusu Sisi</a></li><li><a href="#">Sera ya Faragha</a></li><li><a href="#">Vigezo vya Matumizi</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Daftari Plus. Haki zote zimehifadhiwa.</span>
+      <span>Dar es Salaam, Tanzania</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelector('.nav-toggle').addEventListener('click', function(){
+    var links = document.querySelector('.nav-links');
+    var visible = links.style.display === 'flex';
+    links.style.display = visible ? 'none' : 'flex';
+    links.style.flexDirection = 'column';
+    links.style.position = 'absolute';
+    links.style.top = '64px'; links.style.left='0'; links.style.right='0';
+    links.style.background = 'var(--bg-1)'; links.style.padding='20px 24px';
+    links.style.borderBottom = '1px solid rgba(255,255,255,.08)'; links.style.gap='18px';
+  });
+</script>
+
+</body>
+</html>
