@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin — Daftari Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#181254; --bg-2:#1D1660; --panel:#231C5E; --panel-brd:#3A2F8C;
+    --text:#F3F1FF; --text-dim:#B9B3E0; --text-faint:#867FB8;
+    --purple:#8B7CF6; --purple-2:#6C5CE7; --mint:#3DDC97; --amber:#F5B948; --coral:#F26B6B;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; min-height:100vh; background:var(--bg-1); color:var(--text); font-family:'Inter',sans-serif; line-height:1.6;}
+  h1,h2,h3{font-family:'Poppins',sans-serif; font-weight:600; margin:0; color:var(--text);}
+  .mono{font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:100px; font-weight:700; font-size:13px; border:1.5px solid transparent; cursor:pointer; font-family:'Poppins',sans-serif;}
+  .btn-outline{border-color:rgba(243,241,255,.25); color:var(--text); background:rgba(255,255,255,.04);}
+  .btn-mint{background:rgba(61,220,151,.15); color:var(--mint);}
+  .btn-coral{background:rgba(242,107,107,.15); color:var(--coral);}
+
+  header{padding:18px 0; border-bottom:1px solid rgba(255,255,255,.08); position:sticky; top:0; background:rgba(24,18,84,.85); backdrop-filter:blur(8px); z-index:10;}
+  nav{display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Poppins',sans-serif; font-weight:600; font-size:18px;}
+  .brand .plus{color:var(--purple);}
+  .brand-mark{width:32px; height:32px; border-radius:9px; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center;}
+  .brand-mark svg{width:16px; height:16px; stroke:#fff; fill:none; stroke-width:1.8;}
+  .tag{font-size:11px; font-weight:700; color:var(--amber); background:rgba(245,185,72,.12); padding:4px 10px; border-radius:100px; margin-left:8px;}
+
+  main{padding:32px 0 60px;}
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px;}
+  .stat-card{background:var(--panel); border:1px solid var(--panel-brd); border-radius:var(--radius); padding:20px;}
+  .stat-card .l{font-size:13px; color:var(--text-dim); margin-bottom:8px;}
+  .stat-card .v{font-family:'JetBrains Mono',monospace; font-weight:600; font-size:22px;}
+
+  .card{background:var(--panel); border:1px solid var(--panel-brd); border-radius:var(--radius); padding:22px; margin-bottom:20px;}
+  .card-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .card-head h3{font-size:16px;}
+
+  table{width:100%; border-collapse:collapse;}
+  th{text-align:left; font-size:12px; color:var(--text-faint); font-weight:600; padding:0 10px 10px 0; text-transform:uppercase; letter-spacing:.03em;}
+  td{padding:12px 10px 12px 0; border-top:1px solid rgba(255,255,255,.06); font-size:14px;}
+  td.right{text-align:right;}
+  .badge{font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px;}
+  .badge.active{background:rgba(61,220,151,.15); color:var(--mint);}
+  .badge.suspended{background:rgba(242,107,107,.15); color:var(--coral);}
+
+  @media (max-width: 880px){
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    table{display:block; overflow-x:auto; white-space:nowrap;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="/super-admin.html" class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>Daftari<span class="plus">+</span><span class="tag">SUPER ADMIN</span></a>
+      <a href="#" id="logoutBtn" class="btn btn-outline">Toka</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="stat-grid">
+    <div class="stat-card"><div class="l">Biashara Zote</div><div class="v mono" id="statBiz">—</div></div>
+    <div class="stat-card"><div class="l">Watumiaji Wote</div><div class="v mono" id="statUsers">—</div></div>
+    <div class="stat-card"><div class="l">Mapato Yote ya Jukwaa</div><div class="v mono" id="statRevenue">—</div></div>
+    <div class="stat-card"><div class="l">Biashara Zilizosimamishwa</div><div class="v mono" id="statSuspended">—</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Biashara Zote</h3></div>
+    <table>
+      <thead><tr><th>Biashara</th><th>Mmiliki</th><th>Code</th><th>Watumiaji</th><th>Mauzo</th><th>Mapato</th><th>Hali</th><th></th></tr></thead>
+      <tbody id="bizTableBody"><tr><td colspan="8" style="color:var(--text-faint);">Inapakia...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Performance ya Biashara (kwa Mapato)</h3></div>
+    <table>
+      <thead><tr><th>Biashara</th><th>Mauzo</th><th>Mapato</th><th>Faida Ghafi</th><th>Matumizi</th></tr></thead>
+      <tbody id="perfTableBody"><tr><td colspan="5" style="color:var(--text-faint);">Inapakia...</td></tr></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  const token = localStorage.getItem('dp_token');
+  if (!token) window.location.href = '/super-admin-login.html';
+
+  function money(n){ return Math.round(Number(n)||0).toLocaleString('en-US'); }
+
+  async function api(path, opts={}) {
+    const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}), Authorization: 'Bearer ' + token } });
+    if (res.status === 401) { localStorage.removeItem('dp_token'); window.location.href = '/super-admin-login.html'; return null; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Hitilafu.');
+    return data;
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    try { await fetch('/api/logout', { headers: { Authorization: 'Bearer ' + token } }); } catch {}
+    localStorage.removeItem('dp_token');
+    window.location.href = '/super-admin-login.html';
+  });
+
+  async function toggleBiz(id, action) {
+    try {
+      await api(`/api/super/businesses/${id}/${action}`, { method: 'PUT' });
+      loadBusinesses();
+    } catch (err) { alert(err.message); }
+  }
+  window.toggleBiz = toggleBiz;
+
+  async function loadBusinesses() {
+    const data = await api('/api/super/businesses');
+    if (!data) return;
+    const list = data.businesses;
+    document.getElementById('statBiz').textContent = list.length;
+    document.getElementById('statRevenue').textContent = money(list.reduce((a,b)=>a+b.revenue,0));
+    document.getElementById('statSuspended').textContent = list.filter(b=>b.status==='suspended').length;
+    document.getElementById('bizTableBody').innerHTML = list.length ? list.map(b => `
+      <tr>
+        <td>${b.name}</td>
+        <td>${b.owner || '—'}</td>
+        <td class="mono">${b.code}</td>
+        <td>${b.users}</td>
+        <td>${b.sales}</td>
+        <td class="mono">${money(b.revenue)}</td>
+        <td><span class="badge ${b.status}">${b.status === 'active' ? 'Inatumika' : 'Imesimamishwa'}</span></td>
+        <td>${b.status === 'active'
+          ? `<button class="btn btn-coral" style="padding:6px 12px; font-size:12px;" onclick="toggleBiz(${b.id},'suspend')">Simamisha</button>`
+          : `<button class="btn btn-mint" style="padding:6px 12px; font-size:12px;" onclick="toggleBiz(${b.id},'activate')">Wezesha</button>`}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="8" style="color:var(--text-faint);">Hakuna biashara bado.</td></tr>';
+  }
+
+  async function loadUsers() {
+    const data = await api('/api/super/users');
+    if (!data) return;
+    document.getElementById('statUsers').textContent = data.users.length;
+  }
+
+  async function loadPerformance() {
+    const data = await api('/api/super/performance');
+    if (!data) return;
+    document.getElementById('perfTableBody').innerHTML = data.performance.length ? data.performance.map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.sales}</td>
+        <td class="mono">${money(p.revenue)}</td>
+        <td class="mono">${money(p.gross_profit)}</td>
+        <td class="mono">${money(p.expenses)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="color:var(--text-faint);">Hakuna data bado.</td></tr>';
+  }
+
+  (async () => {
+    try { await Promise.all([loadBusinesses(), loadUsers(), loadPerformance()]); }
+    catch (err) { console.error(err); }
+  })();
+</script>
+
+</body>
+</html>
