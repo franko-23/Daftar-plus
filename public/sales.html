@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mauzo — Daftari Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#181254; --bg-2:#1D1660; --panel:#231C5E; --panel-brd:#3A2F8C;
+    --text:#F3F1FF; --text-dim:#B9B3E0; --text-faint:#867FB8;
+    --purple:#8B7CF6; --purple-2:#6C5CE7; --mint:#3DDC97; --amber:#F5B948; --coral:#F26B6B;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; min-height:100vh; background:var(--bg-1); color:var(--text); font-family:'Inter',sans-serif; line-height:1.6; display:flex;}
+  h1,h2,h3{font-family:'Poppins',sans-serif; font-weight:600; margin:0; color:var(--text);}
+  .mono{font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums;}
+  a{color:inherit; text-decoration:none;}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 22px; border-radius:100px; font-weight:700; font-size:14px; border:1.5px solid transparent; cursor:pointer; font-family:'Poppins',sans-serif; white-space:nowrap;}
+  .btn-white{background:var(--text); color:#181254;}
+
+  .sidebar{width:230px; background:var(--bg-2); border-right:1px solid rgba(255,255,255,.08); padding:22px 16px; flex-shrink:0; display:flex; flex-direction:column;}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Poppins',sans-serif; font-weight:600; font-size:18px; padding:0 8px 26px;}
+  .brand .plus{color:var(--purple);}
+  .brand-mark{width:32px; height:32px; border-radius:9px; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center;}
+  .brand-mark svg{width:16px; height:16px; stroke:#fff; fill:none; stroke-width:1.8;}
+  .side-links{display:flex; flex-direction:column; gap:4px; flex:1;}
+  .side-links a{display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; font-size:14px; font-weight:500; color:var(--text-dim);}
+  .side-links a svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; flex-shrink:0;}
+  .side-links a.active{background:rgba(139,124,246,.16); color:var(--text);}
+  .side-links a:hover{background:rgba(255,255,255,.04); color:var(--text);}
+  .side-foot{border-top:1px solid rgba(255,255,255,.08); padding-top:14px; display:flex; align-items:center; gap:10px;}
+  .side-foot .av{width:34px; height:34px; border-radius:50%; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;}
+  .side-foot .name{font-size:13.5px; font-weight:600;}
+  .side-foot .biz{font-size:12px; color:var(--text-faint);}
+
+  .main{flex:1; min-width:0; padding:28px 32px;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; flex-wrap:wrap; gap:14px;}
+  .topbar h1{font-size:22px;}
+  .topbar .sub{color:var(--text-dim); font-size:13.5px; margin-top:4px;}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1.3fr; gap:18px; align-items:start;}
+  .card{background:var(--panel); border:1px solid var(--panel-brd); border-radius:var(--radius); padding:22px;}
+  .card-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .card-head h3{font-size:16px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:13px; font-weight:600; color:var(--text-dim); margin-bottom:8px;}
+  .field select,.field input{width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); font-size:14px; font-family:'Inter',sans-serif;}
+  .field select:focus,.field input:focus{outline:none; border-color:var(--purple);}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .total-row{display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-top:1px solid rgba(255,255,255,.08); margin:6px 0 18px; font-size:15px;}
+  .total-row .amt{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:19px; color:var(--mint);}
+
+  table{width:100%; border-collapse:collapse;}
+  th{text-align:left; font-size:12px; color:var(--text-faint); font-weight:600; padding:0 0 10px; text-transform:uppercase; letter-spacing:.03em;}
+  td{padding:11px 0; border-top:1px solid rgba(255,255,255,.06); font-size:14px;}
+  td.right{text-align:right;}
+  .badge{font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:100px;}
+  .badge.paid{background:rgba(61,220,151,.15); color:var(--mint);}
+  .badge.debt{background:rgba(242,107,107,.15); color:var(--coral);}
+  #msgBox{display:none; padding:11px 14px; border-radius:10px; font-size:13.5px; margin-bottom:16px;}
+
+  @media (max-width: 980px){
+    .sidebar{display:none;}
+    .grid-2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="/dashboard.html" class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>Daftari<span class="plus">+</span></a>
+  <nav class="side-links">
+    <a href="/dashboard.html"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+    <a href="/sales.html" class="active"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 15h18M9 3v18"/></svg>Mauzo</a>
+    <a href="#"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1zM9 5h6v2H9z"/></svg>Stock</a>
+    <a href="#"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="18" cy="8.5" r="2.3"/><path d="M16 14.2c2.6.4 4.5 2.3 4.5 5.3"/></svg>Wateja</a>
+    <a href="#"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M4 10h16M9 15h6"/></svg>Matumizi</a>
+    <a href="#"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 3 4-6"/></svg>Ripoti</a>
+  </nav>
+  <div class="side-foot">
+    <div class="av" id="userInitials">—</div>
+    <div><div class="name" id="userName">...</div><div class="biz" id="userBiz">...</div></div>
+  </div>
+  <a href="#" id="logoutBtn" style="display:block; text-align:center; font-size:12.5px; color:var(--text-faint); margin-top:12px;">Toka</a>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div><h1>Mauzo</h1><div class="sub">Fanya mauzo mapya na ufuatilie miamala</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><h3>Uza Bidhaa</h3></div>
+      <p id="msgBox"></p>
+      <form id="saleForm">
+        <div class="field">
+          <label>Bidhaa</label>
+          <select id="productSelect" required><option value="">Chagua bidhaa...</option></select>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>Kiasi</label><input type="number" id="quantity" min="1" value="1" required></div>
+          <div class="field"><label>Punguzo (Discount)</label><input type="number" id="discount" min="0" value="0"></div>
+        </div>
+        <div class="field">
+          <label>Njia ya Malipo</label>
+          <select id="paymentMethod">
+            <option value="cash">Cash</option>
+            <option value="mobile">Simu (M-Pesa n.k.)</option>
+            <option value="bank">Benki</option>
+            <option value="credit">Deni (Credit)</option>
+          </select>
+        </div>
+        <div class="field" id="customerField" style="display:none;">
+          <label>Mteja</label>
+          <select id="customerSelect"><option value="">Chagua mteja...</option></select>
+        </div>
+        <div class="total-row"><span>Jumla</span><span class="amt mono" id="totalPreview">0</span></div>
+        <button class="btn btn-white" type="submit" id="submitBtn" style="width:100%;">Kamilisha Mauzo</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Mauzo ya Hivi Karibuni</h3></div>
+      <table>
+        <thead><tr><th>Bidhaa</th><th>Muuzaji</th><th>Tarehe</th><th>Hali</th><th style="text-align:right;">Kiasi</th></tr></thead>
+        <tbody id="salesTableBody"><tr><td colspan="5" style="color:var(--text-faint);">Inapakia...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  const token = localStorage.getItem('dp_token');
+  if (!token) window.location.href = '/login.html';
+
+  let products = [];
+  function money(n){ return Math.round(Number(n)||0).toLocaleString('en-US'); }
+
+  async function api(path, opts={}) {
+    const res = await fetch(path, { ...opts, headers: { 'Content-Type':'application/json', ...(opts.headers||{}), Authorization: 'Bearer ' + token } });
+    if (res.status === 401) { localStorage.removeItem('dp_token'); window.location.href = '/login.html'; return null; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Hitilafu.');
+    return data;
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    try { await fetch('/api/logout', { headers: { Authorization: 'Bearer ' + token } }); } catch {}
+    localStorage.removeItem('dp_token'); localStorage.removeItem('dp_user');
+    window.location.href = '/login.html';
+  });
+
+  document.getElementById('paymentMethod').addEventListener('change', (e) => {
+    document.getElementById('customerField').style.display = e.target.value === 'credit' ? 'block' : 'none';
+  });
+
+  function updateTotal() {
+    const pid = Number(document.getElementById('productSelect').value);
+    const qty = Number(document.getElementById('quantity').value) || 0;
+    const disc = Number(document.getElementById('discount').value) || 0;
+    const p = products.find(x => x.id === pid);
+    const total = p ? Math.max(0, p.sell_price * qty - disc) : 0;
+    document.getElementById('totalPreview').textContent = money(total);
+  }
+  document.getElementById('productSelect').addEventListener('change', updateTotal);
+  document.getElementById('quantity').addEventListener('input', updateTotal);
+  document.getElementById('discount').addEventListener('input', updateTotal);
+
+  async function loadRecentSales() {
+    const data = await api('/api/sales');
+    if (!data) return;
+    const rows = data.sales.slice(0, 8);
+    document.getElementById('salesTableBody').innerHTML = rows.length ? rows.map(s => `
+      <tr>
+        <td>${s.product_name} ×${s.quantity}</td>
+        <td>${s.sold_by_name}</td>
+        <td>${new Date(s.created_at).toLocaleString('sw-TZ', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'})}</td>
+        <td><span class="badge ${s.payment_method === 'credit' ? 'debt' : 'paid'}">${s.payment_method === 'credit' ? 'Deni' : 'Imelipwa'}</span></td>
+        <td class="right mono">${money(s.total)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="color:var(--text-faint);">Bado hakuna mauzo.</td></tr>';
+  }
+
+  document.getElementById('saleForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const msgBox = document.getElementById('msgBox');
+    const submitBtn = document.getElementById('submitBtn');
+    msgBox.style.display = 'none';
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const payload = {
+      productId: Number(document.getElementById('productSelect').value),
+      quantity: Number(document.getElementById('quantity').value),
+      discount: Number(document.getElementById('discount').value) || 0,
+      paymentMethod
+    };
+    if (paymentMethod === 'credit') payload.customerId = Number(document.getElementById('customerSelect').value) || null;
+    submitBtn.disabled = true; submitBtn.textContent = 'Inatuma...';
+    try {
+      await api('/api/sales', { method: 'POST', body: JSON.stringify(payload) });
+      msgBox.style.background = 'rgba(61,220,151,.12)'; msgBox.style.border = '1px solid rgba(61,220,151,.3)'; msgBox.style.color = '#3DDC97';
+      msgBox.textContent = 'Mauzo yamekamilika!'; msgBox.style.display = 'block';
+      document.getElementById('saleForm').reset();
+      document.getElementById('customerField').style.display = 'none';
+      updateTotal();
+      await Promise.all([loadProducts(), loadRecentSales()]);
+    } catch (err) {
+      msgBox.style.background = 'rgba(242,107,107,.12)'; msgBox.style.border = '1px solid rgba(242,107,107,.3)'; msgBox.style.color = '#F26B6B';
+      msgBox.textContent = err.message; msgBox.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false; submitBtn.textContent = 'Kamilisha Mauzo';
+    }
+  });
+
+  async function loadProducts() {
+    const data = await api('/api/products');
+    if (!data) return;
+    products = data.products;
+    const sel = document.getElementById('productSelect');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Chagua bidhaa...</option>' + products.map(p =>
+      `<option value="${p.id}">${p.name} — ${money(p.sell_price)} TZS (Stock: ${p.quantity})</option>`
+    ).join('');
+    if (current) sel.value = current;
+  }
+
+  async function loadCustomers() {
+    const data = await api('/api/customers');
+    if (!data) return;
+    document.getElementById('customerSelect').innerHTML = '<option value="">Chagua mteja...</option>' + data.customers.map(c =>
+      `<option value="${c.id}">${c.name}</option>`
+    ).join('');
+  }
+
+  (async () => {
+    try {
+      const me = await api('/api/me');
+      if (me) {
+        document.getElementById('userName').textContent = me.user.full_name;
+        const roleLabels = { owner:'Mmiliki', saler:'Muuzaji', manager:'Meneja', super_admin:'Super Admin' };
+        document.getElementById('userBiz').textContent = (me.business ? me.business.name : '') + (roleLabels[me.user.role] ? ' · ' + roleLabels[me.user.role] : '');
+        document.getElementById('userInitials').textContent = me.user.full_name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+      }
+      await Promise.all([loadProducts(), loadCustomers(), loadRecentSales()]);
+    } catch (err) { console.error(err); }
+  })();
+</script>
+
+</body>
+</html>
