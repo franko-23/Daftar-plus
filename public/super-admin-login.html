@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin — Daftari Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#181254; --panel:#231C5E; --panel-brd:#3A2F8C;
+    --text:#F3F1FF; --text-dim:#B9B3E0; --text-faint:#867FB8;
+    --purple:#8B7CF6; --purple-2:#6C5CE7; --coral:#F26B6B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(1200px 700px at 20% -10%, #2C2380 0%, var(--bg-1) 55%) fixed, var(--bg-1);
+    color:var(--text); font-family:'Inter',sans-serif; line-height:1.6;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  h1{font-family:'Poppins',sans-serif; font-weight:600; margin:0;}
+  a{color:inherit; text-decoration:none;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px; border-radius:100px; font-weight:700; font-size:14.5px; border:none; cursor:pointer; font-family:'Poppins',sans-serif; width:100%;}
+  .btn-white{background:var(--text); color:#181254;}
+  .card{width:100%; max-width:400px; background:var(--panel); border:1px solid var(--panel-brd); border-radius:20px; padding:36px 32px; box-shadow:0 40px 100px -30px rgba(10,6,50,.6);}
+  .mark{width:48px; height:48px; border-radius:13px; background:linear-gradient(140deg,#3A2F8C,#181254); border:1px solid var(--panel-brd); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-family:'Poppins',sans-serif; font-weight:700; color:var(--purple);}
+  .card h1{font-size:20px; text-align:center; margin-bottom:4px;}
+  .card .sub{text-align:center; color:var(--text-dim); font-size:13.5px; margin-bottom:26px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; color:var(--text-dim); margin-bottom:7px;}
+  .field input{width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); font-size:14px;}
+  .field input:focus{outline:none; border-color:var(--purple);}
+  .back{display:block; text-align:center; font-size:13px; color:var(--text-faint); margin-top:18px;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="mark">D+</div>
+    <h1>Daftari Plus — Super Admin</h1>
+    <p class="sub">Uongozi wa jukwaa. Sio kwa akaunti za biashara.</p>
+    <p id="errBox" style="display:none; background:rgba(242,107,107,.12); border:1px solid rgba(242,107,107,.3); color:var(--coral); padding:10px 13px; border-radius:10px; font-size:13px; margin-bottom:14px;"></p>
+    <form id="saForm">
+      <div class="field"><label>Email ya Super Admin</label><input type="email" id="email" required></div>
+      <div class="field"><label>Nywila</label><input type="password" id="password" required></div>
+      <button class="btn btn-white" type="submit" id="submitBtn">Ingia</button>
+    </form>
+    <a href="/login.html" class="back">← Business Login</a>
+  </div>
+
+<script>
+  const errBox = document.getElementById('errBox');
+  const submitBtn = document.getElementById('submitBtn');
+  document.getElementById('saForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    errBox.style.display = 'none';
+    submitBtn.disabled = true; submitBtn.textContent = 'Inaingia...';
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Imeshindwa kuingia.');
+      if (data.user.role !== 'super_admin') throw new Error('Akaunti hii si ya Super Admin.');
+      localStorage.setItem('dp_token', data.token);
+      localStorage.setItem('dp_user', JSON.stringify(data.user));
+      window.location.href = '/super-admin.html';
+    } catch (err) {
+      errBox.textContent = err.message; errBox.style.display = 'block';
+      submitBtn.disabled = false; submitBtn.textContent = 'Ingia';
+    }
+  });
+</script>
+</body>
+</html>
