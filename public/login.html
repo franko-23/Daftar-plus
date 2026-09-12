@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingia — Daftari Plus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#181254; --bg-2:#241D6B; --panel:#231C5E; --panel-brd:#3A2F8C;
+    --text:#F3F1FF; --text-dim:#B9B3E0; --text-faint:#867FB8;
+    --purple:#8B7CF6; --purple-2:#6C5CE7; --mint:#3DDC97; --amber:#F5B948;
+    --surface:#0F0B33;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(1200px 700px at 20% -10%, #2C2380 0%, var(--bg-1) 55%) fixed, var(--bg-1);
+    color:var(--text); font-family:'Inter',sans-serif; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+  }
+  header{padding:16px 28px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;}
+  header .brand{display:flex; align-items:center; gap:11px; font-family:'Poppins',sans-serif; font-weight:600; font-size:18px;}
+  header .brand .plus{color:var(--purple);}
+  header .brand-mark{width:32px; height:32px; border-radius:9px; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  header .brand-mark svg{width:16px; height:16px; stroke:#fff; fill:none; stroke-width:1.8;}
+  .row-split{flex:1; display:flex; min-height:0;}
+  h1,h2{font-family:'Poppins',sans-serif; font-weight:600; margin:0; color:var(--text); letter-spacing:-0.01em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit; text-decoration:none;}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 22px; border-radius:100px; font-weight:700; font-size:14.5px; border:1.5px solid transparent; cursor:pointer; font-family:'Poppins',sans-serif; white-space:nowrap;}
+  .btn-white{background:var(--text); color:#181254;}
+  .btn-white:hover{background:#fff;}
+  .btn-white:disabled{opacity:.6; cursor:default;}
+
+  .brand-panel{
+    flex:1; max-width:480px; position:relative; overflow:hidden;
+    background:radial-gradient(900px 600px at 15% -10%, #382E9E 0%, var(--bg-1) 55%), var(--bg-1);
+    padding:44px 44px 40px; display:flex; flex-direction:column; justify-content:space-between;
+    border-right:1px solid rgba(255,255,255,.06);
+  }
+  .brand-panel::before{
+    content:""; position:absolute; inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size:44px 44px; mask-image:radial-gradient(circle at 30% 20%, black, transparent 65%);
+  }
+  .brand-panel > *{position:relative; z-index:1;}
+  .brand{display:flex; align-items:center; gap:11px; font-family:'Poppins',sans-serif; font-weight:600; font-size:19px;}
+  .brand .plus{color:var(--purple);}
+  .brand-mark{width:36px; height:36px; border-radius:10px; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .brand-mark svg{width:18px; height:18px; stroke:#fff; fill:none; stroke-width:1.8;}
+
+  .brand-mid h2{font-size:27px; line-height:1.3; margin-bottom:16px; max-width:20ch;}
+  .brand-mid h2 .accent{color:var(--purple);}
+  .feature-list{display:flex; flex-direction:column; gap:16px; margin-top:8px;}
+  .feature-list div{display:flex; align-items:center; gap:12px; font-size:14px; color:var(--text-dim);}
+  .feature-list svg{width:18px; height:18px; stroke:var(--mint); flex-shrink:0;}
+
+  .quote{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px 20px;}
+  .quote p{font-size:13.5px; color:var(--text-dim); margin:0 0 12px; font-style:italic;}
+  .quote .who{display:flex; align-items:center; gap:10px;}
+  .quote .av{width:28px; height:28px; border-radius:50%; background:linear-gradient(140deg,var(--purple),var(--purple-2)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
+  .quote .name{font-size:12.5px; font-weight:600;}
+  .quote .biz{font-size:11.5px; color:var(--text-faint);}
+
+  .form-panel{flex:1; display:flex; align-items:center; justify-content:center; padding:40px 24px;}
+  .form-box{width:100%; max-width:380px;}
+  .form-box .top-link{font-size:13px; color:var(--text-faint); margin-bottom:34px; display:block;}
+  .form-box h1{font-size:25px; margin-bottom:8px;}
+  .form-box .sub{color:var(--text-dim); font-size:14.5px; margin-bottom:30px;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:13px; font-weight:600; color:var(--text-dim); margin-bottom:8px;}
+  .input-wrap{position:relative;}
+  .input-wrap svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:17px; height:17px; stroke:var(--text-faint); fill:none; stroke-width:1.8;}
+  .field input{
+    width:100%; padding:13px 15px 13px 42px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.03); color:var(--text); font-size:14.5px; font-family:'Inter',sans-serif;
+  }
+  .field input::placeholder{color:var(--text-faint);}
+  .field input:focus{outline:none; border-color:var(--purple); background:rgba(255,255,255,.05);}
+  .row-between{display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; font-size:13.5px;}
+  .row-between label{display:flex; align-items:center; gap:8px; color:var(--text-dim); cursor:pointer;}
+  .row-between a{color:var(--purple); font-weight:600;}
+  .form-box .btn{width:100%; margin-bottom:22px;}
+  .divider{display:flex; align-items:center; gap:14px; color:var(--text-faint); font-size:12.5px; margin-bottom:22px;}
+  .divider::before,.divider::after{content:""; flex:1; height:1px; background:rgba(255,255,255,.1);}
+  .switch{text-align:center; font-size:14px; color:var(--text-dim);}
+  .switch a{color:var(--purple); font-weight:600;}
+
+  @media (max-width: 860px){
+    .brand-panel{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>Daftari<span class="plus">+</span></a>
+  <a href="/register.html" class="btn btn-white" style="padding:9px 18px; font-size:13px;">Anza Bure</a>
+</header>
+
+<div class="row-split">
+<aside class="brand-panel">
+  <a href="/" class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>Daftari<span class="plus">+</span></a>
+
+  <div class="brand-mid">
+    <h2>Endesha biashara yako <span class="accent">kitaalamu zaidi</span>, kila siku.</h2>
+    <div class="feature-list">
+      <div><svg viewBox="0 0 24 24" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Mauzo na stock kwa wakati halisi</div>
+      <div><svg viewBox="0 0 24 24" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Ripoti za faida zinazoeleweka</div>
+      <div><svg viewBox="0 0 24 24" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg>Data yako salama, popote ulipo</div>
+    </div>
+  </div>
+
+  <div class="quote">
+    <p>"Sasa najua kila jioni faida yangu kiasi gani, bila kukaa saa moja kuhesabu kwa mkono."</p>
+    <div class="who"><div class="av">MJ</div><div><div class="name">Mwl. Juma</div><div class="biz">Duka la Mchele, Dodoma</div></div></div>
+  </div>
+</aside>
+
+<main class="form-panel">
+  <div class="form-box">
+    <a href="/" class="top-link">← Rudi kwenye tovuti</a>
+    <h1>Karibu Tena</h1>
+    <p class="sub">Ingia kwenye akaunti yako kuendelea</p>
+
+    <p id="errBox" style="display:none; background:rgba(242,107,107,.12); border:1px solid rgba(242,107,107,.3); color:#F26B6B; padding:11px 14px; border-radius:10px; font-size:13.5px; margin-bottom:18px;"></p>
+
+    <form id="loginForm">
+      <div class="field">
+        <label>Barua Pepe</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M4 6l8 7 8-7"/></svg>
+          <input type="email" id="email" placeholder="jina@biashara.com" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Nywila</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+      </div>
+      <div class="row-between">
+        <label><input type="checkbox" style="accent-color:var(--purple);">Nikumbuke</label>
+        <a href="#">Umesahau nywila?</a>
+      </div>
+      <button class="btn btn-white" type="submit" id="submitBtn">Ingia</button>
+    </form>
+
+    <div class="divider">AU</div>
+    <p class="switch">Huna akaunti? <a href="/register.html">Fungua Akaunti Bure</a></p>
+  </div>
+</main>
+</div>
+
+<script>
+  const errBox = document.getElementById('errBox');
+  const submitBtn = document.getElementById('submitBtn');
+
+  if (localStorage.getItem('dp_token')) window.location.href = '/dashboard.html';
+
+  document.getElementById('loginForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    errBox.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Inaingia...';
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Imeshindwa kuingia.');
+      localStorage.setItem('dp_token', data.token);
+      localStorage.setItem('dp_user', JSON.stringify(data.user));
+      window.location.href = data.user.role === 'super_admin' ? '/super-admin.html' : '/dashboard.html';
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Ingia';
+    }
+  });
+</script>
+
+</body>
+</html>
