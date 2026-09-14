@@ -1,19 +1,22 @@
-# Daftari Plus — Full SaaS v6
+# Daftari+ Subscription System
 
-## Run
-Node.js 22.5+ is required.
+Professional subscription architecture for Daftari+.
 
-```bash
-npm start
-```
+## Features
+- Super Admin manages plans and pricing.
+- Regular price + percentage discount + promotional price.
+- Promotion start/end dates.
+- Active/inactive plans.
+- Owner sees current price and discount.
+- Payment states: PENDING, SUCCESSFUL, FAILED.
+- Each payment stores the exact amount charged.
+- Subscription activates only after server-side payment confirmation.
+- Expiry blocks business usage until renewal.
+- PalmPesa credentials remain server-side in Render environment variables.
 
-Open http://localhost:3000/
+## Recommended environment variables
+PALMPESA_API_TOKEN=
+PALMPESA_USER_ID=
+PALMPESA_BASE_URL=https://palmpesa.drmlelwa.co.tz
 
-## Super Admin
-- Email: owner@daftariplus.com
-- Password: DaftariPlus@2026
-- Login: /super-admin-login.html
-
-The Super Admin is created automatically on first server start from environment variables. Change the password before production deployment.
-
-Data is stored in `server/data/daftari.db`. Keep this directory on persistent storage when deploying.
+Do not commit secrets to GitHub.

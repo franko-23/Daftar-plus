@@ -1,0 +1,11 @@
+{
+  "name": "Business",
+  "code": "business",
+  "regular_price_tzs": 20000,
+  "discount_percent": 25,
+  "duration_days": 30,
+  "promotion_name": "Business Launch Offer",
+  "promotion_start": "2026-10-01",
+  "promotion_end": "2026-10-31",
+  "active": true
+}
