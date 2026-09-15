@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+  <!DOCTYPE html>
 <html lang="sw">
 <head>
   <meta charset="UTF-8">
@@ -7,6 +8,7 @@
 
   <style>
     *{box-sizing:border-box}
+
     body{
       margin:0;
       min-height:100vh;
@@ -130,7 +132,10 @@
 <div class="box">
 
   <div class="logo">Daftari<b>+</b></div>
-  <div class="subtitle">Ingia kwenye akaunti yako</div>
+
+  <div class="subtitle">
+    Ingia kwenye akaunti yako
+  </div>
 
   <div id="errBox"></div>
 
@@ -138,6 +143,7 @@
 
     <div class="field">
       <label for="email">Barua Pepe</label>
+
       <input
         type="email"
         id="email"
@@ -149,6 +155,7 @@
 
     <div class="field">
       <label for="password">Nywila</label>
+
       <input
         type="password"
         id="password"
@@ -176,194 +183,496 @@
 
 </div>
 
+
 <script>
+
 const errBox = document.getElementById('errBox');
 const submitBtn = document.getElementById('submitBtn');
 const loginForm = document.getElementById('loginForm');
 
+
 function showError(message){
+
   errBox.textContent = message;
+
   errBox.style.display = 'block';
+
 }
+
 
 function hideError(){
+
   errBox.textContent = '';
+
   errBox.style.display = 'none';
+
 }
+
 
 function clearSession(){
+
   localStorage.removeItem('dp_token');
+
   localStorage.removeItem('dp_user');
+
 }
 
-function redirectUser(user){
+
+/*
+====================================================
+REDIRECT USER
+====================================================
+
+Super Admin
+    ↓
+/super-admin.html
+
+Owner + ACTIVE subscription
+    ↓
+/dashboard.html
+
+Owner + NO_SUBSCRIPTION
+    ↓
+/subscription/subscription.html
+
+Owner + EXPIRED
+    ↓
+/subscription/subscription.html
+
+Seller
+    ↓
+/saler.html
+*/
+
+function redirectUser(user, subscription){
+
   if(!user || !user.role){
+
     clearSession();
+
+    window.location.href = '/login.html';
+
     return;
   }
 
+
+  /*
+  SUPER ADMIN
+  */
+
   if(user.role === 'super_admin'){
+
     window.location.href = '/super-admin.html';
-  }else if(user.role === 'saler'){
-    window.location.href = '/saler.html';
-  }else{
-    window.location.href = '/dashboard.html';
+
+    return;
   }
+
+
+  /*
+  SELLER
+  */
+
+  if(user.role === 'saler'){
+
+    window.location.href = '/saler.html';
+
+    return;
+  }
+
+
+  /*
+  OWNER
+  */
+
+  if(user.role === 'owner'){
+
+    /*
+      Kama subscription haipo kwenye response,
+      tunapeleka subscription page kwa usalama.
+    */
+
+    if(
+      subscription &&
+      subscription.active === true &&
+      subscription.status === 'ACTIVE'
+    ){
+
+      window.location.href = '/dashboard.html';
+
+    }else{
+
+      window.location.href =
+        '/subscription/subscription.html';
+
+    }
+
+    return;
+  }
+
+
+  /*
+  FALLBACK
+  */
+
+  window.location.href = '/dashboard.html';
+
 }
 
+
 /*
-  VERIFY EXISTING SESSION
-  Hatutegemea tu kuwepo kwa dp_token.
+====================================================
+GET CURRENT USER + SUBSCRIPTION
+====================================================
 */
+
+async function getCurrentUser(){
+
+  const token = localStorage.getItem('dp_token');
+
+  if(!token){
+
+    return null;
+  }
+
+
+  const response = await fetch('/api/me', {
+
+    method:'GET',
+
+    headers:{
+      'Authorization':'Bearer ' + token,
+      'Accept':'application/json'
+    },
+
+    cache:'no-store'
+
+  });
+
+
+  if(!response.ok){
+
+    return null;
+  }
+
+
+  const data = await response.json();
+
+
+  if(!data || !data.user){
+
+    return null;
+  }
+
+
+  return data;
+
+}
+
+
+/*
+====================================================
+VERIFY EXISTING SESSION
+====================================================
+*/
+
 async function checkExistingSession(){
 
   const token = localStorage.getItem('dp_token');
 
-  if(!token) return;
+  if(!token){
+
+    return;
+  }
+
 
   try{
 
-    const response = await fetch('/api/me', {
-      method:'GET',
-      headers:{
-        'Authorization':'Bearer ' + token,
-        'Accept':'application/json'
-      },
-      cache:'no-store'
-    });
+    const data = await getCurrentUser();
 
-    if(!response.ok){
+
+    if(!data){
+
       clearSession();
+
       return;
     }
 
-    const data = await response.json();
 
-    if(data && data.user){
-      localStorage.setItem('dp_user', JSON.stringify(data.user));
-      redirectUser(data.user);
-    }else{
-      clearSession();
-    }
+    /*
+      Save latest user information
+    */
+
+    localStorage.setItem(
+      'dp_user',
+      JSON.stringify(data.user)
+    );
+
+
+    /*
+      Redirect using subscription status
+    */
+
+    redirectUser(
+      data.user,
+      data.subscription
+    );
+
 
   }catch(error){
 
-    /*
-      Kama server haijibu, usimtoe user moja kwa moja.
-      Tunaacha login page ionekane.
-    */
+    console.error(
+      'SESSION CHECK ERROR:',
+      error
+    );
 
-    console.error('SESSION CHECK ERROR:', error);
   }
+
 }
 
 
 /*
-  LOGIN
+====================================================
+LOGIN
+====================================================
 */
-loginForm.addEventListener('submit', async function(ev){
 
-  ev.preventDefault();
+loginForm.addEventListener(
+  'submit',
+  async function(ev){
 
-  hideError();
+    ev.preventDefault();
 
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+    hideError();
 
-  if(!email || !password){
-    showError('Weka email na password.');
-    return;
-  }
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Inaingia...';
+    const email =
+      document.getElementById('email')
+      .value
+      .trim();
 
-  try{
+    const password =
+      document.getElementById('password')
+      .value;
 
-    const response = await fetch('/api/login', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Accept':'application/json'
-      },
-      body:JSON.stringify({
-        email:email,
-        password:password
-      }),
-      cache:'no-store'
-    });
 
-    let data = {};
+    if(!email || !password){
+
+      showError(
+        'Weka email na password.'
+      );
+
+      return;
+    }
+
+
+    submitBtn.disabled = true;
+
+    submitBtn.textContent =
+      'Inaingia...';
+
 
     try{
-      data = await response.json();
-    }catch(e){
-      data = {};
-    }
 
-    if(!response.ok){
 
       /*
-        Kama kuna token ya zamani, ifute.
+      LOGIN REQUEST
       */
-      clearSession();
 
-      throw new Error(
-        data.error ||
-        'Email au password si sahihi.'
+      const response = await fetch(
+        '/api/login',
+        {
+          method:'POST',
+
+          headers:{
+            'Content-Type':'application/json',
+            'Accept':'application/json'
+          },
+
+          body:JSON.stringify({
+
+            email:email,
+
+            password:password
+
+          }),
+
+          cache:'no-store'
+        }
       );
+
+
+      let data = {};
+
+
+      try{
+
+        data = await response.json();
+
+      }catch(e){
+
+        data = {};
+
+      }
+
+
+      /*
+      LOGIN FAILED
+      */
+
+      if(!response.ok){
+
+        clearSession();
+
+        throw new Error(
+          data.error ||
+          'Email au password si sahihi.'
+        );
+
+      }
+
+
+      /*
+      CHECK TOKEN
+      */
+
+      if(
+        !data.token ||
+        !data.user
+      ){
+
+        clearSession();
+
+        throw new Error(
+          'Login imekamilika lakini session haikutengenezwa. Jaribu tena.'
+        );
+
+      }
+
+
+      /*
+      SAVE SESSION
+      */
+
+      localStorage.setItem(
+        'dp_token',
+        data.token
+      );
+
+      localStorage.setItem(
+        'dp_user',
+        JSON.stringify(data.user)
+      );
+
+
+      /*
+      =================================================
+      MUHIMU:
+      Baada ya login hatutumii data ya login pekee.
+      Tunaita /api/me ili kupata subscription status.
+      =================================================
+      */
+
+      const meResponse =
+        await fetch(
+          '/api/me',
+          {
+            method:'GET',
+
+            headers:{
+              'Authorization':
+                'Bearer ' + data.token,
+
+              'Accept':
+                'application/json'
+            },
+
+            cache:'no-store'
+          }
+        );
+
+
+      if(!meResponse.ok){
+
+        clearSession();
+
+        throw new Error(
+          'Session imeshindwa kuthibitishwa. Jaribu tena.'
+        );
+
+      }
+
+
+      const me =
+        await meResponse.json();
+
+
+      if(!me || !me.user){
+
+        clearSession();
+
+        throw new Error(
+          'Taarifa za akaunti hazijapatikana.'
+        );
+
+      }
+
+
+      /*
+      SAVE UPDATED USER
+      */
+
+      localStorage.setItem(
+        'dp_user',
+        JSON.stringify(me.user)
+      );
+
+
+      /*
+      =================================================
+      FINAL REDIRECT
+      =================================================
+      */
+
+      redirectUser(
+        me.user,
+        me.subscription
+      );
+
+
+    }catch(error){
+
+      console.error(
+        'LOGIN ERROR:',
+        error
+      );
+
+
+      showError(
+        error.message ||
+        'Imeshindwa kuingia. Tafadhali jaribu tena.'
+      );
+
+
+      submitBtn.disabled = false;
+
+      submitBtn.textContent =
+        'Ingia';
+
     }
 
-    if(!data.token || !data.user){
-
-      clearSession();
-
-      throw new Error(
-        'Login imekamilika lakini session haikutengenezwa. Jaribu tena.'
-      );
-    }
-
-    /*
-      SAVE NEW SESSION
-    */
-    localStorage.setItem('dp_token', data.token);
-    localStorage.setItem('dp_user', JSON.stringify(data.user));
-
-    /*
-      Redirect according to role
-    */
-    redirectUser(data.user);
-
-  }catch(error){
-
-    console.error('LOGIN ERROR:', error);
-
-    showError(
-      error.message ||
-      'Imeshindwa kuingia. Tafadhali jaribu tena.'
-    );
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Ingia';
   }
-
-});
+);
 
 
 /*
-  IMPORTANT:
-  Usitumie:
-
-  if(localStorage.getItem('dp_token')){
-      window.location.href = ...
-  }
-
-  kwa sababu token inaweza kuwa expired.
-
-  Kwanza verify session.
+====================================================
+START
+====================================================
 */
+
 checkExistingSession();
+
 </script>
 
 </body>
-</html>
+</html>a
