@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Daftari+ — Login</title>
+
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      background:#f5f7fb;
+      color:#171a2d;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px
+    }
+
+    .box{
+      width:100%;
+      max-width:430px;
+      background:#fff;
+      border:1px solid #e5e8ef;
+      border-radius:20px;
+      padding:32px;
+      box-shadow:0 15px 45px rgba(20,25,60,.08)
+    }
+
+    .logo{
+      text-align:center;
+      font-size:30px;
+      font-weight:900;
+      margin-bottom:6px
+    }
+
+    .logo b{color:#5b5ce2}
+
+    .subtitle{
+      text-align:center;
+      color:#68708a;
+      margin-bottom:28px;
+      font-size:14px
+    }
+
+    .field{margin-bottom:16px}
+
+    label{
+      display:block;
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:7px
+    }
+
+    input{
+      width:100%;
+      padding:13px 14px;
+      border:1px solid #dfe3ec;
+      border-radius:11px;
+      outline:none;
+      font-size:15px;
+      background:#fff
+    }
+
+    input:focus{
+      border-color:#5b5ce2;
+      box-shadow:0 0 0 3px rgba(91,92,226,.10)
+    }
+
+    .btn{
+      width:100%;
+      border:0;
+      background:#5b5ce2;
+      color:#fff;
+      padding:13px;
+      border-radius:11px;
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer
+    }
+
+    .btn:disabled{
+      opacity:.65;
+      cursor:not-allowed
+    }
+
+    #errBox{
+      display:none;
+      background:#fff0f2;
+      color:#c73f4d;
+      border:1px solid #ffd5db;
+      padding:12px;
+      border-radius:10px;
+      font-size:13px;
+      margin-bottom:16px
+    }
+
+    .links{
+      text-align:center;
+      margin-top:20px;
+      font-size:13px;
+      color:#68708a
+    }
+
+    .links a{
+      color:#5b5ce2;
+      font-weight:800;
+      text-decoration:none
+    }
+
+    .remember{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      color:#68708a;
+      margin-bottom:18px
+    }
+
+    .remember input{
+      width:auto
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <div class="logo">Daftari<b>+</b></div>
+  <div class="subtitle">Ingia kwenye akaunti yako</div>
+
+  <div id="errBox"></div>
+
+  <form id="loginForm">
+
+    <div class="field">
+      <label for="email">Barua Pepe</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="jina@biashara.com"
+        autocomplete="email"
+        required
+      >
+    </div>
+
+    <div class="field">
+      <label for="password">Nywila</label>
+      <input
+        type="password"
+        id="password"
+        placeholder="••••••••"
+        autocomplete="current-password"
+        required
+      >
+    </div>
+
+    <label class="remember">
+      <input type="checkbox" id="remember">
+      Nikumbuke
+    </label>
+
+    <button class="btn" type="submit" id="submitBtn">
+      Ingia
+    </button>
+
+  </form>
+
+  <div class="links">
+    Huna akaunti?
+    <a href="/register.html">Fungua Akaunti Bure</a>
+  </div>
+
+</div>
+
+<script>
+const errBox = document.getElementById('errBox');
+const submitBtn = document.getElementById('submitBtn');
+const loginForm = document.getElementById('loginForm');
+
+function showError(message){
+  errBox.textContent = message;
+  errBox.style.display = 'block';
+}
+
+function hideError(){
+  errBox.textContent = '';
+  errBox.style.display = 'none';
+}
+
+function clearSession(){
+  localStorage.removeItem('dp_token');
+  localStorage.removeItem('dp_user');
+}
+
+function redirectUser(user){
+  if(!user || !user.role){
+    clearSession();
+    return;
+  }
+
+  if(user.role === 'super_admin'){
+    window.location.href = '/super-admin.html';
+  }else if(user.role === 'saler'){
+    window.location.href = '/saler.html';
+  }else{
+    window.location.href = '/dashboard.html';
+  }
+}
+
+/*
+  VERIFY EXISTING SESSION
+  Hatutegemea tu kuwepo kwa dp_token.
+*/
+async function checkExistingSession(){
+
+  const token = localStorage.getItem('dp_token');
+
+  if(!token) return;
+
+  try{
+
+    const response = await fetch('/api/me', {
+      method:'GET',
+      headers:{
+        'Authorization':'Bearer ' + token,
+        'Accept':'application/json'
+      },
+      cache:'no-store'
+    });
+
+    if(!response.ok){
+      clearSession();
+      return;
+    }
+
+    const data = await response.json();
+
+    if(data && data.user){
+      localStorage.setItem('dp_user', JSON.stringify(data.user));
+      redirectUser(data.user);
+    }else{
+      clearSession();
+    }
+
+  }catch(error){
+
+    /*
+      Kama server haijibu, usimtoe user moja kwa moja.
+      Tunaacha login page ionekane.
+    */
+
+    console.error('SESSION CHECK ERROR:', error);
+  }
+}
+
+
+/*
+  LOGIN
+*/
+loginForm.addEventListener('submit', async function(ev){
+
+  ev.preventDefault();
+
+  hideError();
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if(!email || !password){
+    showError('Weka email na password.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Inaingia...';
+
+  try{
+
+    const response = await fetch('/api/login', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Accept':'application/json'
+      },
+      body:JSON.stringify({
+        email:email,
+        password:password
+      }),
+      cache:'no-store'
+    });
+
+    let data = {};
+
+    try{
+      data = await response.json();
+    }catch(e){
+      data = {};
+    }
+
+    if(!response.ok){
+
+      /*
+        Kama kuna token ya zamani, ifute.
+      */
+      clearSession();
+
+      throw new Error(
+        data.error ||
+        'Email au password si sahihi.'
+      );
+    }
+
+    if(!data.token || !data.user){
+
+      clearSession();
+
+      throw new Error(
+        'Login imekamilika lakini session haikutengenezwa. Jaribu tena.'
+      );
+    }
+
+    /*
+      SAVE NEW SESSION
+    */
+    localStorage.setItem('dp_token', data.token);
+    localStorage.setItem('dp_user', JSON.stringify(data.user));
+
+    /*
+      Redirect according to role
+    */
+    redirectUser(data.user);
+
+  }catch(error){
+
+    console.error('LOGIN ERROR:', error);
+
+    showError(
+      error.message ||
+      'Imeshindwa kuingia. Tafadhali jaribu tena.'
+    );
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Ingia';
+  }
+
+});
+
+
+/*
+  IMPORTANT:
+  Usitumie:
+
+  if(localStorage.getItem('dp_token')){
+      window.location.href = ...
+  }
+
+  kwa sababu token inaweza kuwa expired.
+
+  Kwanza verify session.
+*/
+checkExistingSession();
+</script>
+
+</body>
+</html>
