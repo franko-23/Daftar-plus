@@ -1,434 +1,520 @@
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="sw">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Daftari+ — Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftari+ | Login</title>
 
   <style>
-    *{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
 
     body{
-      margin:0;
-      min-height:100vh;
       font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      min-height:100vh;
       background:#f5f7fb;
-      color:#171a2d;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:20px
+      padding:20px;
+      color:#171a2d;
     }
 
-    .box{
+    .login-container{
       width:100%;
       max-width:430px;
+    }
+
+    .login-card{
       background:#fff;
-      border:1px solid #e5e8ef;
-      border-radius:20px;
-      padding:32px;
-      box-shadow:0 15px 45px rgba(20,25,60,.08)
+      border:1px solid #e7e9f0;
+      border-radius:22px;
+      padding:34px;
+      box-shadow:0 18px 50px rgba(22,30,60,.08);
     }
 
     .logo{
       text-align:center;
-      font-size:30px;
+      font-size:32px;
       font-weight:900;
-      margin-bottom:6px
+      color:#171a2d;
+      margin-bottom:6px;
+      letter-spacing:-1px;
     }
 
-    .logo b{color:#5b5ce2}
+    .logo span{
+      color:#5b5ce2;
+    }
 
     .subtitle{
       text-align:center;
-      color:#68708a;
+      color:#737a91;
+      font-size:14px;
       margin-bottom:28px;
-      font-size:14px
     }
 
-    .field{margin-bottom:16px}
+    .error-box{
+      display:none;
+      background:#fff1f2;
+      border:1px solid #ffd3d8;
+      color:#c5303d;
+      padding:12px 14px;
+      border-radius:11px;
+      font-size:13px;
+      margin-bottom:18px;
+      line-height:1.5;
+    }
+
+    .form-group{
+      margin-bottom:17px;
+    }
 
     label{
       display:block;
       font-size:13px;
       font-weight:800;
-      margin-bottom:7px
+      margin-bottom:7px;
+      color:#30364d;
     }
 
     input{
       width:100%;
-      padding:13px 14px;
+      height:48px;
       border:1px solid #dfe3ec;
       border-radius:11px;
-      outline:none;
+      padding:0 14px;
       font-size:15px;
-      background:#fff
+      color:#171a2d;
+      outline:none;
+      background:#fff;
+      transition:.2s;
     }
 
     input:focus{
       border-color:#5b5ce2;
-      box-shadow:0 0 0 3px rgba(91,92,226,.10)
+      box-shadow:0 0 0 3px rgba(91,92,226,.10);
     }
 
-    .btn{
-      width:100%;
-      border:0;
-      background:#5b5ce2;
-      color:#fff;
-      padding:13px;
-      border-radius:11px;
-      font-size:15px;
-      font-weight:800;
-      cursor:pointer
-    }
-
-    .btn:disabled{
-      opacity:.65;
-      cursor:not-allowed
-    }
-
-    #errBox{
-      display:none;
-      background:#fff0f2;
-      color:#c73f4d;
-      border:1px solid #ffd5db;
-      padding:12px;
-      border-radius:10px;
-      font-size:13px;
-      margin-bottom:16px
-    }
-
-    .links{
-      text-align:center;
-      margin-top:20px;
-      font-size:13px;
-      color:#68708a
-    }
-
-    .links a{
-      color:#5b5ce2;
-      font-weight:800;
-      text-decoration:none
+    input::placeholder{
+      color:#a0a6b7;
     }
 
     .remember{
       display:flex;
       align-items:center;
       gap:8px;
+      margin-bottom:19px;
       font-size:13px;
-      color:#68708a;
-      margin-bottom:18px
+      color:#737a91;
+      cursor:pointer;
     }
 
     .remember input{
-      width:auto
+      width:16px;
+      height:16px;
+      margin:0;
+    }
+
+    .login-btn{
+      width:100%;
+      height:49px;
+      border:0;
+      border-radius:11px;
+      background:#5b5ce2;
+      color:#fff;
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    .login-btn:hover{
+      background:#4e4fd1;
+    }
+
+    .login-btn:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+    }
+
+    .bottom-text{
+      text-align:center;
+      margin-top:22px;
+      font-size:13px;
+      color:#737a91;
+    }
+
+    .bottom-text a{
+      color:#5b5ce2;
+      text-decoration:none;
+      font-weight:800;
+    }
+
+    .bottom-text a:hover{
+      text-decoration:underline;
+    }
+
+    .loading-screen{
+      position:fixed;
+      inset:0;
+      background:#f5f7fb;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+    }
+
+    .loading-box{
+      text-align:center;
+      color:#555c72;
+      font-size:14px;
+    }
+
+    .spinner{
+      width:38px;
+      height:38px;
+      border:4px solid #e4e6ef;
+      border-top-color:#5b5ce2;
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+      margin:0 auto 14px;
+    }
+
+    @keyframes spin{
+      to{
+        transform:rotate(360deg);
+      }
+    }
+
+    @media(max-width:480px){
+      body{
+        padding:14px;
+      }
+
+      .login-card{
+        padding:26px 20px;
+        border-radius:18px;
+      }
+
+      .logo{
+        font-size:29px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<div class="box">
-
-  <div class="logo">Daftari<b>+</b></div>
-
-  <div class="subtitle">
-    Ingia kwenye akaunti yako
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div>Inaangalia session yako...</div>
   </div>
+</div>
 
-  <div id="errBox"></div>
+<div class="login-container">
 
-  <form id="loginForm">
+  <div class="login-card">
 
-    <div class="field">
-      <label for="email">Barua Pepe</label>
-
-      <input
-        type="email"
-        id="email"
-        placeholder="jina@biashara.com"
-        autocomplete="email"
-        required
-      >
+    <div class="logo">
+      Daftari<span>+</span>
     </div>
 
-    <div class="field">
-      <label for="password">Nywila</label>
-
-      <input
-        type="password"
-        id="password"
-        placeholder="••••••••"
-        autocomplete="current-password"
-        required
-      >
+    <div class="subtitle">
+      Ingia kwenye akaunti yako
     </div>
 
-    <label class="remember">
-      <input type="checkbox" id="remember">
-      Nikumbuke
-    </label>
+    <div class="error-box" id="errorBox"></div>
 
-    <button class="btn" type="submit" id="submitBtn">
-      Ingia
-    </button>
+    <form id="loginForm">
 
-  </form>
+      <div class="form-group">
+        <label for="email">Barua Pepe</label>
 
-  <div class="links">
-    Huna akaunti?
-    <a href="/register.html">Fungua Akaunti Bure</a>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Weka barua pepe yako"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Nywila</label>
+
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Weka nywila yako"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <label class="remember">
+        <input type="checkbox" id="remember">
+        <span>Nikumbuke</span>
+      </label>
+
+      <button
+        type="submit"
+        class="login-btn"
+        id="loginButton">
+        Ingia
+      </button>
+
+    </form>
+
+    <div class="bottom-text">
+      Huna akaunti?
+      <a href="/register.html">Fungua Akaunti</a>
+    </div>
+
   </div>
 
 </div>
 
-
 <script>
 
-const errBox = document.getElementById('errBox');
-const submitBtn = document.getElementById('submitBtn');
 const loginForm = document.getElementById('loginForm');
-
+const loginButton = document.getElementById('loginButton');
+const errorBox = document.getElementById('errorBox');
+const loadingScreen = document.getElementById('loadingScreen');
 
 function showError(message){
-
-  errBox.textContent = message;
-
-  errBox.style.display = 'block';
-
+  errorBox.textContent = message || 'Kuna tatizo. Tafadhali jaribu tena.';
+  errorBox.style.display = 'block';
 }
-
 
 function hideError(){
-
-  errBox.textContent = '';
-
-  errBox.style.display = 'none';
-
+  errorBox.textContent = '';
+  errorBox.style.display = 'none';
 }
 
+function showLoading(){
+  loadingScreen.style.display = 'flex';
+}
+
+function hideLoading(){
+  loadingScreen.style.display = 'none';
+}
 
 function clearSession(){
-
   localStorage.removeItem('dp_token');
-
   localStorage.removeItem('dp_user');
-
 }
 
+function saveUser(user){
+  localStorage.setItem('dp_user', JSON.stringify(user));
+}
+
+function getToken(){
+  return localStorage.getItem('dp_token');
+}
 
 /*
 ====================================================
-REDIRECT USER
+USER REDIRECTION
 ====================================================
-
-Super Admin
-    ↓
-/super-admin.html
-
-Owner + ACTIVE subscription
-    ↓
-/dashboard.html
-
-Owner + NO_SUBSCRIPTION
-    ↓
-/subscription/subscription.html
-
-Owner + EXPIRED
-    ↓
-/subscription/subscription.html
-
-Seller
-    ↓
-/saler.html
 */
 
 function redirectUser(user, subscription){
 
   if(!user || !user.role){
-
     clearSession();
-
-    window.location.href = '/login.html';
-
+    window.location.replace('/login.html');
     return;
   }
-
 
   /*
   SUPER ADMIN
   */
 
   if(user.role === 'super_admin'){
-
-    window.location.href = '/super-admin.html';
-
+    window.location.replace('/super-admin.html');
     return;
   }
-
 
   /*
   SELLER
   */
 
   if(user.role === 'saler'){
-
-    window.location.href = '/saler.html';
-
+    window.location.replace('/saler.html');
     return;
   }
 
-
   /*
-  OWNER
+  BUSINESS OWNER / BUSINESS USER
   */
 
-  if(user.role === 'owner'){
-
-    /*
-      Kama subscription haipo kwenye response,
-      tunapeleka subscription page kwa usalama.
-    */
-
-    if(
-      subscription &&
-      subscription.active === true &&
-      subscription.status === 'ACTIVE'
-    ){
-
-      window.location.href = '/dashboard.html';
-
-    }else{
-
-      window.location.href =
-        '/subscription/subscription.html';
-
-    }
-
+  if(
+    subscription &&
+    subscription.active === true &&
+    subscription.status === 'ACTIVE'
+  ){
+    window.location.replace('/dashboard.html');
     return;
   }
 
-
   /*
-  FALLBACK
+  NO SUBSCRIPTION / EXPIRED
   */
 
-  window.location.href = '/dashboard.html';
-
+  window.location.replace('/subscription/subscription.html');
 }
-
 
 /*
 ====================================================
-GET CURRENT USER + SUBSCRIPTION
+API REQUEST
+====================================================
+*/
+
+async function apiRequest(url, options = {}){
+
+  const token = getToken();
+
+  const headers = {
+    'Accept':'application/json',
+    ...(options.body ? {
+      'Content-Type':'application/json'
+    } : {}),
+    ...(token ? {
+      'Authorization':'Bearer ' + token
+    } : {}),
+    ...(options.headers || {})
+  };
+
+  const response = await fetch(url,{
+    ...options,
+    headers:headers,
+    cache:'no-store'
+  });
+
+  let data = {};
+
+  try{
+    data = await response.json();
+  }catch(error){
+    data = {};
+  }
+
+  return {
+    response,
+    data
+  };
+}
+
+/*
+====================================================
+GET CURRENT USER
 ====================================================
 */
 
 async function getCurrentUser(){
 
-  const token = localStorage.getItem('dp_token');
+  const token = getToken();
 
   if(!token){
-
     return null;
   }
 
+  try{
 
-  const response = await fetch('/api/me', {
+    const result = await apiRequest(
+      '/api/me',
+      {
+        method:'GET'
+      }
+    );
 
-    method:'GET',
+    const response = result.response;
+    const data = result.data;
 
-    headers:{
-      'Authorization':'Bearer ' + token,
-      'Accept':'application/json'
-    },
+    if(response.status === 401){
+      clearSession();
+      return null;
+    }
 
-    cache:'no-store'
+    if(!response.ok){
+      console.error(
+        'API ME ERROR:',
+        response.status,
+        data
+      );
 
-  });
+      return null;
+    }
 
+    if(!data || !data.user){
+      return null;
+    }
 
-  if(!response.ok){
+    return data;
+
+  }catch(error){
+
+    console.error(
+      'GET CURRENT USER ERROR:',
+      error
+    );
 
     return null;
   }
-
-
-  const data = await response.json();
-
-
-  if(!data || !data.user){
-
-    return null;
-  }
-
-
-  return data;
-
 }
-
 
 /*
 ====================================================
-VERIFY EXISTING SESSION
+CHECK EXISTING SESSION
 ====================================================
 */
 
 async function checkExistingSession(){
 
-  const token = localStorage.getItem('dp_token');
+  const token = getToken();
 
   if(!token){
-
+    hideLoading();
     return;
   }
 
+  showLoading();
 
   try{
 
     const data = await getCurrentUser();
 
-
     if(!data){
 
       clearSession();
-
+      hideLoading();
       return;
     }
 
-
-    /*
-      Save latest user information
-    */
-
-    localStorage.setItem(
-      'dp_user',
-      JSON.stringify(data.user)
-    );
-
-
-    /*
-      Redirect using subscription status
-    */
+    saveUser(data.user);
 
     redirectUser(
       data.user,
       data.subscription
     );
 
-
   }catch(error){
 
     console.error(
-      'SESSION CHECK ERROR:',
+      'CHECK SESSION ERROR:',
       error
     );
 
+    clearSession();
+    hideLoading();
   }
-
 }
-
 
 /*
 ====================================================
@@ -438,12 +524,11 @@ LOGIN
 
 loginForm.addEventListener(
   'submit',
-  async function(ev){
+  async function(event){
 
-    ev.preventDefault();
+    event.preventDefault();
 
     hideError();
-
 
     const email =
       document.getElementById('email')
@@ -454,66 +539,51 @@ loginForm.addEventListener(
       document.getElementById('password')
       .value;
 
+    const remember =
+      document.getElementById('remember')
+      .checked;
 
-    if(!email || !password){
+    if(!email){
 
       showError(
-        'Weka email na password.'
+        'Tafadhali weka barua pepe.'
       );
 
       return;
     }
 
+    if(!password){
 
-    submitBtn.disabled = true;
+      showError(
+        'Tafadhali weka nywila.'
+      );
 
-    submitBtn.textContent =
-      'Inaingia...';
+      return;
+    }
 
+    loginButton.disabled = true;
+    loginButton.textContent = 'Inaingia...';
 
     try{
 
-
       /*
-      LOGIN REQUEST
+      LOGIN
       */
 
-      const response = await fetch(
+      const result = await apiRequest(
         '/api/login',
         {
           method:'POST',
 
-          headers:{
-            'Content-Type':'application/json',
-            'Accept':'application/json'
-          },
-
           body:JSON.stringify({
-
             email:email,
-
             password:password
-
-          }),
-
-          cache:'no-store'
+          })
         }
       );
 
-
-      let data = {};
-
-
-      try{
-
-        data = await response.json();
-
-      }catch(e){
-
-        data = {};
-
-      }
-
+      const response = result.response;
+      const data = result.data;
 
       /*
       LOGIN FAILED
@@ -527,30 +597,36 @@ loginForm.addEventListener(
           data.error ||
           'Email au password si sahihi.'
         );
-
       }
 
-
       /*
-      CHECK TOKEN
+      TOKEN
       */
 
-      if(
-        !data.token ||
-        !data.user
-      ){
+      if(!data.token){
 
         clearSession();
 
         throw new Error(
-          'Login imekamilika lakini session haikutengenezwa. Jaribu tena.'
+          'Server haikutoa login token.'
         );
-
       }
 
+      /*
+      USER
+      */
+
+      if(!data.user){
+
+        clearSession();
+
+        throw new Error(
+          'Taarifa za user hazijapatikana.'
+        );
+      }
 
       /*
-      SAVE SESSION
+      SAVE TOKEN
       */
 
       localStorage.setItem(
@@ -558,86 +634,60 @@ loginForm.addEventListener(
         data.token
       );
 
-      localStorage.setItem(
-        'dp_user',
-        JSON.stringify(data.user)
-      );
-
-
       /*
-      =================================================
-      MUHIMU:
-      Baada ya login hatutumii data ya login pekee.
-      Tunaita /api/me ili kupata subscription status.
-      =================================================
+      SAVE USER
       */
 
-      const meResponse =
-        await fetch(
-          '/api/me',
-          {
-            method:'GET',
+      saveUser(data.user);
 
-            headers:{
-              'Authorization':
-                'Bearer ' + data.token,
+      /*
+      REMEMBER
+      */
 
-              'Accept':
-                'application/json'
-            },
+      if(remember){
 
-            cache:'no-store'
-          }
+        localStorage.setItem(
+          'dp_remember',
+          'true'
         );
 
+      }else{
 
-      if(!meResponse.ok){
-
-        clearSession();
-
-        throw new Error(
-          'Session imeshindwa kuthibitishwa. Jaribu tena.'
+        localStorage.removeItem(
+          'dp_remember'
         );
-
       }
 
+      /*
+      GET /api/me
+      */
 
       const me =
-        await meResponse.json();
+        await getCurrentUser();
 
-
-      if(!me || !me.user){
+      if(!me){
 
         clearSession();
 
         throw new Error(
-          'Taarifa za akaunti hazijapatikana.'
+          'Login imefanyika lakini session haijathibitishwa. Jaribu tena.'
         );
-
       }
-
 
       /*
       SAVE UPDATED USER
       */
 
-      localStorage.setItem(
-        'dp_user',
-        JSON.stringify(me.user)
-      );
-
+      saveUser(me.user);
 
       /*
-      =================================================
       FINAL REDIRECT
-      =================================================
       */
 
       redirectUser(
         me.user,
         me.subscription
       );
-
 
     }catch(error){
 
@@ -646,23 +696,16 @@ loginForm.addEventListener(
         error
       );
 
-
       showError(
         error.message ||
         'Imeshindwa kuingia. Tafadhali jaribu tena.'
       );
 
-
-      submitBtn.disabled = false;
-
-      submitBtn.textContent =
-        'Ingia';
-
+      loginButton.disabled = false;
+      loginButton.textContent = 'Ingia';
     }
-
   }
 );
-
 
 /*
 ====================================================
@@ -670,7 +713,14 @@ START
 ====================================================
 */
 
-checkExistingSession();
+document.addEventListener(
+  'DOMContentLoaded',
+  function(){
+
+    checkExistingSession();
+
+  }
+);
 
 </script>
 
