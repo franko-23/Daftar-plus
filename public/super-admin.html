@@ -1,27 +1,2185 @@
 <!DOCTYPE html>
-<html lang="sw"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Daftari+ — Super Admin</title>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daftari+ — Super Admin</title>
+
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--text:#15182b;--muted:#68708a;--line:#e5e8ef;--p:#5b5ce2;--g:#25a76a;--r:#dc4d5b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}.top{height:70px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:5}.brand{font-size:22px;font-weight:800}.brand b{color:var(--p)}.user{display:flex;gap:10px;align-items:center}.avatar{width:38px;height:38px;border-radius:50%;background:#e9eaff;color:var(--p);display:grid;place-items:center;font-weight:800}.logout,.btn{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}.btn.primary{background:var(--p);color:#fff;border-color:var(--p)}.btn.secondary{background:#eef0ff;color:var(--p);border-color:#e0e2ff}.btn.danger{background:#fff0f2;color:var(--r);border-color:#ffd9df}.layout{display:flex;min-height:calc(100vh - 70px)}aside{width:230px;background:#fff;border-right:1px solid var(--line);padding:18px 12px}.nav{display:flex;flex-direction:column;gap:5px}.nav button{border:0;background:transparent;text-align:left;padding:12px;border-radius:10px;color:var(--muted);font-weight:800;cursor:pointer}.nav button.active,.nav button:hover{background:#eef0ff;color:var(--p)}main{flex:1;padding:28px;max-width:1500px;width:100%;margin:auto}.section{display:none}.section.active{display:block}h1{margin:0 0 7px;font-size:29px}.sub{margin:0 0 22px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 10px 30px rgba(25,30,60,.06)}.metric .label{font-size:12px;color:var(--muted);font-weight:800}.metric .value{font-size:27px;font-weight:800;margin-top:7px}.panel{margin-top:18px}.panel h2{margin:0 0 16px;font-size:18px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:780px}.table th,.table td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}.table th{color:var(--muted);font-size:11px;text-transform:uppercase}.badge{display:inline-block;padding:5px 9px;border-radius:99px;font-size:11px;font-weight:800}.on{background:#e8f8ef;color:var(--g)}.off{background:#fff0f2;color:var(--r)}.modal{display:none;position:fixed;inset:0;background:rgba(10,15,35,.45);z-index:20;padding:18px;overflow:auto}.modal.show{display:grid;place-items:center}.modalbox{width:min(780px,100%);background:#fff;border-radius:20px;padding:24px}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.close{border:0;background:#f1f2f6;width:38px;height:38px;border-radius:10px;font-size:20px;cursor:pointer}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:6px}.field input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px}.full{grid-column:1/-1}.calc{background:#f4f5ff;border:1px solid #e1e2ff;border-radius:12px;padding:14px}.calc strong{font-size:25px;color:var(--p)}.notice{background:#f4f5ff;color:var(--muted);padding:12px;border-radius:11px;font-size:13px;margin-bottom:15px}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#171a2d;color:#fff;padding:12px 16px;border-radius:10px;z-index:30}.toast.show{display:block}.empty{text-align:center;color:var(--muted);padding:25px}@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}aside{width:100%;border-right:0;border-bottom:1px solid var(--line)}.layout{display:block}.nav{flex-direction:row;overflow:auto}.nav button{white-space:nowrap}main{padding:18px}}@media(max-width:600px){.grid{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}.full{grid-column:auto}.top{padding:0 14px}.logout{display:none}}
-</style></head><body>
-<header class="top"><div class="brand">Daftari<b>+</b> <small style="font-size:11px;color:#8790a8">SUPER ADMIN</small></div><div class="user"><span id="uname">Super Admin</span><span class="avatar" id="avatar">S</span><button class="logout" onclick="logout()">Toka</button></div></header>
-<div class="layout"><aside><nav class="nav"><button class="active" data-tab="overview">📊 Overview</button><button data-tab="plans">💳 Subscription Plans</button><button data-tab="businesses">🏢 Businesses</button><button data-tab="users">👥 Users</button><button data-tab="performance">📈 Performance</button></nav></aside><main>
-<section id="overview" class="section active"><h1>Super Admin Dashboard</h1><p class="sub">Usimamizi wa Daftari+ na subscription.</p><div class="grid"><div class="card metric"><div class="label">Businesses</div><div class="value" id="businessesN">—</div></div><div class="card metric"><div class="label">Users</div><div class="value" id="usersN">—</div></div><div class="card metric"><div class="label">Successful Payments</div><div class="value" id="successN">—</div></div><div class="card metric"><div class="label">Active Subscriptions</div><div class="value" id="activeN">—</div></div></div><div class="card panel"><h2>Subscription Revenue</h2><div class="grid"><div class="metric"><div class="label">Successful Amount</div><div class="value" id="revenueN">—</div></div><div class="metric"><div class="label">Pending</div><div class="value" id="pendingN">—</div></div><div class="metric"><div class="label">Failed</div><div class="value" id="failedN">—</div></div><div class="metric"><div class="label">All Payments</div><div class="value" id="paymentsN">—</div></div></div></div></section>
-<section id="plans" class="section"><h1>Subscription Plans</h1><p class="sub">Badilisha regular price, discount %, final price, promotion na muda.</p><div class="toolbar"><button class="btn primary" onclick="openPlan()">+ Ongeza Plan</button><button class="btn secondary" onclick="loadPlans()">↻ Refresh</button></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Plan</th><th>Regular</th><th>Discount</th><th>Final</th><th>Days</th><th>Promotion</th><th>Status</th><th></th></tr></thead><tbody id="plansBody"></tbody></table></div></div></section>
-<section id="businesses" class="section"><h1>Businesses</h1><p class="sub">Biashara zote kwenye platform.</p><div class="toolbar"><button class="btn secondary" onclick="loadBusinesses()">↻ Refresh</button></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Business</th><th>Owner</th><th>Users</th><th>Sales</th><th>Revenue</th><th>Status</th><th></th></tr></thead><tbody id="businessBody"></tbody></table></div></div></section>
-<section id="users" class="section"><h1>Users</h1><p class="sub">Owners na Sellers.</p><div class="toolbar"><button class="btn secondary" onclick="loadUsers()">↻ Refresh</button></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Business</th><th>Status</th></tr></thead><tbody id="usersBody"></tbody></table></div></div></section>
-<section id="performance" class="section"><h1>Performance</h1><p class="sub">Mauzo, revenue, gross profit na expenses.</p><div class="toolbar"><button class="btn secondary" onclick="loadPerformance()">↻ Refresh</button></div><div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Business</th><th>Status</th><th>Sales</th><th>Revenue</th><th>Gross Profit</th><th>Expenses</th></tr></thead><tbody id="performanceBody"></tbody></table></div></div></section>
-</main></div>
-<div class="modal" id="modal"><div class="modalbox"><div class="head"><div><h2 id="modalTitle" style="margin:0">Ongeza Subscription Plan</h2><div style="color:var(--muted);font-size:13px">Weka bei na discount.</div></div><button class="close" onclick="closePlan()">×</button></div><div class="notice">Final price inahesabiwa moja kwa moja kulingana na <b>Regular Price</b> na <b>Discount %</b>.</div><input type="hidden" id="planId"><div class="form"><div class="field"><label>Jina la Plan</label><input id="name" placeholder="Business"></div><div class="field"><label>Code</label><input id="code" placeholder="business"></div><div class="field"><label>Regular Price (TSh)</label><input id="regular" type="number" min="0" oninput="calc()"></div><div class="field"><label>Discount (%)</label><input id="discount" type="number" min="0" max="100" step="0.01" value="0" oninput="calc()"></div><div class="field full"><div class="calc">Bei baada ya discount: <strong id="final">TSh 0</strong></div></div><div class="field"><label>Duration (Days)</label><input id="days" type="number" min="1" value="30"></div><div class="field"><label>Promotion Name</label><input id="promotion" placeholder="Launch Offer"></div><div class="field"><label>Promotion Start</label><input id="start" type="date"></div><div class="field"><label>Promotion End</label><input id="end" type="date"></div><div class="field full"><label><input id="active" type="checkbox" checked> Plan iwe active</label></div></div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px"><button class="btn" onclick="closePlan()">Cancel</button><button class="btn secondary" type="button" onclick="removeDiscount()">Ondoa Discount</button><button class="btn primary" onclick="savePlan()">Save Plan</button></div></div></div><div class="toast" id="toast"></div>
+:root{
+  --bg:#f5f7fb;
+  --card:#fff;
+  --text:#15182b;
+  --muted:#68708a;
+  --line:#e5e8ef;
+  --p:#5b5ce2;
+  --g:#25a76a;
+  --r:#dc4d5b
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif
+}
+
+.top{
+  height:70px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 26px;
+  position:sticky;
+  top:0;
+  z-index:5
+}
+
+.brand{
+  font-size:22px;
+  font-weight:800
+}
+
+.brand b{
+  color:var(--p)
+}
+
+.user{
+  display:flex;
+  gap:10px;
+  align-items:center
+}
+
+.avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:#e9eaff;
+  color:var(--p);
+  display:grid;
+  place-items:center;
+  font-weight:800
+}
+
+.logout,.btn{
+  border:1px solid var(--line);
+  background:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:800;
+  cursor:pointer
+}
+
+.btn.primary{
+  background:var(--p);
+  color:#fff;
+  border-color:var(--p)
+}
+
+.btn.secondary{
+  background:#eef0ff;
+  color:var(--p);
+  border-color:#e0e2ff
+}
+
+.btn.danger{
+  background:#fff0f2;
+  color:var(--r);
+  border-color:#ffd9df
+}
+
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed
+}
+
+.layout{
+  display:flex;
+  min-height:calc(100vh - 70px)
+}
+
+aside{
+  width:230px;
+  background:#fff;
+  border-right:1px solid var(--line);
+  padding:18px 12px
+}
+
+.nav{
+  display:flex;
+  flex-direction:column;
+  gap:5px
+}
+
+.nav button{
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:12px;
+  border-radius:10px;
+  color:var(--muted);
+  font-weight:800;
+  cursor:pointer
+}
+
+.nav button.active,
+.nav button:hover{
+  background:#eef0ff;
+  color:var(--p)
+}
+
+main{
+  flex:1;
+  padding:28px;
+  max-width:1500px;
+  width:100%;
+  margin:auto
+}
+
+.section{
+  display:none
+}
+
+.section.active{
+  display:block
+}
+
+h1{
+  margin:0 0 7px;
+  font-size:29px
+}
+
+.sub{
+  margin:0 0 22px;
+  color:var(--muted)
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px
+}
+
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(25,30,60,.06)
+}
+
+.metric .label{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800
+}
+
+.metric .value{
+  font-size:27px;
+  font-weight:800;
+  margin-top:7px
+}
+
+.panel{
+  margin-top:18px
+}
+
+.panel h2{
+  margin:0 0 16px;
+  font-size:18px
+}
+
+.toolbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px
+}
+
+.table-wrap{
+  overflow:auto
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:780px
+}
+
+.table th,
+.table td{
+  padding:12px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  font-size:13px
+}
+
+.table th{
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:99px;
+  font-size:11px;
+  font-weight:800
+}
+
+.on{
+  background:#e8f8ef;
+  color:var(--g)
+}
+
+.off{
+  background:#fff0f2;
+  color:var(--r)
+}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(10,15,35,.45);
+  z-index:20;
+  padding:18px;
+  overflow:auto
+}
+
+.modal.show{
+  display:grid;
+  place-items:center
+}
+
+.modalbox{
+  width:min(780px,100%);
+  background:#fff;
+  border-radius:20px;
+  padding:24px
+}
+
+.head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px
+}
+
+.close{
+  border:0;
+  background:#f1f2f6;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  font-size:20px;
+  cursor:pointer
+}
+
+.form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px
+}
+
+.field label{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800;
+  margin-bottom:6px
+}
+
+.field input{
+  width:100%;
+  padding:11px;
+  border:1px solid var(--line);
+  border-radius:10px
+}
+
+.full{
+  grid-column:1/-1
+}
+
+.calc{
+  background:#f4f5ff;
+  border:1px solid #e1e2ff;
+  border-radius:12px;
+  padding:14px
+}
+
+.calc strong{
+  font-size:25px;
+  color:var(--p)
+}
+
+.notice{
+  background:#f4f5ff;
+  color:var(--muted);
+  padding:12px;
+  border-radius:11px;
+  font-size:13px;
+  margin-bottom:15px
+}
+
+.toast{
+  display:none;
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  background:#171a2d;
+  color:#fff;
+  padding:12px 16px;
+  border-radius:10px;
+  z-index:30;
+  max-width:400px
+}
+
+.toast.show{
+  display:block
+}
+
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:25px
+}
+
+@media(max-width:850px){
+  .grid{
+    grid-template-columns:1fr 1fr
+  }
+
+  aside{
+    width:100%;
+    border-right:0;
+    border-bottom:1px solid var(--line)
+  }
+
+  .layout{
+    display:block
+  }
+
+  .nav{
+    flex-direction:row;
+    overflow:auto
+  }
+
+  .nav button{
+    white-space:nowrap
+  }
+
+  main{
+    padding:18px
+  }
+}
+
+@media(max-width:600px){
+  .grid{
+    grid-template-columns:1fr 1fr
+  }
+
+  .form{
+    grid-template-columns:1fr
+  }
+
+  .full{
+    grid-column:auto
+  }
+
+  .top{
+    padding:0 14px
+  }
+
+  .logout{
+    display:none
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="top">
+
+  <div class="brand">
+    Daftari<b>+</b>
+    <small style="font-size:11px;color:#8790a8">
+      SUPER ADMIN
+    </small>
+  </div>
+
+  <div class="user">
+    <span id="uname">Super Admin</span>
+    <span class="avatar" id="avatar">S</span>
+
+    <button class="logout" onclick="logout()">
+      Toka
+    </button>
+  </div>
+
+</header>
+
+<div class="layout">
+
+<aside>
+
+<nav class="nav">
+
+<button class="active" data-tab="overview">
+📊 Overview
+</button>
+
+<button data-tab="plans">
+💳 Subscription Plans
+</button>
+
+<button data-tab="businesses">
+🏢 Businesses
+</button>
+
+<button data-tab="users">
+👥 Users
+</button>
+
+<button data-tab="performance">
+📈 Performance
+</button>
+
+</nav>
+
+</aside>
+
+<main>
+
+<!-- OVERVIEW -->
+
+<section id="overview" class="section active">
+
+<h1>Super Admin Dashboard</h1>
+
+<p class="sub">
+Usimamizi wa Daftari+ na subscription.
+</p>
+
+<div class="grid">
+
+<div class="card metric">
+<div class="label">Businesses</div>
+<div class="value" id="businessesN">—</div>
+</div>
+
+<div class="card metric">
+<div class="label">Users</div>
+<div class="value" id="usersN">—</div>
+</div>
+
+<div class="card metric">
+<div class="label">Successful Payments</div>
+<div class="value" id="successN">—</div>
+</div>
+
+<div class="card metric">
+<div class="label">Active Subscriptions</div>
+<div class="value" id="activeN">—</div>
+</div>
+
+</div>
+
+<div class="card panel">
+
+<h2>Subscription Revenue</h2>
+
+<div class="grid">
+
+<div class="metric">
+<div class="label">Successful Amount</div>
+<div class="value" id="revenueN">—</div>
+</div>
+
+<div class="metric">
+<div class="label">Pending</div>
+<div class="value" id="pendingN">—</div>
+</div>
+
+<div class="metric">
+<div class="label">Failed</div>
+<div class="value" id="failedN">—</div>
+</div>
+
+<div class="metric">
+<div class="label">All Payments</div>
+<div class="value" id="paymentsN">—</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PLANS -->
+
+<section id="plans" class="section">
+
+<h1>Subscription Plans</h1>
+
+<p class="sub">
+Badilisha regular price, discount %, final price, promotion na muda.
+</p>
+
+<div class="toolbar">
+
+<button
+class="btn primary"
+type="button"
+onclick="openPlan()">
++ Ongeza Plan
+</button>
+
+<button
+class="btn secondary"
+type="button"
+onclick="loadPlans()">
+↻ Refresh
+</button>
+
+</div>
+
+<div class="card">
+
+<div class="table-wrap">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Plan</th>
+<th>Regular</th>
+<th>Discount</th>
+<th>Final</th>
+<th>Days</th>
+<th>Promotion</th>
+<th>Status</th>
+<th></th>
+</tr>
+
+</thead>
+
+<tbody id="plansBody"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- BUSINESSES -->
+
+<section id="businesses" class="section">
+
+<h1>Businesses</h1>
+
+<p class="sub">
+Biashara zote kwenye platform.
+</p>
+
+<div class="toolbar">
+
+<button
+class="btn secondary"
+type="button"
+onclick="loadBusinesses()">
+↻ Refresh
+</button>
+
+</div>
+
+<div class="card">
+
+<div class="table-wrap">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Business</th>
+<th>Owner</th>
+<th>Users</th>
+<th>Sales</th>
+<th>Revenue</th>
+<th>Status</th>
+<th></th>
+</tr>
+
+</thead>
+
+<tbody id="businessBody"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- USERS -->
+
+<section id="users" class="section">
+
+<h1>Users</h1>
+
+<p class="sub">
+Owners na Sellers.
+</p>
+
+<div class="toolbar">
+
+<button
+class="btn secondary"
+type="button"
+onclick="loadUsers()">
+↻ Refresh
+</button>
+
+</div>
+
+<div class="card">
+
+<div class="table-wrap">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Role</th>
+<th>Business</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody id="usersBody"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PERFORMANCE -->
+
+<section id="performance" class="section">
+
+<h1>Performance</h1>
+
+<p class="sub">
+Mauzo, revenue, gross profit na expenses.
+</p>
+
+<div class="toolbar">
+
+<button
+class="btn secondary"
+type="button"
+onclick="loadPerformance()">
+↻ Refresh
+</button>
+
+</div>
+
+<div class="card">
+
+<div class="table-wrap">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Business</th>
+<th>Status</th>
+<th>Sales</th>
+<th>Revenue</th>
+<th>Gross Profit</th>
+<th>Expenses</th>
+</tr>
+
+</thead>
+
+<tbody id="performanceBody"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<!-- PLAN MODAL -->
+
+<div class="modal" id="modal">
+
+<div class="modalbox">
+
+<div class="head">
+
+<div>
+
+<h2 id="modalTitle" style="margin:0">
+Ongeza Subscription Plan
+</h2>
+
+<div style="color:var(--muted);font-size:13px">
+Weka bei na discount.
+</div>
+
+</div>
+
+<button
+class="close"
+type="button"
+onclick="closePlan()">
+×
+</button>
+
+</div>
+
+
+<div class="notice">
+
+Final price inahesabiwa moja kwa moja kulingana na
+<b>Regular Price</b> na <b>Discount %</b>.
+
+</div>
+
+
+<input
+type="hidden"
+id="planId"
+>
+
+
+<div class="form">
+
+
+<div class="field">
+
+<label>
+Jina la Plan
+</label>
+
+<input
+id="name"
+placeholder="Business"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Code
+</label>
+
+<input
+id="code"
+placeholder="business"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Regular Price (TSh)
+</label>
+
+<input
+id="regular"
+type="number"
+min="0"
+oninput="calc()"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Discount (%)
+</label>
+
+<input
+id="discount"
+type="number"
+min="0"
+max="100"
+step="0.01"
+value="0"
+oninput="calc()"
+>
+
+</div>
+
+
+<div class="field full">
+
+<div class="calc">
+
+Bei baada ya discount:
+
+<strong id="final">
+TSh 0
+</strong>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Duration (Days)
+</label>
+
+<input
+id="days"
+type="number"
+min="1"
+value="30"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Promotion Name
+</label>
+
+<input
+id="promotion"
+placeholder="Launch Offer"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Promotion Start
+</label>
+
+<input
+id="start"
+type="date"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Promotion End
+</label>
+
+<input
+id="end"
+type="date"
+>
+
+</div>
+
+
+<div class="field full">
+
+<label>
+
+<input
+id="active"
+type="checkbox"
+checked
+>
+
+Plan iwe active
+
+</label>
+
+</div>
+
+</div>
+
+
+<div
+style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap"
+>
+
+<button
+class="btn"
+type="button"
+onclick="closePlan()">
+Cancel
+</button>
+
+<button
+class="btn secondary"
+type="button"
+onclick="removeDiscount()">
+Ondoa Discount
+</button>
+
+<button
+class="btn primary"
+type="button"
+id="savePlanBtn">
+Save Plan
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
 <script>
-const token=localStorage.getItem('dp_token');let plans=[];const money=n=>'TSh '+Number(n||0).toLocaleString('en-TZ');const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[x]));
-if(!token)location.href='/login.html';else{try{const u=JSON.parse(localStorage.getItem('dp_user')||'{}');if(u.role!=='super_admin')location.href='/dashboard.html';document.getElementById('uname').textContent=u.full_name||'Super Admin';document.getElementById('avatar').textContent=(u.full_name||'S')[0].toUpperCase()}catch(e){location.href='/login.html'}}
-async function api(url,opt={}){const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||'Server error.');return d}function toast(x){const t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}function logout(){localStorage.removeItem('dp_token');localStorage.removeItem('dp_user');location.href='/login.html'}
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active');({overview:loadOverview,plans:loadPlans,businesses:loadBusinesses,users:loadUsers,performance:loadPerformance}[b.dataset.tab])()});
-async function loadOverview(){try{const[b,u,s]=await Promise.all([api('/api/super/businesses'),api('/api/super/users'),api('/api/super/subscription/stats')]);const t=s.totals||{};businessesN.textContent=b.businesses?.length||0;usersN.textContent=u.users?.length||0;successN.textContent=t.successful_count||0;activeN.textContent=s.active?.active_subscriptions||0;revenueN.textContent=money(t.successful_amount);pendingN.textContent=t.pending_count||0;failedN.textContent=t.failed_count||0;paymentsN.textContent=t.payments||0}catch(e){toast(e.message)}}
-async function loadPlans(){try{const d=await api('/api/super/subscription/plans');plans=d.plans||[];plansBody.innerHTML=plans.length?plans.map(p=>`<tr><td><b>${esc(p.name)}</b><div style="font-size:11px;color:#68708a">${esc(p.code)}</div></td><td>${money(p.regular_price_tzs)}</td><td><b>${Number(p.discount_percent||0)}%</b></td><td><b>${money(p.current_price_tzs??p.final_price_tzs)}</b></td><td>${p.duration_days}</td><td>${esc(p.promotion_name||'—')}</td><td>${p.active?'<span class="badge on">ACTIVE</span>':'<span class="badge off">INACTIVE</span>'}</td><td><button class="btn secondary" onclick="editPlan(${p.id})">✏️ Edit</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Hakuna plans.</td></tr>'}catch(e){toast(e.message)}}
-function calc(){const r=Math.max(0,Number(regular.value||0)),d=Math.min(100,Math.max(0,Number(discount.value||0)));discount.value=d;final.textContent=money(Math.max(0,Math.round(r*(1-d/100))))}function removeDiscount(){discount.value=0;calc();toast("Discount imeondolewa.")}function openPlan(p=null){modal.classList.add('show');modalTitle.textContent=p?'Edit Subscription Plan':'Ongeza Subscription Plan';planId.value=p?.id||'';name.value=p?.name||'';code.value=p?.code||'';code.disabled=!!p;regular.value=p?.regular_price_tzs??'';discount.value=p?.discount_percent??0;days.value=p?.duration_days??30;promotion.value=p?.promotion_name||'';start.value=p?.promotion_start||'';end.value=p?.promotion_end||'';active.checked=p?.active!==0;calc()}function editPlan(id){const p=plans.find(x=>Number(x.id)===Number(id));if(p)openPlan(p)}function closePlan(){modal.classList.remove('show')}
-async function savePlan(){const id=planId.value,p={name:name.value.trim(),regularPriceTzs:Number(regular.value),discountPercent:Number(discount.value||0),durationDays:Number(days.value||30),promotionName:promotion.value.trim(),promotionStart:start.value||null,promotionEnd:end.value||null,active:active.checked};if(!id)p.code=code.value.trim();if(!p.name||!Number.isFinite(p.regularPriceTzs)||p.regularPriceTzs<0||p.discountPercent<0||p.discountPercent>100||p.durationDays<1){toast('Jaza taarifa sahihi.');return}try{await api(id?'/api/super/subscription/plans/'+id:'/api/super/subscription/plans',{method:id?'PATCH':'POST',body:JSON.stringify(p)});closePlan();toast('Plan imehifadhiwa.');loadPlans();loadOverview()}catch(e){toast(e.message)}}
-async function loadBusinesses(){try{const d=await api('/api/super/businesses'),rows=d.businesses||[];businessBody.innerHTML=rows.length?rows.map(b=>`<tr><td><b>${esc(b.name)}</b></td><td>${esc(b.owner||'—')}</td><td>${b.users||0}</td><td>${b.sales||0}</td><td>${money(b.revenue)}</td><td>${b.status==='suspended'?'<span class="badge off">SUSPENDED</span>':'<span class="badge on">ACTIVE</span>'}</td><td>${b.status==='suspended'?`<button class="btn secondary" onclick="toggleBiz(${b.id},'activate')">Activate</button>`:`<button class="btn danger" onclick="toggleBiz(${b.id},'suspend')">Suspend</button>`}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Hakuna businesses.</td></tr>'}catch(e){toast(e.message)}}async function toggleBiz(id,a){if(a==='suspend'&&!confirm('Suspend business hii?'))return;try{await api('/api/super/businesses/'+id+'/'+a,{method:'PUT'});toast('Business updated.');loadBusinesses()}catch(e){toast(e.message)}}
-async function loadUsers(){try{const d=await api('/api/super/users'),rows=d.users||[];usersBody.innerHTML=rows.length?rows.map(u=>`<tr><td><b>${esc(u.full_name)}</b></td><td>${esc(u.email)}</td><td>${esc(u.phone||'—')}</td><td>${esc(u.role)}</td><td>${esc(u.business_name||'—')}</td><td>${u.active?'<span class="badge on">ACTIVE</span>':'<span class="badge off">INACTIVE</span>'}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Hakuna users.</td></tr>'}catch(e){toast(e.message)}}
-async function loadPerformance(){try{const d=await api('/api/super/performance'),rows=d.performance||[];performanceBody.innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.status==='suspended'?'<span class="badge off">SUSPENDED</span>':'<span class="badge on">ACTIVE</span>'}</td><td>${x.sales||0}</td><td>${money(x.revenue)}</td><td>${money(x.gross_profit)}</td><td>${money(x.expenses)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Hakuna data.</td></tr>'}catch(e){toast(e.message)}}loadOverview();
-</script></body></html>
+
+const token = localStorage.getItem('dp_token');
+
+let plans = [];
+
+
+const money = n =>
+  'TSh ' + Number(n || 0).toLocaleString('en-TZ');
+
+
+const esc = s =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    x => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#039;'
+    }[x])
+  );
+
+
+/* LOGIN CHECK */
+
+if(!token){
+
+  location.href='/login.html';
+
+}else{
+
+  try{
+
+    const u =
+      JSON.parse(
+        localStorage.getItem('dp_user') || '{}'
+      );
+
+    if(u.role !== 'super_admin'){
+      location.href='/dashboard.html';
+    }
+
+    document.getElementById('uname').textContent =
+      u.full_name || 'Super Admin';
+
+    document.getElementById('avatar').textContent =
+      (u.full_name || 'S')[0].toUpperCase();
+
+  }catch(e){
+
+    location.href='/login.html';
+
+  }
+
+}
+
+
+/* API */
+
+async function api(url,opt={}){
+
+  const r = await fetch(
+    url,
+    {
+      ...opt,
+
+      headers:{
+        'Content-Type':'application/json',
+
+        'Authorization':
+          'Bearer ' + token,
+
+        ...(opt.headers || {})
+      }
+    }
+  );
+
+
+  let d = {};
+
+  try{
+
+    d = await r.json();
+
+  }catch(e){}
+
+
+  if(!r.ok){
+
+    throw Error(
+      d.error || 'Server error.'
+    );
+
+  }
+
+
+  return d;
+
+}
+
+
+/* TOAST */
+
+function toast(x){
+
+  const t =
+    document.getElementById('toast');
+
+  t.textContent = x;
+
+  t.classList.add('show');
+
+  setTimeout(
+    () => t.classList.remove('show'),
+    3000
+  );
+
+}
+
+
+/* LOGOUT */
+
+function logout(){
+
+  localStorage.removeItem('dp_token');
+
+  localStorage.removeItem('dp_user');
+
+  location.href='/login.html';
+
+}
+
+
+/* NAVIGATION */
+
+document
+.querySelectorAll('.nav button')
+.forEach(b => {
+
+  b.onclick = () => {
+
+    document
+    .querySelectorAll('.nav button')
+    .forEach(x =>
+      x.classList.remove('active')
+    );
+
+
+    b.classList.add('active');
+
+
+    document
+    .querySelectorAll('.section')
+    .forEach(x =>
+      x.classList.remove('active')
+    );
+
+
+    document
+    .getElementById(b.dataset.tab)
+    .classList.add('active');
+
+
+    const loaders = {
+
+      overview: loadOverview,
+
+      plans: loadPlans,
+
+      businesses: loadBusinesses,
+
+      users: loadUsers,
+
+      performance: loadPerformance
+
+    };
+
+
+    if(loaders[b.dataset.tab]){
+
+      loaders[b.dataset.tab]();
+
+    }
+
+  };
+
+});
+
+
+/* OVERVIEW */
+
+async function loadOverview(){
+
+  try{
+
+    const [
+      b,
+      u,
+      s
+    ] = await Promise.all([
+
+      api('/api/super/businesses'),
+
+      api('/api/super/users'),
+
+      api('/api/super/subscription/stats')
+
+    ]);
+
+
+    const t = s.totals || {};
+
+
+    document.getElementById('businessesN')
+      .textContent =
+      b.businesses?.length || 0;
+
+
+    document.getElementById('usersN')
+      .textContent =
+      u.users?.length || 0;
+
+
+    document.getElementById('successN')
+      .textContent =
+      t.successful_count || 0;
+
+
+    document.getElementById('activeN')
+      .textContent =
+      s.active?.active_subscriptions || 0;
+
+
+    document.getElementById('revenueN')
+      .textContent =
+      money(t.successful_amount);
+
+
+    document.getElementById('pendingN')
+      .textContent =
+      t.pending_count || 0;
+
+
+    document.getElementById('failedN')
+      .textContent =
+      t.failed_count || 0;
+
+
+    document.getElementById('paymentsN')
+      .textContent =
+      t.payments || 0;
+
+
+  }catch(e){
+
+    toast(e.message);
+
+  }
+
+}
+
+
+/* LOAD PLANS */
+
+async function loadPlans(){
+
+  try{
+
+    const d =
+      await api(
+        '/api/super/subscription/plans'
+      );
+
+
+    plans = d.plans || [];
+
+
+    const body =
+      document.getElementById('plansBody');
+
+
+    if(!plans.length){
+
+      body.innerHTML =
+        '<tr>' +
+        '<td colspan="8" class="empty">' +
+        'Hakuna plans.' +
+        '</td>' +
+        '</tr>';
+
+      return;
+
+    }
+
+
+    body.innerHTML =
+      plans.map(p => `
+
+        <tr>
+
+          <td>
+
+            <b>
+              ${esc(p.name)}
+            </b>
+
+            <div
+              style="font-size:11px;color:#68708a"
+            >
+              ${esc(p.code)}
+            </div>
+
+          </td>
+
+
+          <td>
+            ${money(p.regular_price_tzs)}
+          </td>
+
+
+          <td>
+            <b>
+              ${Number(p.discount_percent || 0)}%
+            </b>
+          </td>
+
+
+          <td>
+
+            <b>
+              ${money(
+                p.current_price_tzs ??
+                p.final_price_tzs
+              )}
+            </b>
+
+          </td>
+
+
+          <td>
+            ${p.duration_days}
+          </td>
+
+
+          <td>
+            ${esc(
+              p.promotion_name || '—'
+            )}
+          </td>
+
+
+          <td>
+
+            ${
+              p.active
+              ?
+              '<span class="badge on">ACTIVE</span>'
+              :
+              '<span class="badge off">INACTIVE</span>'
+            }
+
+          </td>
+
+
+          <td>
+
+            <button
+              class="btn secondary"
+              type="button"
+              onclick="editPlan(${p.id})"
+            >
+              ✏️ Edit
+            </button>
+
+          </td>
+
+        </tr>
+
+      `).join('');
+
+  }catch(e){
+
+    console.error(
+      'LOAD PLANS ERROR:',
+      e
+    );
+
+    toast(e.message);
+
+  }
+
+}
+
+
+/* CALCULATE PRICE */
+
+function calc(){
+
+  const r =
+    Math.max(
+      0,
+      Number(
+        document.getElementById('regular').value || 0
+      )
+    );
+
+
+  const d =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        Number(
+          document.getElementById('discount').value || 0
+        )
+      )
+    );
+
+
+  document.getElementById('discount').value =
+    d;
+
+
+  const finalPrice =
+    Math.max(
+      0,
+      Math.round(
+        r * (1 - d / 100)
+      )
+    );
+
+
+  document.getElementById('final')
+    .textContent =
+    money(finalPrice);
+
+}
+
+
+/* REMOVE DISCOUNT */
+
+function removeDiscount(){
+
+  document.getElementById('discount')
+    .value = 0;
+
+  calc();
+
+  toast(
+    'Discount imeondolewa.'
+  );
+
+}
+
+
+/* OPEN PLAN */
+
+function openPlan(p=null){
+
+  document
+    .getElementById('modal')
+    .classList.add('show');
+
+
+  document
+    .getElementById('modalTitle')
+    .textContent =
+    p
+      ? 'Edit Subscription Plan'
+      : 'Ongeza Subscription Plan';
+
+
+  document
+    .getElementById('planId')
+    .value =
+    p?.id || '';
+
+
+  document
+    .getElementById('name')
+    .value =
+    p?.name || '';
+
+
+  document
+    .getElementById('code')
+    .value =
+    p?.code || '';
+
+
+  document
+    .getElementById('code')
+    .disabled =
+    !!p;
+
+
+  document
+    .getElementById('regular')
+    .value =
+    p?.regular_price_tzs ?? '';
+
+
+  document
+    .getElementById('discount')
+    .value =
+    p?.discount_percent ?? 0;
+
+
+  document
+    .getElementById('days')
+    .value =
+    p?.duration_days ?? 30;
+
+
+  document
+    .getElementById('promotion')
+    .value =
+    p?.promotion_name || '';
+
+
+  document
+    .getElementById('start')
+    .value =
+    p?.promotion_start || '';
+
+
+  document
+    .getElementById('end')
+    .value =
+    p?.promotion_end || '';
+
+
+  document
+    .getElementById('active')
+    .checked =
+    p?.active !== 0;
+
+
+  calc();
+
+}
+
+
+/* EDIT PLAN */
+
+function editPlan(id){
+
+  const p =
+    plans.find(
+      x =>
+        Number(x.id) === Number(id)
+    );
+
+
+  if(p){
+
+    openPlan(p);
+
+  }
+
+}
+
+
+/* CLOSE PLAN */
+
+function closePlan(){
+
+  document
+    .getElementById('modal')
+    .classList.remove('show');
+
+}
+
+
+/* SAVE PLAN */
+
+async function savePlan(){
+
+  const id =
+    document
+      .getElementById('planId')
+      .value;
+
+
+  const name =
+    document
+      .getElementById('name')
+      .value
+      .trim();
+
+
+  const code =
+    document
+      .getElementById('code')
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  const regularPriceTzs =
+    Number(
+      document
+        .getElementById('regular')
+        .value || 0
+    );
+
+
+  const discountPercent =
+    Number(
+      document
+        .getElementById('discount')
+        .value || 0
+    );
+
+
+  const durationDays =
+    Number(
+      document
+        .getElementById('days')
+        .value || 30
+    );
+
+
+  const promotionName =
+    document
+      .getElementById('promotion')
+      .value
+      .trim();
+
+
+  const promotionStart =
+    document
+      .getElementById('start')
+      .value || null;
+
+
+  const promotionEnd =
+    document
+      .getElementById('end')
+      .value || null;
+
+
+  const active =
+    document
+      .getElementById('active')
+      .checked;
+
+
+  /* VALIDATION */
+
+  if(!name){
+
+    toast(
+      'Weka jina la Plan.'
+    );
+
+    return;
+
+  }
+
+
+  if(!id && !code){
+
+    toast(
+      'Weka Code ya Plan.'
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !Number.isFinite(
+      regularPriceTzs
+    ) ||
+    regularPriceTzs < 0
+  ){
+
+    toast(
+      'Regular Price si sahihi.'
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !Number.isFinite(
+      discountPercent
+    ) ||
+    discountPercent < 0 ||
+    discountPercent > 100
+  ){
+
+    toast(
+      'Discount lazima iwe kati ya 0% na 100%.'
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !Number.isFinite(
+      durationDays
+    ) ||
+    durationDays < 1
+  ){
+
+    toast(
+      'Duration lazima iwe angalau siku 1.'
+    );
+
+    return;
+
+  }
+
+
+  const p = {
+
+    name,
+
+    regularPriceTzs,
+
+    discountPercent,
+
+    durationDays,
+
+    promotionName,
+
+    promotionStart,
+
+    promotionEnd,
+
+    active
+
+  };
+
+
+  if(!id){
+
+    p.code = code;
+
+  }
+
+
+  const btn =
+    document
+      .getElementById('savePlanBtn');
+
+
+  try{
+
+    btn.disabled = true;
+
+    btn.textContent =
+      'Inahifadhi...';
+
+
+    const url =
+      id
+      ?
+      '/api/super/subscription/plans/' + id
+      :
+      '/api/super/subscription/plans';
+
+
+    const method =
+      id
+      ?
+      'PATCH'
+      :
+      'POST';
+
+
+    console.log(
+      'SAVE PLAN:',
+      {
+        url,
+        method,
+        data:p
+      }
+    );
+
+
+    const result =
+      await api(
+        url,
+        {
+          method,
+          body:
+            JSON.stringify(p)
+        }
+      );
+
+
+    console.log(
+      'SAVE PLAN RESPONSE:',
+      result
+    );
+
+
+    toast(
+      id
+      ?
+      'Plan imebadilishwa kikamilifu.'
+      :
+      'Plan mpya imeongezwa kikamilifu.'
+    );
+
+
+    closePlan();
+
+
+    await loadPlans();
+
+    await loadOverview();
+
+
+  }catch(e){
+
+    console.error(
+      'SAVE PLAN ERROR:',
+      e
+    );
+
+
+    toast(
+      'Imeshindikana kuhifadhi Plan: ' +
+      (e.message || 'Unknown error')
+    );
+
+
+  }finally{
+
+    btn.disabled = false;
+
+    btn.textContent =
+      'Save Plan';
+
+  }
+
+}
+
+
+/* BUSINESSES */
+
+async function loadBusinesses(){
+
+  try{
+
+    const d =
+      await api(
+        '/api/super/businesses'
+      );
+
+
+    const rows =
+      d.businesses || [];
+
+
+    const body =
+      document.getElementById(
+        'businessBody'
+      );
+
+
+    body.innerHTML =
+      rows.length
+
+      ?
+
+      rows.map(b => `
+
+        <tr>
+
+          <td>
+            <b>
+              ${esc(b.name)}
+            </b>
+          </td>
+
+          <td>
+            ${esc(b.owner || '—')}
+          </td>
+
+          <td>
+            ${b.users || 0}
+          </td>
+
+          <td>
+            ${b.sales || 0}
+          </td>
+
+          <td>
+            ${money(b.revenue)}
+          </td>
+
+          <td>
+
+            ${
+              b.status === 'suspended'
+
+              ?
+
+              '<span class="badge off">SUSPENDED</span>'
+
+              :
+
+              '<span class="badge on">ACTIVE</span>'
+            }
+
+          </td>
+
+          <td>
+
+            ${
+              b.status === 'suspended'
+
+              ?
+
+              `<button
+                class="btn secondary"
+                type="button"
+                onclick="toggleBiz(${b.id},'activate')"
+              >
+                Activate
+              </button>`
+
+              :
+
+              `<button
+                class="btn danger"
+                type="button"
+                onclick="toggleBiz(${b.id},'suspend')"
+              >
+                Suspend
+              </button>`
+            }
+
+          </td>
+
+        </tr>
+
+      `).join('')
+
+      :
+
+      '<tr><td colspan="7" class="empty">Hakuna businesses.</td></tr>';
+
+
+  }catch(e){
+
+    toast(e.message);
+
+  }
+
+}
+
+
+/* BUSINESS ACTION */
+
+async function toggleBiz(id,a){
+
+  if(
+    a === 'suspend' &&
+    !confirm(
+      'Suspend business hii?'
+    )
+  ){
+
+    return;
+
+  }
+
+
+  try{
+
+    await api(
+      '/api/super/businesses/' +
+      id +
+      '/' +
+      a,
+      {
+        method:'PUT'
+      }
+    );
+
+
+    toast(
+      'Business updated.'
+    );
+
+
+    loadBusinesses();
+
+
+  }catch(e){
+
+    toast(
+      e.message
+    );
+
+  }
+
+}
+
+
+/* USERS */
+
+async function loadUsers(){
+
+  try{
+
+    const d =
+      await api(
+        '/api/super/users'
+      );
+
+
+    const rows =
+      d.users || [];
+
+
+    document
+      .getElementById('usersBody')
+      .innerHTML =
+
+      rows.length
+
+      ?
+
+      rows.map(u => `
+
+        <tr>
+
+          <td>
+            <b>
+              ${esc(u.full_name)}
+            </b>
+          </td>
+
+          <td>
+            ${esc(u.email)}
+          </td>
+
+          <td>
+            ${esc(u.phone || '—')}
+          </td>
+
+          <td>
+            ${esc(u.role)}
+          </td>
+
+          <td>
+            ${esc(u.business_name || '—')}
+          </td>
+
+          <td>
+
+            ${
+              u.active
+
+              ?
+
+              '<span class="badge on">ACTIVE</span>'
+
+              :
+
+              '<span class="badge off">INACTIVE</span>'
+            }
+
+          </td>
+
+        </tr>
+
+      `).join('')
+
+      :
+
+      '<tr><td colspan="6" class="empty">Hakuna users.</td></tr>';
+
+
+  }catch(e){
+
+    toast(
+      e.message
+    );
+
+  }
+
+}
+
+
+/* PERFORMANCE */
+
+async function loadPerformance(){
+
+  try{
+
+    const d =
+      await api(
+        '/api/super/performance'
+      );
+
+
+    const rows =
+      d.performance || [];
+
+
+    document
+      .getElementById(
+        'performanceBody'
+      )
+      .innerHTML =
+
+      rows.length
+
+      ?
+
+      rows.map(x => `
+
+        <tr>
+
+          <td>
+            <b>
+              ${esc(x.name)}
+            </b>
+          </td>
+
+          <td>
+
+            ${
+              x.status === 'suspended'
+
+              ?
+
+              '<span class="badge off">SUSPENDED</span>'
+
+              :
+
+              '<span class="badge on">ACTIVE</span>'
+            }
+
+          </td>
+
+          <td>
+            ${x.sales || 0}
+          </td>
+
+          <td>
+            ${money(x.revenue)}
+          </td>
+
+          <td>
+            ${money(x.gross_profit)}
+          </td>
+
+          <td>
+            ${money(x.expenses)}
+          </td>
+
+        </tr>
+
+      `).join('')
+
+      :
+
+      '<tr><td colspan="6" class="empty">Hakuna data.</td></tr>';
+
+
+  }catch(e){
+
+    toast(
+      e.message
+    );
+
+  }
+
+}
+
+
+/* SAVE BUTTON */
+
+document
+  .getElementById('savePlanBtn')
+  .addEventListener(
+    'click',
+    savePlan
+  );
+
+
+/* INITIAL LOAD */
+
+loadOverview();
+
+</script>
+
+</body>
+</html>
