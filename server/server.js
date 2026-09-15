@@ -62,7 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_sub_payment_business ON subscription_payments(bus
 CREATE INDEX IF NOT EXISTS idx_sub_payment_status ON subscription_payments(status);
 CREATE INDEX IF NOT EXISTS idx_sub_payment_order ON subscription_payments(order_id);`);
 
-try{db.exec("ALTER TABLE subscription_plans ADD COLUMN features_json TEXT NOT NULL DEFAULT '[]')}catch{}
+try{db.exec("ALTER TABLE subscription_plans ADD COLUMN features_json TEXT NOT NULL DEFAULT '[]'")}catch{}
 
 try{
 if(!db.prepare("SELECT id FROM subscription_plans WHERE code='business'").get()){
