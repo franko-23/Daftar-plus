@@ -5252,3 +5252,3010 @@ if(
   );
 
 }
+  /* =======================================================
+     DEBTS GET
+     ======================================================= */
+
+  if(
+    p === '/api/debts' &&
+    m === 'GET'
+  ){
+
+    const u =
+      bizOnly(
+        req,
+        res
+      );
+
+
+    if(!u)
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+
+        debts:
+
+          u.role === 'saler'
+
+            ?
+
+            db.prepare(`
+              SELECT
+                d.*,
+                c.name customer_name
+
+              FROM debts d
+
+              LEFT JOIN customers c
+                ON c.id=d.customer_id
+
+              WHERE
+                d.business_id=?
+                AND d.created_by=?
+
+              ORDER BY
+                d.created_at DESC
+
+              LIMIT 500
+            `)
+            .all(
+              u.business_id,
+              u.id
+            )
+
+            :
+
+            db.prepare(`
+              SELECT
+                d.*,
+                c.name customer_name
+
+              FROM debts d
+
+              LEFT JOIN customers c
+                ON c.id=d.customer_id
+
+              WHERE
+                d.business_id=?
+
+              ORDER BY
+                d.created_at DESC
+
+              LIMIT 500
+            `)
+            .all(
+              u.business_id
+            )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     DEBT POST
+     ======================================================= */
+
+  if(
+    p === '/api/debts' &&
+    m === 'POST'
+  ){
+
+    const u =
+      bizOnly(
+        req,
+        res
+      );
+
+
+    if(!u)
+      return;
+
+
+    const x =
+      await body(req);
+
+
+    const amt =
+      Number(
+        x.amount
+      );
+
+
+    const n =
+      clean(
+        x.personName
+      );
+
+
+    if(
+      !n ||
+      !Number.isFinite(amt) ||
+      amt <= 0
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Jina na kiasi sahihi vinahitajika.'
+        }
+      );
+
+    }
+
+
+    db.prepare(`
+      INSERT INTO debts
+      (
+        business_id,
+        customer_id,
+        person_name,
+        description,
+        amount,
+        due_date,
+        created_by,
+        created_by_name
+      )
+      VALUES(?,?,?,?,?,?,?,?)
+    `)
+    .run(
+      u.business_id,
+      x.customerId
+        ? Number(x.customerId)
+        : null,
+      n,
+      clean(x.description)||null,
+      amt,
+      clean(x.dueDate)||null,
+      u.id,
+      u.full_name
+    );
+
+
+    audit(
+      u.business_id,
+      u.id,
+      'DEBT_CREATE',
+      n
+    );
+
+
+    return json(
+      res,
+      201,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     DEBT PAYMENT
+     ======================================================= */
+
+  mm =
+    p.match(
+      /^\/api\/debts\/(\d+)\/payments$/
+    );
+
+
+  if(
+    mm &&
+    m === 'POST'
+  ){
+
+    const u =
+      bizOnly(
+        req,
+        res
+      );
+
+
+    if(!u)
+      return;
+
+
+    const id =
+      Number(
+        mm[1]
+      );
+
+
+    const amt =
+      Number(
+        (
+          await body(req)
+        ).amount
+      );
+
+
+    const d =
+      db.prepare(`
+        SELECT *
+        FROM debts
+
+        WHERE
+          id=?
+          AND business_id=?
+      `)
+      .get(
+        id,
+        u.business_id
+      );
+
+
+    if(
+      !d ||
+      !Number.isFinite(amt) ||
+      amt <= 0 ||
+      amt >
+        d.amount-d.paid
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Malipo si sahihi.'
+        }
+      );
+
+    }
+
+
+    transaction(
+      ()=>{
+
+        db.prepare(`
+          INSERT INTO debt_payments
+          (
+            debt_id,
+            amount,
+            paid_by
+          )
+          VALUES(?,?,?)
+        `)
+        .run(
+          id,
+          amt,
+          u.id
+        );
+
+
+        const paid =
+          d.paid +
+          amt;
+
+
+        db.prepare(`
+          UPDATE debts
+
+          SET
+            paid=?,
+            status=?
+
+          WHERE
+            id=?
+            AND business_id=?
+        `)
+        .run(
+          paid,
+          paid >= d.amount
+            ? 'paid'
+            : 'unpaid',
+          id,
+          u.business_id
+        );
+
+      }
+    );
+
+
+    audit(
+      u.business_id,
+      u.id,
+      'DEBT_PAYMENT',
+      `Debt #${id}: ${amt}`
+    );
+
+
+    return json(
+      res,
+      200,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     STOCK MOVEMENTS
+     ======================================================= */
+
+  if(
+    p === '/api/stock-movements' &&
+    m === 'GET'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+        movements:
+          db.prepare(`
+            SELECT
+              sm.*,
+              p.name product_name,
+              u.full_name user_name
+
+            FROM stock_movements sm
+
+            LEFT JOIN products p
+              ON p.id=sm.product_id
+
+            LEFT JOIN users u
+              ON u.id=sm.created_by
+
+            WHERE
+              sm.business_id=?
+
+            ORDER BY
+              sm.created_at DESC
+
+            LIMIT 1000
+          `)
+          .all(
+            u.business_id
+          )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     RETURNS
+     ======================================================= */
+
+  if(
+    p === '/api/returns' &&
+    m === 'POST'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    const x =
+      await body(req);
+
+
+    const sid =
+      Number(
+        x.saleId
+      );
+
+
+    const qty =
+      Math.floor(
+        Number(
+          x.quantity
+        )
+      );
+
+
+    const s =
+      db.prepare(`
+        SELECT *
+        FROM sales
+
+        WHERE
+          id=?
+          AND business_id=?
+      `)
+      .get(
+        sid,
+        u.business_id
+      );
+
+
+    if(
+      !s ||
+      qty <= 0 ||
+      qty > s.quantity
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Return si sahihi.'
+        }
+      );
+
+    }
+
+
+    const returned =
+      db.prepare(`
+        SELECT
+          COALESCE(
+            SUM(quantity),
+            0
+          ) q
+
+        FROM sale_returns
+
+        WHERE sale_id=?
+      `)
+      .get(sid)
+      .q;
+
+
+    if(
+      qty + returned >
+      s.quantity
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Quantity ya return imezidi sale.'
+        }
+      );
+
+    }
+
+
+    transaction(
+      ()=>{
+
+        db.prepare(`
+          INSERT INTO sale_returns
+          (
+            business_id,
+            sale_id,
+            product_id,
+            quantity,
+            amount,
+            reason,
+            created_by
+          )
+          VALUES(?,?,?,?,?,?,?)
+        `)
+        .run(
+          u.business_id,
+          sid,
+          s.product_id,
+          qty,
+          s.sell_price * qty,
+          clean(x.reason)||null,
+          u.id
+        );
+
+
+        db.prepare(`
+          UPDATE products
+          SET quantity=quantity+?
+
+          WHERE
+            id=?
+            AND business_id=?
+        `)
+        .run(
+          qty,
+          s.product_id,
+          u.business_id
+        );
+
+
+        db.prepare(`
+          INSERT INTO stock_movements
+          (
+            business_id,
+            product_id,
+            type,
+            quantity,
+            reference,
+            created_by
+          )
+          VALUES(?,?,?,?,?,?)
+        `)
+        .run(
+          u.business_id,
+          s.product_id,
+          'return',
+          qty,
+          `Return sale #${sid}`,
+          u.id
+        );
+
+      }
+    );
+
+
+    return json(
+      res,
+      201,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     EMPLOYEES
+     ======================================================= */
+
+  if(
+    p === '/api/employees' &&
+    m === 'GET'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+        employees:
+          db.prepare(`
+            SELECT
+              id,
+              full_name,
+              phone,
+              email,
+              role,
+              active,
+              created_at
+
+            FROM users
+
+            WHERE
+              business_id=?
+              AND role!='owner'
+
+            ORDER BY full_name
+          `)
+          .all(
+            u.business_id
+          )
+      }
+    );
+
+  }
+
+
+  if(
+    p === '/api/employees' &&
+    m === 'POST'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    const x =
+      await body(req);
+
+
+    const n =
+      clean(
+        x.fullName
+      );
+
+
+    const e =
+      email(
+        x.email
+      );
+
+
+    const pw =
+      String(
+        x.password || ''
+      );
+
+
+    const role =
+      x.role === 'manager'
+        ? 'manager'
+        : 'saler';
+
+
+    if(
+      !n ||
+      !validEmail(e) ||
+      pw.length < 10
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Jina, email na password ya angalau 10 vinahitajika.'
+        }
+      );
+
+    }
+
+
+    if(
+      db.prepare(
+        'SELECT id FROM users WHERE email=?'
+      )
+      .get(e)
+    ){
+
+      return json(
+        res,
+        409,
+        {
+          error:
+            'Email tayari ipo.'
+        }
+      );
+
+    }
+
+
+    const r =
+      db.prepare(`
+        INSERT INTO users
+        (
+          full_name,
+          phone,
+          business_id,
+          email,
+          password_hash,
+          role
+        )
+        VALUES(?,?,?,?,?,?)
+      `)
+      .run(
+        n,
+        clean(x.phone),
+        u.business_id,
+        e,
+        hash(pw),
+        role
+      );
+
+
+    audit(
+      u.business_id,
+      u.id,
+      'EMPLOYEE_CREATE',
+      `${n} (${role})`
+    );
+
+
+    return json(
+      res,
+      201,
+      {
+        id:
+          Number(
+            r.lastInsertRowid
+          )
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     EMPLOYEE TOGGLE
+     ======================================================= */
+
+  mm =
+    p.match(
+      /^\/api\/employees\/(\d+)\/toggle$/
+    );
+
+
+  if(
+    mm &&
+    m === 'PATCH'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    const id =
+      Number(
+        mm[1]
+      );
+
+
+    const emp =
+      db.prepare(`
+        SELECT active
+        FROM users
+
+        WHERE
+          id=?
+          AND business_id=?
+          AND role!='owner'
+      `)
+      .get(
+        id,
+        u.business_id
+      );
+
+
+    if(!emp){
+
+      return json(
+        res,
+        404,
+        {
+          error:
+            'Employee haipo.'
+        }
+      );
+
+    }
+
+
+    db.prepare(`
+      UPDATE users
+
+      SET active=?
+
+      WHERE
+        id=?
+        AND business_id=?
+    `)
+    .run(
+      emp.active
+        ? 0
+        : 1,
+      id,
+      u.business_id
+    );
+
+
+    audit(
+      u.business_id,
+      u.id,
+      'EMPLOYEE_TOGGLE',
+      `Employee #${id}: ${
+        emp.active
+          ? 'disabled'
+          : 'enabled'
+      }`
+    );
+
+
+    return json(
+      res,
+      200,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     AUDIT
+     ======================================================= */
+
+  if(
+    p === '/api/audit' &&
+    m === 'GET'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+        logs:
+          db.prepare(`
+            SELECT *
+            FROM audit_logs
+
+            WHERE
+              business_id=?
+
+            ORDER BY
+              created_at DESC
+
+            LIMIT 500
+          `)
+          .all(
+            u.business_id
+          )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     REPORTS
+     ======================================================= */
+
+  if(
+    p === '/api/reports' &&
+    m === 'GET'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    const [f,t] =
+      range(
+        q(req)
+      );
+
+
+    const sales =
+      db.prepare(`
+        SELECT *
+        FROM sales
+
+        WHERE
+          business_id=?
+          AND created_at BETWEEN ? AND ?
+          AND COALESCE(voided,0)=0
+
+        ORDER BY created_at
+      `)
+      .all(
+        u.business_id,
+        f,
+        t
+      );
+
+
+    const expenses =
+      db.prepare(`
+        SELECT *
+        FROM expenses
+
+        WHERE
+          business_id=?
+          AND created_at BETWEEN ? AND ?
+
+        ORDER BY created_at
+      `)
+      .all(
+        u.business_id,
+        f,
+        t
+      );
+
+
+    const revenue =
+      sales.reduce(
+        (a,x)=>
+          a +
+          x.total,
+        0
+      );
+
+
+    const gross =
+      sales.reduce(
+        (a,x)=>
+          a +
+          (
+            x.sell_price -
+            x.buy_price
+          ) *
+          x.quantity -
+          x.discount,
+        0
+      );
+
+
+    const expenseTotal =
+      expenses.reduce(
+        (a,x)=>
+          a +
+          x.amount,
+        0
+      );
+
+
+    const net =
+      gross -
+      expenseTotal;
+
+
+    return json(
+      res,
+      200,
+      {
+        from:f,
+        to:t,
+        revenue,
+        grossProfit:gross,
+        expenses:expenseTotal,
+        netProfit:net,
+        salesCount:sales.length,
+        sales,
+        expenseRows:expenses
+      }
+    );
+
+  }
+        return json(
+          res,
+          200,
+          {
+            status:
+              'SUCCESSFUL',
+
+            subscription:
+              sub
+
+          }
+        );
+
+      }
+
+
+      if(
+        st === 'FAILED'
+      ){
+
+        db.prepare(`
+          UPDATE subscription_payments
+
+          SET
+            status='FAILED',
+            failure_reason=?,
+            updated_at=datetime('now')
+
+          WHERE id=?
+        `)
+        .run(
+          'PalmPesa payment failed',
+          pay.id
+        );
+
+      }
+
+
+      return json(
+        res,
+        200,
+        {
+          status:
+            st === 'FAILED'
+              ? 'FAILED'
+              : 'PENDING',
+
+          paymentId:
+            pay.id
+
+        }
+      );
+
+
+    }catch(e){
+
+      return json(
+        res,
+        502,
+        {
+          status:
+            'PENDING',
+
+          error:
+            e.message,
+
+          paymentId:
+            pay.id
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     SUBSCRIPTION PAYMENTS
+     ======================================================= */
+
+  if(
+    p === '/api/subscription/payments' &&
+    m === 'GET'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'owner'
+      );
+
+
+    if(!u)
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+
+        payments:
+          db.prepare(`
+            SELECT
+              id,
+              phone,
+              amount_tzs,
+              provider,
+              order_id,
+              transaction_id,
+              status,
+              failure_reason,
+              created_at,
+              updated_at
+
+            FROM subscription_payments
+
+            WHERE business_id=?
+
+            ORDER BY
+              created_at DESC
+
+            LIMIT 100
+          `)
+          .all(
+            u.business_id
+          )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN SUBSCRIPTION PLANS
+     ======================================================= */
+
+  if(
+    p === '/api/super/subscription/plans' &&
+    m === 'GET'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const rows =
+      db.prepare(`
+        SELECT *
+        FROM subscription_plans
+        ORDER BY id
+      `)
+      .all();
+
+
+    return json(
+      res,
+      200,
+      {
+
+        plans:
+          rows.map(
+            x => ({
+              ...x,
+
+              current_price_tzs:
+                effectivePlanPrice(x),
+
+              features:
+                parseFeatures(
+                  x.features_json
+                )
+
+            })
+          )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN CREATE PLAN
+     ======================================================= */
+
+  if(
+    p === '/api/super/subscription/plans' &&
+    m === 'POST'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const x =
+      await body(req);
+
+
+    const name =
+      clean(
+        x.name
+      );
+
+
+    const code =
+      clean(
+        x.code
+      )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9_-]/g,
+        '-'
+      );
+
+
+    const regular =
+      Math.round(
+        Number(
+          x.regularPriceTzs
+        )
+      );
+
+
+    const discount =
+      Number(
+        x.discountPercent || 0
+      );
+
+
+    const duration =
+      Math.floor(
+        Number(
+          x.durationDays || 30
+        )
+      );
+
+
+    if(
+      !name ||
+      !code ||
+      !Number.isFinite(regular) ||
+      regular < 0 ||
+      !Number.isFinite(discount) ||
+      discount < 0 ||
+      discount > 100 ||
+      duration < 1
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Plan taarifa si sahihi.'
+        }
+      );
+
+    }
+
+
+    const final =
+      Math.max(
+        0,
+        Math.round(
+          regular *
+          (
+            1 -
+            discount / 100
+          )
+        )
+      );
+
+
+    try{
+
+      const r =
+        db.prepare(`
+          INSERT INTO subscription_plans
+          (
+            name,
+            code,
+            regular_price_tzs,
+            discount_percent,
+            final_price_tzs,
+            duration_days,
+            promotion_name,
+            promotion_start,
+            promotion_end,
+            features_json,
+            active
+          )
+          VALUES(?,?,?,?,?,?,?,?,?,?,?)
+        `)
+        .run(
+          name,
+          code,
+          regular,
+          discount,
+          final,
+          duration,
+          clean(x.promotionName)||null,
+          clean(x.promotionStart)||null,
+          clean(x.promotionEnd)||null,
+          JSON.stringify(
+            Array.isArray(x.features)
+              ? x.features
+              : []
+          ),
+          x.active === false
+            ? 0
+            : 1
+        );
+
+
+      return json(
+        res,
+        201,
+        {
+          id:
+            Number(
+              r.lastInsertRowid
+            )
+        }
+      );
+
+
+    }catch{
+
+      return json(
+        res,
+        409,
+        {
+          error:
+            'Plan code tayari ipo.'
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN UPDATE PLAN
+     ======================================================= */
+
+  let subPlanId =
+    p.match(
+      /^\/api\/super\/subscription\/plans\/(\d+)$/
+    );
+
+
+  if(
+    subPlanId &&
+    m === 'PATCH'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const id =
+      Number(
+        subPlanId[1]
+      );
+
+
+    const old =
+      db.prepare(`
+        SELECT *
+        FROM subscription_plans
+        WHERE id=?
+      `)
+      .get(id);
+
+
+    if(!old){
+
+      return json(
+        res,
+        404,
+        {
+          error:
+            'Plan haipo.'
+        }
+      );
+
+    }
+
+
+    const x =
+      await body(req);
+
+
+    const name =
+      clean(
+        x.name ||
+        old.name
+      );
+
+
+    const regular =
+      Math.round(
+        Number(
+          x.regularPriceTzs ??
+          old.regular_price_tzs
+        )
+      );
+
+
+    const discount =
+      Number(
+        x.discountPercent ??
+        old.discount_percent
+      );
+
+
+    const duration =
+      Math.floor(
+        Number(
+          x.durationDays ??
+          old.duration_days
+        )
+      );
+
+
+    if(
+      !name ||
+      !Number.isFinite(regular) ||
+      regular < 0 ||
+      !Number.isFinite(discount) ||
+      discount < 0 ||
+      discount > 100 ||
+      duration < 1
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Plan taarifa si sahihi.'
+        }
+      );
+
+    }
+
+
+    const final =
+      Math.max(
+        0,
+        Math.round(
+          regular *
+          (
+            1 -
+            discount / 100
+          )
+        )
+      );
+
+
+    db.prepare(`
+      UPDATE subscription_plans
+
+      SET
+        name=?,
+        regular_price_tzs=?,
+        discount_percent=?,
+        final_price_tzs=?,
+        duration_days=?,
+        promotion_name=?,
+        promotion_start=?,
+        promotion_end=?,
+        features_json=?,
+        active=?,
+        updated_at=datetime('now')
+
+      WHERE id=?
+    `)
+    .run(
+      name,
+      regular,
+      discount,
+      final,
+      duration,
+      clean(
+        x.promotionName ??
+        old.promotion_name
+      ) || null,
+      clean(
+        x.promotionStart ??
+        old.promotion_start
+      ) || null,
+      clean(
+        x.promotionEnd ??
+        old.promotion_end
+      ) || null,
+      JSON.stringify(
+        Array.isArray(x.features)
+          ? x.features
+          : parseFeatures(
+              old.features_json
+            )
+      ),
+      x.active === false
+        ? 0
+        : 1,
+      id
+    );
+
+
+    return json(
+      res,
+      200,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN SUBSCRIPTION STATS
+     ======================================================= */
+
+  if(
+    p === '/api/super/subscription/stats' &&
+    m === 'GET'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const totals =
+      db.prepare(`
+        SELECT
+          COUNT(*) payments,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='SUCCESSFUL'
+                THEN amount_tzs
+                ELSE 0
+              END
+            ),
+            0
+          ) successful_amount,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='SUCCESSFUL'
+                THEN 1
+                ELSE 0
+              END
+            ),
+            0
+          ) successful_count,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='PENDING'
+                THEN 1
+                ELSE 0
+              END
+            ),
+            0
+          ) pending_count,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='FAILED'
+                THEN 1
+                ELSE 0
+              END
+            ),
+            0
+          ) failed_count
+
+        FROM subscription_payments
+      `)
+      .get();
+
+
+    const active =
+      db.prepare(`
+        SELECT
+          COUNT(*) active_subscriptions
+
+        FROM subscriptions
+
+        WHERE
+          status='ACTIVE'
+          AND expires_at>datetime('now')
+      `)
+      .get();
+
+
+    return json(
+      res,
+      200,
+      {
+        totals,
+        active
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     NOT FOUND
+     ======================================================= */
+
+  return json(
+    res,
+    404,
+    {
+      error:
+        'Not found'
+    }
+  );
+
+}
+
+
+/* =========================================================
+   STATIC FILE SERVER
+   ========================================================= */
+
+function serve(
+  req,
+  res
+){
+
+  let p =
+    new URL(
+      req.url,
+      'http://localhost'
+    ).pathname;
+
+
+  if(
+    p === '/'
+  )
+    p='/index.html';
+
+
+  const cleanPath =
+    path
+      .normalize(p)
+      .replace(
+        /^[/\\]+/,
+        ''
+      );
+
+
+  const candidates=[];
+
+
+  /*
+   * Subscription folder
+   */
+  if(
+    p === '/subscription' ||
+    p === '/subscription/'
+  ){
+
+    candidates.push(
+      path.join(
+        ROOT,
+        'subscription',
+        'subscription.html'
+      )
+    );
+
+  }else if(
+    p.startsWith(
+      '/subscription/'
+    )
+  ){
+
+    candidates.push(
+      path.join(
+        ROOT,
+        'subscription',
+        p.slice(
+          '/subscription/'.length
+        )
+      )
+    );
+
+  }else{
+
+    candidates.push(
+      path.join(
+        PUBLIC,
+        cleanPath
+      )
+    );
+
+    candidates.push(
+      path.join(
+        ROOT,
+        cleanPath
+      )
+    );
+
+  }
+
+
+  function tryFile(
+    index
+  ){
+
+    if(
+      index >=
+      candidates.length
+    ){
+
+      return res
+        .writeHead(
+          404,
+          {
+            'Content-Type':
+              'text/plain; charset=utf-8'
+          }
+        )
+        .end(
+          'Not found'
+        );
+
+    }
+
+
+    const fp =
+      path.resolve(
+        candidates[index]
+      );
+
+
+    const allowedRoots=[
+      path.resolve(ROOT),
+      path.resolve(PUBLIC)
+    ];
+
+
+    const allowed =
+      allowedRoots.some(
+        root =>
+          fp === root ||
+          fp.startsWith(
+            root +
+            path.sep
+          )
+      );
+
+
+    if(!allowed){
+
+      return res
+        .writeHead(
+          403,
+          {
+            'Content-Type':
+              'text/plain; charset=utf-8'
+          }
+        )
+        .end(
+          'Forbidden'
+        );
+
+    }
+
+
+    fs.stat(
+      fp,
+      (e,st)=>{
+
+        if(
+          e ||
+          !st.isFile()
+        ){
+
+          return tryFile(
+            index+1
+          );
+
+        }
+
+
+        fs.readFile(
+          fp,
+          (er,data)=>{
+
+            if(er){
+
+              return tryFile(
+                index+1
+              );
+
+            }
+
+
+            const ext =
+              path
+                .extname(fp)
+                .toLowerCase();
+
+
+            const types={
+
+              '.html':
+                'text/html; charset=utf-8',
+
+              '.js':
+                'application/javascript; charset=utf-8',
+
+              '.css':
+                'text/css; charset=utf-8',
+
+              '.json':
+                'application/json; charset=utf-8',
+
+              '.png':
+                'image/png',
+
+              '.jpg':
+                'image/jpeg',
+
+              '.jpeg':
+                'image/jpeg',
+
+              '.svg':
+                'image/svg+xml',
+
+              '.ico':
+                'image/x-icon',
+
+              '.webp':
+                'image/webp',
+
+              '.woff':
+                'font/woff',
+
+              '.woff2':
+                'font/woff2'
+
+            };
+
+
+            res.writeHead(
+              200,
+              {
+
+                'Content-Type':
+                  types[ext] ||
+                  'application/octet-stream',
+
+                'X-Content-Type-Options':
+                  'nosniff',
+
+                'Referrer-Policy':
+                  'strict-origin-when-cross-origin',
+
+                'Cache-Control':
+                  ext === '.html'
+                    ? 'no-cache'
+                    : 'public, max-age=86400'
+
+              }
+            );
+
+
+            res.end(
+              data
+            );
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  tryFile(0);
+
+}
+
+
+/* =========================================================
+   SERVER
+   ========================================================= */
+
+http
+  .createServer(
+    (req,res)=>{
+
+      if(
+        req.url.startsWith(
+          '/api/'
+        )
+      ){
+
+        api(
+          req,
+          res
+        )
+        .catch(
+          e => {
+
+            console.error(e);
+
+            json(
+              res,
+              500,
+              {
+                error:
+                  'Server error.'
+              }
+            );
+
+          }
+        );
+
+      }else{
+
+        serve(
+          req,
+          res
+        );
+
+      }
+
+    }
+  )
+  .listen(
+    PORT,
+    ()=>{
+      console.log(
+        `Daftari+ running on :${PORT}`
+      );
+    }
+  );
+        return json(
+          res,
+          200,
+          {
+            status:
+              'SUCCESSFUL',
+
+            subscription:
+              sub
+
+          }
+        );
+
+      }
+
+
+      if(
+        st === 'FAILED'
+      ){
+
+        db.prepare(`
+          UPDATE subscription_payments
+
+          SET
+            status='FAILED',
+            failure_reason=?,
+            updated_at=datetime('now')
+
+          WHERE id=?
+        `)
+        .run(
+          'PalmPesa payment failed',
+          pay.id
+        );
+
+      }
+
+
+      return json(
+        res,
+        200,
+        {
+          status:
+            st === 'FAILED'
+              ? 'FAILED'
+              : 'PENDING',
+
+          paymentId:
+            pay.id
+
+        }
+      );
+
+
+    }catch(e){
+
+      return json(
+        res,
+        502,
+        {
+          status:
+            'PENDING',
+
+          error:
+            e.message,
+
+          paymentId:
+            pay.id
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     SUBSCRIPTION PAYMENTS
+     ======================================================= */
+
+  if(
+    p === '/api/subscription/payments' &&
+    m === 'GET'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'owner'
+      );
+
+
+    if(!u)
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+
+        payments:
+          db.prepare(`
+            SELECT
+              id,
+              phone,
+              amount_tzs,
+              provider,
+              order_id,
+              transaction_id,
+              status,
+              failure_reason,
+              created_at,
+              updated_at
+
+            FROM subscription_payments
+
+            WHERE business_id=?
+
+            ORDER BY
+              created_at DESC
+
+            LIMIT 100
+          `)
+          .all(
+            u.business_id
+          )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN SUBSCRIPTION PLANS
+     ======================================================= */
+
+  if(
+    p === '/api/super/subscription/plans' &&
+    m === 'GET'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const rows =
+      db.prepare(`
+        SELECT *
+        FROM subscription_plans
+        ORDER BY id
+      `)
+      .all();
+
+
+    return json(
+      res,
+      200,
+      {
+
+        plans:
+          rows.map(
+            x => ({
+              ...x,
+
+              current_price_tzs:
+                effectivePlanPrice(x),
+
+              features:
+                parseFeatures(
+                  x.features_json
+                )
+
+            })
+          )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN CREATE PLAN
+     ======================================================= */
+
+  if(
+    p === '/api/super/subscription/plans' &&
+    m === 'POST'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const x =
+      await body(req);
+
+
+    const name =
+      clean(
+        x.name
+      );
+
+
+    const code =
+      clean(
+        x.code
+      )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9_-]/g,
+        '-'
+      );
+
+
+    const regular =
+      Math.round(
+        Number(
+          x.regularPriceTzs
+        )
+      );
+
+
+    const discount =
+      Number(
+        x.discountPercent || 0
+      );
+
+
+    const duration =
+      Math.floor(
+        Number(
+          x.durationDays || 30
+        )
+      );
+
+
+    if(
+      !name ||
+      !code ||
+      !Number.isFinite(regular) ||
+      regular < 0 ||
+      !Number.isFinite(discount) ||
+      discount < 0 ||
+      discount > 100 ||
+      duration < 1
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Plan taarifa si sahihi.'
+        }
+      );
+
+    }
+
+
+    const final =
+      Math.max(
+        0,
+        Math.round(
+          regular *
+          (
+            1 -
+            discount / 100
+          )
+        )
+      );
+
+
+    try{
+
+      const r =
+        db.prepare(`
+          INSERT INTO subscription_plans
+          (
+            name,
+            code,
+            regular_price_tzs,
+            discount_percent,
+            final_price_tzs,
+            duration_days,
+            promotion_name,
+            promotion_start,
+            promotion_end,
+            features_json,
+            active
+          )
+          VALUES(?,?,?,?,?,?,?,?,?,?,?)
+        `)
+        .run(
+          name,
+          code,
+          regular,
+          discount,
+          final,
+          duration,
+          clean(x.promotionName)||null,
+          clean(x.promotionStart)||null,
+          clean(x.promotionEnd)||null,
+          JSON.stringify(
+            Array.isArray(x.features)
+              ? x.features
+              : []
+          ),
+          x.active === false
+            ? 0
+            : 1
+        );
+
+
+      return json(
+        res,
+        201,
+        {
+          id:
+            Number(
+              r.lastInsertRowid
+            )
+        }
+      );
+
+
+    }catch{
+
+      return json(
+        res,
+        409,
+        {
+          error:
+            'Plan code tayari ipo.'
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN UPDATE PLAN
+     ======================================================= */
+
+  let subPlanId =
+    p.match(
+      /^\/api\/super\/subscription\/plans\/(\d+)$/
+    );
+
+
+  if(
+    subPlanId &&
+    m === 'PATCH'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const id =
+      Number(
+        subPlanId[1]
+      );
+
+
+    const old =
+      db.prepare(`
+        SELECT *
+        FROM subscription_plans
+        WHERE id=?
+      `)
+      .get(id);
+
+
+    if(!old){
+
+      return json(
+        res,
+        404,
+        {
+          error:
+            'Plan haipo.'
+        }
+      );
+
+    }
+
+
+    const x =
+      await body(req);
+
+
+    const name =
+      clean(
+        x.name ||
+        old.name
+      );
+
+
+    const regular =
+      Math.round(
+        Number(
+          x.regularPriceTzs ??
+          old.regular_price_tzs
+        )
+      );
+
+
+    const discount =
+      Number(
+        x.discountPercent ??
+        old.discount_percent
+      );
+
+
+    const duration =
+      Math.floor(
+        Number(
+          x.durationDays ??
+          old.duration_days
+        )
+      );
+
+
+    if(
+      !name ||
+      !Number.isFinite(regular) ||
+      regular < 0 ||
+      !Number.isFinite(discount) ||
+      discount < 0 ||
+      discount > 100 ||
+      duration < 1
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Plan taarifa si sahihi.'
+        }
+      );
+
+    }
+
+
+    const final =
+      Math.max(
+        0,
+        Math.round(
+          regular *
+          (
+            1 -
+            discount / 100
+          )
+        )
+      );
+
+
+    db.prepare(`
+      UPDATE subscription_plans
+
+      SET
+        name=?,
+        regular_price_tzs=?,
+        discount_percent=?,
+        final_price_tzs=?,
+        duration_days=?,
+        promotion_name=?,
+        promotion_start=?,
+        promotion_end=?,
+        features_json=?,
+        active=?,
+        updated_at=datetime('now')
+
+      WHERE id=?
+    `)
+    .run(
+      name,
+      regular,
+      discount,
+      final,
+      duration,
+      clean(
+        x.promotionName ??
+        old.promotion_name
+      ) || null,
+      clean(
+        x.promotionStart ??
+        old.promotion_start
+      ) || null,
+      clean(
+        x.promotionEnd ??
+        old.promotion_end
+      ) || null,
+      JSON.stringify(
+        Array.isArray(x.features)
+          ? x.features
+          : parseFeatures(
+              old.features_json
+            )
+      ),
+      x.active === false
+        ? 0
+        : 1,
+      id
+    );
+
+
+    return json(
+      res,
+      200,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     SUPER ADMIN SUBSCRIPTION STATS
+     ======================================================= */
+
+  if(
+    p === '/api/super/subscription/stats' &&
+    m === 'GET'
+  ){
+
+    const u =
+      auth(
+        req,
+        res,
+        'super_admin'
+      );
+
+
+    if(!u)
+      return;
+
+
+    const totals =
+      db.prepare(`
+        SELECT
+          COUNT(*) payments,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='SUCCESSFUL'
+                THEN amount_tzs
+                ELSE 0
+              END
+            ),
+            0
+          ) successful_amount,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='SUCCESSFUL'
+                THEN 1
+                ELSE 0
+              END
+            ),
+            0
+          ) successful_count,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='PENDING'
+                THEN 1
+                ELSE 0
+              END
+            ),
+            0
+          ) pending_count,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='FAILED'
+                THEN 1
+                ELSE 0
+              END
+            ),
+            0
+          ) failed_count
+
+        FROM subscription_payments
+      `)
+      .get();
+
+
+    const active =
+      db.prepare(`
+        SELECT
+          COUNT(*) active_subscriptions
+
+        FROM subscriptions
+
+        WHERE
+          status='ACTIVE'
+          AND expires_at>datetime('now')
+      `)
+      .get();
+
+
+    return json(
+      res,
+      200,
+      {
+        totals,
+        active
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     NOT FOUND
+     ======================================================= */
+
+  return json(
+    res,
+    404,
+    {
+      error:
+        'Not found'
+    }
+  );
+
+}
+
+
+/* =========================================================
+   STATIC FILE SERVER
+   ========================================================= */
+
+function serve(
+  req,
+  res
+){
+
+  let p =
+    new URL(
+      req.url,
+      'http://localhost'
+    ).pathname;
+
+
+  if(
+    p === '/'
+  )
+    p='/index.html';
+
+
+  const cleanPath =
+    path
+      .normalize(p)
+      .replace(
+        /^[/\\]+/,
+        ''
+      );
+
+
+  const candidates=[];
+
+
+  /*
+   * Subscription folder
+   */
+  if(
+    p === '/subscription' ||
+    p === '/subscription/'
+  ){
+
+    candidates.push(
+      path.join(
+        ROOT,
+        'subscription',
+        'subscription.html'
+      )
+    );
+
+  }else if(
+    p.startsWith(
+      '/subscription/'
+    )
+  ){
+
+    candidates.push(
+      path.join(
+        ROOT,
+        'subscription',
+        p.slice(
+          '/subscription/'.length
+        )
+      )
+    );
+
+  }else{
+
+    candidates.push(
+      path.join(
+        PUBLIC,
+        cleanPath
+      )
+    );
+
+    candidates.push(
+      path.join(
+        ROOT,
+        cleanPath
+      )
+    );
+
+  }
+
+
+  function tryFile(
+    index
+  ){
+
+    if(
+      index >=
+      candidates.length
+    ){
+
+      return res
+        .writeHead(
+          404,
+          {
+            'Content-Type':
+              'text/plain; charset=utf-8'
+          }
+        )
+        .end(
+          'Not found'
+        );
+
+    }
+
+
+    const fp =
+      path.resolve(
+        candidates[index]
+      );
+
+
+    const allowedRoots=[
+      path.resolve(ROOT),
+      path.resolve(PUBLIC)
+    ];
+
+
+    const allowed =
+      allowedRoots.some(
+        root =>
+          fp === root ||
+          fp.startsWith(
+            root +
+            path.sep
+          )
+      );
+
+
+    if(!allowed){
+
+      return res
+        .writeHead(
+          403,
+          {
+            'Content-Type':
+              'text/plain; charset=utf-8'
+          }
+        )
+        .end(
+          'Forbidden'
+        );
+
+    }
+
+
+    fs.stat(
+      fp,
+      (e,st)=>{
+
+        if(
+          e ||
+          !st.isFile()
+        ){
+
+          return tryFile(
+            index+1
+          );
+
+        }
+
+
+        fs.readFile(
+          fp,
+          (er,data)=>{
+
+            if(er){
+
+              return tryFile(
+                index+1
+              );
+
+            }
+
+
+            const ext =
+              path
+                .extname(fp)
+                .toLowerCase();
+
+
+            const types={
+
+              '.html':
+                'text/html; charset=utf-8',
+
+              '.js':
+                'application/javascript; charset=utf-8',
+
+              '.css':
+                'text/css; charset=utf-8',
+
+              '.json':
+                'application/json; charset=utf-8',
+
+              '.png':
+                'image/png',
+
+              '.jpg':
+                'image/jpeg',
+
+              '.jpeg':
+                'image/jpeg',
+
+              '.svg':
+                'image/svg+xml',
+
+              '.ico':
+                'image/x-icon',
+
+              '.webp':
+                'image/webp',
+
+              '.woff':
+                'font/woff',
+
+              '.woff2':
+                'font/woff2'
+
+            };
+
+
+            res.writeHead(
+              200,
+              {
+
+                'Content-Type':
+                  types[ext] ||
+                  'application/octet-stream',
+
+                'X-Content-Type-Options':
+                  'nosniff',
+
+                'Referrer-Policy':
+                  'strict-origin-when-cross-origin',
+
+                'Cache-Control':
+                  ext === '.html'
+                    ? 'no-cache'
+                    : 'public, max-age=86400'
+
+              }
+            );
+
+
+            res.end(
+              data
+            );
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  tryFile(0);
+
+}
+
+
+/* =========================================================
+   SERVER
+   ========================================================= */
+
+http
+  .createServer(
+    (req,res)=>{
+
+      if(
+        req.url.startsWith(
+          '/api/'
+        )
+      ){
+
+        api(
+          req,
+          res
+        )
+        .catch(
+          e => {
+
+            console.error(e);
+
+            json(
+              res,
+              500,
+              {
+                error:
+                  'Server error.'
+              }
+            );
+
+          }
+        );
+
+      }else{
+
+        serve(
+          req,
+          res
+        );
+
+      }
+
+    }
+  )
+  .listen(
+    PORT,
+    ()=>{
+      console.log(
+        `Daftari+ running on :${PORT}`
+      );
+    }
+  );
