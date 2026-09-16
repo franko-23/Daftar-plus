@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftari+ | Jisajili</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;background:#f5f7fb;display:flex;align-items:center;justify-content:center;padding:20px;color:#111827}
+.container{width:100%;max-width:520px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:22px;padding:32px 28px;box-shadow:0 15px 45px rgba(0,0,0,.08)}
+.logo{text-align:center;margin-bottom:24px}
+.logo-icon{width:52px;height:52px;margin:0 auto 10px;border-radius:14px;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800}
+.logo h1{font-size:23px;font-weight:800;letter-spacing:-.5px}
+.logo p{color:#6b7280;font-size:13.5px;margin-top:4px}
+.tabs{display:flex;gap:8px;margin-bottom:20px;background:#f3f4f6;padding:5px;border-radius:12px}
+.tabs button{flex:1;padding:10px;border:0;background:transparent;border-radius:9px;font-weight:700;font-size:13.5px;color:#6b7280;cursor:pointer}
+.tabs button.active{background:#fff;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.section{display:none}
+.section.active{display:block}
+.form-group{margin-bottom:15px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#374151}
+input,select{width:100%;height:48px;border:1px solid #d1d5db;border-radius:11px;padding:0 13px;font-size:14.5px;outline:none;background:#fff;font-family:inherit}
+input:focus,select:focus{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08)}
+.phone-row{display:grid;grid-template-columns:110px 1fr;gap:8px}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:48px}
+.toggle-password{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;color:#6b7280;font-size:13px;padding:5px}
+button.submit-btn{width:100%;height:50px;border:0;border-radius:12px;background:#111827;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;margin-top:6px}
+button.submit-btn:hover{background:#1f2937}
+button.submit-btn:disabled{opacity:.65;cursor:not-allowed}
+.message{display:none;margin-bottom:16px;padding:11px 13px;border-radius:10px;font-size:13.5px;line-height:1.4}
+.message.error{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.message.success{display:block;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.login-link{text-align:center;margin-top:20px;color:#6b7280;font-size:13.5px}
+.login-link a{color:#111827;font-weight:700;text-decoration:none}
+.section-label{font-size:11.5px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px}
+.section-label:first-child{margin-top:0}
+
+.steps{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 20px}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#9ca3af;font-size:12px;font-weight:800;border:1px solid #e5e7eb}
+.step-dot.active{background:#111827;color:#fff;border-color:#111827}
+.step-line{height:2px;width:38px;background:#e5e7eb;border-radius:4px}
+.slide{display:none}
+.slide.active{display:block;animation:slideIn .22s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.slide-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+button.nav-btn{width:100%;height:50px;border:1px solid #d1d5db;border-radius:12px;background:#fff;color:#111827;font-size:14px;font-weight:700;cursor:pointer}
+button.nav-btn.primary{border-color:#111827;background:#111827;color:#fff}
+button.nav-btn:disabled{opacity:.55;cursor:not-allowed}
+.step-caption{text-align:center;color:#6b7280;font-size:12.5px;margin:-10px 0 18px}
+
+@media(max-width:480px){.card{padding:24px 18px}.row2{grid-template-columns:1fr}.phone-row{grid-template-columns:90px 1fr}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">D+</div>
+      <h1>Daftari+</h1>
+      <p>Fungua akaunti yako</p>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="tabs">
+      <button type="button" class="active" data-role="owner">Fungua Biashara</button>
+      <button type="button" data-role="saler">Jiunge na Biashara</button>
+    </div>
+
+    <div class="steps" id="steps">
+      <div class="step-dot active" data-step-dot="1">1</div>
+      <div class="step-line"></div>
+      <div class="step-dot" data-step-dot="2">2</div>
+      <div class="step-line"></div>
+      <div class="step-dot" data-step-dot="3">3</div>
+    </div>
+
+    <div class="step-caption" id="stepCaption">
+      Taarifa binafsi
+    </div>
+
+    <form id="registerForm">
+
+      <!-- SLIDE 1 -->
+      <div class="slide active" data-step="1">
+
+        <div class="section-label">
+          Taarifa Binafsi
+        </div>
+
+        <div class="form-group">
+          <label>Jina Kamili</label>
+          <input id="fullName" required>
+        </div>
+
+        <div class="form-group">
+          <label>Namba ya Simu</label>
+          <input
+            id="phone"
+            type="tel"
+            placeholder="07XXXXXXXX"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Barua Pepe</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="jina@biashara.com"
+            required
+          >
+        </div>
+
+        <div class="slide-actions">
+          <button
+            type="button"
+            class="nav-btn"
+            disabled
+          >
+            Rudi
+          </button>
+
+          <button
+            type="button"
+            class="nav-btn primary"
+            data-next
+          >
+            Endelea →
+          </button>
+        </div>
+
+      </div>
+
+      <!-- SLIDE 2 -->
+      <div class="slide" data-step="2">
+
+        <!-- OWNER -->
+        <div id="ownerFields">
+
+          <div class="section-label">
+            Taarifa za Biashara
+          </div>
+
+          <div class="form-group">
+            <label>Jina la Biashara</label>
+            <input id="businessName">
+          </div>
+
+          <div class="form-group">
+
+            <label>
+              Namba ya Simu ya Biashara
+            </label>
+
+            <div class="phone-row">
+
+              <select id="countryCode">
+
+                <option value="+255" data-country="Tanzania">
+                  🇹🇿 +255
+                </option>
+
+                <option value="+254" data-country="Kenya">
+                  🇰🇪 +254
+                </option>
+
+                <option value="+256" data-country="Uganda">
+                  🇺🇬 +256
+                </option>
+
+                <option value="+250" data-country="Rwanda">
+                  🇷🇼 +250
+                </option>
+
+                <option value="+257" data-country="Burundi">
+                  🇧🇮 +257
+                </option>
+
+                <option value="+243" data-country="DR Congo">
+                  🇨🇩 +243
+                </option>
+
+                <option value="+260" data-country="Zambia">
+                  🇿🇲 +260
+                </option>
+
+                <option value="+265" data-country="Malawi">
+                  🇲🇼 +265
+                </option>
+
+                <option value="+258" data-country="Mozambique">
+                  🇲🇿 +258
+                </option>
+
+                <option value="+27" data-country="South Africa">
+                  🇿🇦 +27
+                </option>
+
+                <option value="+251" data-country="Ethiopia">
+                  🇪🇹 +251
+                </option>
+
+                <option value="+252" data-country="Somalia">
+                  🇸🇴 +252
+                </option>
+
+                <option value="+249" data-country="Sudan">
+                  🇸🇩 +249
+                </option>
+
+                <option value="+20" data-country="Egypt">
+                  🇪🇬 +20
+                </option>
+
+                <option value="+234" data-country="Nigeria">
+                  🇳🇬 +234
+                </option>
+
+                <option value="+233" data-country="Ghana">
+                  🇬🇭 +233
+                </option>
+
+                <option value="+971" data-country="UAE">
+                  🇦🇪 +971
+                </option>
+
+                <option value="+91" data-country="India">
+                  🇮🇳 +91
+                </option>
+
+                <option value="+86" data-country="China">
+                  🇨🇳 +86
+                </option>
+
+                <option value="+44" data-country="United Kingdom">
+                  🇬🇧 +44
+                </option>
+
+                <option value="+1" data-country="USA/Canada">
+                  🇺🇸 +1
+                </option>
+
+              </select>
+
+              <input
+                id="businessPhoneLocal"
+                type="tel"
+                placeholder="7XXXXXXXX"
+              >
+
+            </div>
+
+          </div>
+
+          <div class="form-group">
+
+            <label>Nchi</label>
+
+            <select id="country">
+
+              <option value="Tanzania">
+                Tanzania
+              </option>
+
+              <option value="Kenya">
+                Kenya
+              </option>
+
+              <option value="Uganda">
+                Uganda
+              </option>
+
+              <option value="Rwanda">
+                Rwanda
+              </option>
+
+              <option value="Burundi">
+                Burundi
+              </option>
+
+              <option value="DR Congo">
+                DR Congo
+              </option>
+
+              <option value="Zambia">
+                Zambia
+              </option>
+
+              <option value="Malawi">
+                Malawi
+              </option>
+
+              <option value="Mozambique">
+                Mozambique
+              </option>
+
+              <option value="South Africa">
+                South Africa
+              </option>
+
+              <option value="Ethiopia">
+                Ethiopia
+              </option>
+
+              <option value="Somalia">
+                Somalia
+              </option>
+
+              <option value="Sudan">
+                Sudan
+              </option>
+
+              <option value="Egypt">
+                Egypt
+              </option>
+
+              <option value="Nigeria">
+                Nigeria
+              </option>
+
+              <option value="Ghana">
+                Ghana
+              </option>
+
+              <option value="Nyingine">
+                Nyingine
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+        <!-- SALER -->
+        <div
+          id="salerFields"
+          style="display:none"
+        >
+
+          <div class="section-label">
+            Business Code
+          </div>
+
+          <div class="form-group">
+
+            <label>
+              Business Code (kutoka kwa mmiliki)
+            </label>
+
+            <input
+              id="businessCode"
+              placeholder="Mf. AB12CD3"
+            >
+
+          </div>
+
+        </div>
+
+        <div class="slide-actions">
+
+          <button
+            type="button"
+            class="nav-btn"
+            data-prev
+          >
+            ← Rudi
+          </button>
+
+          <button
+            type="button"
+            class="nav-btn primary"
+            data-next
+          >
+            Endelea →
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- SLIDE 3 -->
+      <div class="slide" data-step="3">
+
+        <div id="ownerLocationFields">
+
+          <div class="section-label">
+            Mahali Biashara Ilipo
+          </div>
+
+          <div class="row2">
+
+            <div class="form-group">
+
+              <label>Mkoa</label>
+
+              <input
+                id="region"
+                placeholder="Mf. Dar es Salaam"
+              >
+
+            </div>
+
+            <div class="form-group">
+
+              <label>Wilaya</label>
+
+              <input
+                id="district"
+                placeholder="Mf. Kinondoni"
+              >
+
+            </div>
+
+          </div>
+
+          <div class="form-group">
+
+            <label>Kata</label>
+
+            <input
+              id="ward"
+              placeholder="Mf. Msasani"
+            >
+
+          </div>
+
+          <div class="form-group">
+
+            <label>
+              Eneo/Anwani Kamili
+            </label>
+
+            <input
+              id="businessLocation"
+              placeholder="Mf. Barabara ya Bagamoyo, karibu na..."
+            >
+
+          </div>
+
+        </div>
+
+        <div class="section-label">
+          Usalama wa Akaunti
+        </div>
+
+        <div class="form-group">
+
+          <label>Password</label>
+
+          <div class="password-wrap">
+
+            <input
+              id="password"
+              type="password"
+              placeholder="Angalau herufi 10"
+              required
+            >
+
+            <button
+              type="button"
+              class="toggle-password"
+              id="togglePassword"
+            >
+              Onyesha
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="slide-actions">
+
+          <button
+            type="button"
+            class="nav-btn"
+            data-prev
+          >
+            ← Rudi
+          </button>
+
+          <button
+            type="submit"
+            class="submit-btn"
+            id="registerBtn"
+          >
+            Fungua Akaunti
+          </button>
+
+        </div>
+
+      </div>
+
+    </form>
+
+    <div class="login-link">
+      Una akaunti tayari?
+      <a href="/login.html">
+        Ingia hapa
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+let currentRole = 'owner';
+let currentStep = 1;
+
+const stepCaptions = {
+  1: 'Taarifa binafsi',
+  2: 'Taarifa za biashara',
+  3: 'Mahali & usalama'
+};
+
+function showMessage(text, type='error'){
+
+  const el = $('message');
+
+  el.textContent = text;
+
+  el.className = 'message ' + type;
+
+}
+
+function clearMessage(){
+
+  $('message').textContent = '';
+
+  $('message').className = 'message';
+
+}
+
+function showStep(step){
+
+  if(step < 1 || step > 3) return;
+
+  currentStep = step;
+
+  document.querySelectorAll('.slide').forEach(slide => {
+
+    slide.classList.toggle(
+      'active',
+      Number(slide.dataset.step) === step
+    );
+
+  });
+
+  document.querySelectorAll('[data-step-dot]').forEach(dot => {
+
+    dot.classList.toggle(
+      'active',
+      Number(dot.dataset.stepDot) <= step
+    );
+
+  });
+
+  $('stepCaption').textContent =
+    stepCaptions[step];
+
+  clearMessage();
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+
+}
+
+function validateStep(step){
+
+  const slide =
+    document.querySelector(
+      `.slide[data-step="${step}"]`
+    );
+
+  if(!slide) return true;
+
+  const visibleRequired =
+    [...slide.querySelectorAll('input,select')]
+    .filter(el => {
+
+      return el.required &&
+             el.offsetParent !== null;
+
+    });
+
+  for(const field of visibleRequired){
+
+    if(!String(field.value || '').trim()){
+
+      field.focus();
+
+      showMessage(
+        'Tafadhali jaza taarifa zote zinazohitajika.'
+      );
+
+      return false;
+
+    }
+
+  }
+
+  if(
+    step === 2 &&
+    currentRole === 'owner'
+  ){
+
+    if(!$('businessName').value.trim()){
+
+      $('businessName').focus();
+
+      showMessage(
+        'Tafadhali weka jina la biashara.'
+      );
+
+      return false;
+
+    }
+
+  }
+
+  if(
+    step === 2 &&
+    currentRole === 'saler'
+  ){
+
+    if(!$('businessCode').value.trim()){
+
+      $('businessCode').focus();
+
+      showMessage(
+        'Tafadhali weka Business Code kutoka kwa mmiliki.'
+      );
+
+      return false;
+
+    }
+
+  }
+
+  return true;
+
+}
+
+document
+  .querySelectorAll('[data-next]')
+  .forEach(btn => {
+
+    btn.addEventListener('click', () => {
+
+      if(validateStep(currentStep)){
+
+        showStep(currentStep + 1);
+
+      }
+
+    });
+
+  });
+
+document
+  .querySelectorAll('[data-prev]')
+  .forEach(btn => {
+
+    btn.addEventListener('click', () => {
+
+      showStep(currentStep - 1);
+
+    });
+
+  });
+
+document
+  .querySelectorAll('.tabs button')
+  .forEach(b => {
+
+    b.addEventListener('click', () => {
+
+      document
+        .querySelectorAll('.tabs button')
+        .forEach(x =>
+          x.classList.remove('active')
+        );
+
+      b.classList.add('active');
+
+      currentRole = b.dataset.role;
+
+      $('ownerFields').style.display =
+        currentRole === 'owner'
+          ? 'block'
+          : 'none';
+
+      $('salerFields').style.display =
+        currentRole === 'saler'
+          ? 'block'
+          : 'none';
+
+      $('ownerLocationFields').style.display =
+        currentRole === 'owner'
+          ? 'block'
+          : 'none';
+
+      showStep(1);
+
+    });
+
+  });
+
+$('togglePassword')
+  .addEventListener('click', () => {
+
+    const inp = $('password');
+
+    if(inp.type === 'password'){
+
+      inp.type = 'text';
+
+      $('togglePassword').textContent =
+        'Ficha';
+
+    }else{
+
+      inp.type = 'password';
+
+      $('togglePassword').textContent =
+        'Onyesha';
+
+    }
+
+  });
+
+async function api(path, options={}){
+
+  const headers = {
+    'Content-Type':'application/json',
+    ...(options.headers || {})
+  };
+
+  const token =
+    localStorage.getItem('dp_token');
+
+  if(token){
+
+    headers.Authorization =
+      'Bearer ' + token;
+
+  }
+
+  const response =
+    await fetch(path, {
+      ...options,
+      headers
+    });
+
+  let data = {};
+
+  try{
+
+    data = await response.json();
+
+  }catch{}
+
+  if(!response.ok){
+
+    const error = new Error(
+      data.error ||
+      data.message ||
+      'Kuna tatizo kwenye server.'
+    );
+
+    error.data = data;
+
+    throw error;
+
+  }
+
+  return data;
+
+}
+
+function redirectUser(user){
+
+  if(!user || !user.role){
+
+    window.location.replace(
+      '/login.html'
+    );
+
+    return;
+
+  }
+
+  if(user.role === 'super_admin'){
+
+    window.location.replace(
+      '/super-admin.html'
+    );
+
+    return;
+
+  }
+
+  if(user.role === 'owner'){
+
+    window.location.replace(
+      '/dashboard.html'
+    );
+
+    return;
+
+  }
+
+  if(user.role === 'saler'){
+
+    window.location.replace(
+      '/saler.html'
+    );
+
+    return;
+
+  }
+
+  window.location.replace(
+    '/login.html'
+  );
+
+}
+
+$('registerForm')
+  .addEventListener('submit', async (ev) => {
+
+    ev.preventDefault();
+
+    clearMessage();
+
+    if(!validateStep(1)){
+
+      showStep(1);
+
+      return;
+
+    }
+
+    if(!validateStep(2)){
+
+      showStep(2);
+
+      return;
+
+    }
+
+    if(!validateStep(3)){
+
+      showStep(3);
+
+      return;
+
+    }
+
+    const body = {
+
+      fullName:
+        $('fullName').value.trim(),
+
+      phone:
+        $('phone').value.trim(),
+
+      email:
+        $('email').value.trim(),
+
+      password:
+        $('password').value,
+
+      role:
+        currentRole
+
+    };
+
+    if(currentRole === 'owner'){
+
+      body.businessName =
+        $('businessName').value.trim();
+
+      body.businessLocation =
+        $('businessLocation').value.trim();
+
+      body.region =
+        $('region').value.trim();
+
+      body.district =
+        $('district').value.trim();
+
+      body.ward =
+        $('ward').value.trim();
+
+      body.country =
+        $('country').value;
+
+      const localPhone =
+        $('businessPhoneLocal')
+          .value
+          .trim()
+          .replace(/^0+/, '');
+
+      body.businessPhone =
+        localPhone
+          ? (
+              $('countryCode').value +
+              localPhone
+            )
+          : '';
+
+    }else{
+
+      body.businessCode =
+        $('businessCode').value.trim();
+
+    }
+
+    const btn =
+      $('registerBtn');
+
+    btn.disabled = true;
+
+    btn.textContent =
+      'Inajisajili...';
+
+    try{
+
+      const data =
+        await api('/api/register', {
+
+          method:'POST',
+
+          body:JSON.stringify(body)
+
+        });
+
+      localStorage.setItem(
+        'dp_token',
+        data.token
+      );
+
+      localStorage.setItem(
+        'dp_user',
+        JSON.stringify(data.user)
+      );
+
+      showMessage(
+        'Umefanikiwa kujisajili. Tunaelekeza...',
+        'success'
+      );
+
+      setTimeout(() => {
+
+        redirectUser(data.user);
+
+      },300);
+
+    }catch(err){
+
+      showMessage(
+        (err.data && err.data.error) ||
+        err.message ||
+        'Imeshindikana kujisajili.'
+      );
+
+      btn.disabled = false;
+
+      btn.textContent =
+        'Fungua Akaunti';
+
+    }
+
+  });
+
+showStep(1);
+
+</script>
+
+</body>
+</html>
