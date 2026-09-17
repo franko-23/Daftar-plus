@@ -1,100 +1,156 @@
 (() => {
-  const token = localStorage.getItem('dp_token');
+  'use strict';
+
+  /* =========================
+     AUTH
+  ========================= */
+
+  const token =
+    localStorage.getItem('dp_token') ||
+    localStorage.getItem('daftari_token');
+
   if (!token) {
-    location.href = '/login.html';
+    window.location.href = '/login.html';
     return;
   }
 
-  const $ = id => document.getElementById(id);
-  const money = n => Math.round(Number(n) || 0).toLocaleString('en-US');
+  const $ = (id) => document.getElementById(id);
 
-  const esc = s => String(s ?? '').replace(/[&<>'"]/g, c => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;'
-  }[c]));
+  const money = (value) =>
+    Math.round(Number(value) || 0).toLocaleString('en-US');
+
+  const esc = (value) =>
+    String(value ?? '').replace(/[&<>'"]/g, (c) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[c]));
 
   let products = [];
   let sales = [];
   let expenses = [];
   let debts = [];
-  let currentRange = { from: '', to: '' };
-  let lastReports = null;
 
-  async function api(path, opts = {}) {
-    const r = await fetch(path, {
-      ...opts,
+  let currentRange = {
+    from: '',
+    to: ''
+  };
+
+  /* =========================
+     API
+  ========================= */
+
+  async function api(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
       headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        Authorization: 'Bearer ' + token
+        ...(options.body ? {
+          'Content-Type': 'application/json'
+        } : {}),
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`
       }
     });
 
-    if (r.status === 401) {
+    if (response.status === 401) {
       localStorage.removeItem('dp_token');
-      location.href = '/login.html';
+      localStorage.removeItem('daftari_token');
+      localStorage.removeItem('dp_user');
+      localStorage.removeItem('daftari_user');
+
+      window.location.href = '/login.html';
       return null;
     }
 
-    const d = await r.json().catch(() => ({}));
+    const data =
+      await response.json().catch(() => ({}));
 
-    if (!r.ok) {
-      throw new Error(d.error || 'Hitilafu ya server.');
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Hitilafu ya server.'
+      );
     }
 
-    return d;
+    return data;
   }
 
-  function toast(msg) {
-    const t = $('toast');
-    if (!t) return;
+  /* =========================
+     TOAST
+  ========================= */
 
-    t.textContent = msg;
-    t.style.display = 'block';
+  function toast(message) {
+    const element = $('toast');
 
-    clearTimeout(window.__toast);
+    if (!element) return;
 
-    window.__toast = setTimeout(() => {
-      t.style.display = 'none';
+    element.textContent = message;
+    element.style.display = 'block';
+
+    clearTimeout(window.__dpToast);
+
+    window.__dpToast = setTimeout(() => {
+      element.style.display = 'none';
     }, 3200);
   }
 
-  function dateISO(d) {
-    const x = new Date(d);
+  /* =========================
+     DATE
+  ========================= */
+
+  function dateISO(date) {
+    const d = new Date(date);
+
     return new Date(
-      x.getTime() - x.getTimezoneOffset() * 60000
-    ).toISOString().slice(0, 10);
+      d.getTime() -
+      d.getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .slice(0, 10);
   }
 
   function rangeFor(period) {
     const today = new Date();
 
-    today.setHours(0, 0, 0, 0);
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
 
-    let from = new Date(today);
-    let to = new Date(today);
+    const from = new Date(today);
+    const to = new Date(today);
 
     if (period === '7d') {
-      from.setDate(from.getDate() - 6);
+      from.setDate(
+        from.getDate() - 6
+      );
     }
 
     if (period === '30d') {
-      from.setDate(from.getDate() - 29);
+      from.setDate(
+        from.getDate() - 29
+      );
     }
 
     if (period === '3m') {
-      from.setMonth(from.getMonth() - 3);
+      from.setMonth(
+        from.getMonth() - 3
+      );
     }
 
     if (period === '6m') {
-      from.setMonth(from.getMonth() - 6);
+      from.setMonth(
+        from.getMonth() - 6
+      );
     }
 
     if (period === 'year') {
-      from.setFullYear(from.getFullYear() - 1);
+      from.setFullYear(
+        from.getFullYear() - 1
+      );
     }
 
     return {
@@ -104,532 +160,1448 @@
   }
 
   function queryRange() {
-    return currentRange.from && currentRange.to
-      ? `?from=${currentRange.from}&to=${currentRange.to}`
-      : '';
+    if (
+      !currentRange.from ||
+      !currentRange.to
+    ) {
+      return '';
+    }
+
+    const params = new URLSearchParams();
+
+    params.set(
+      'from',
+      currentRange.from
+    );
+
+    params.set(
+      'to',
+      currentRange.to
+    );
+
+    return `?${params.toString()}`;
   }
+
+  /* =========================
+     USER
+  ========================= */
 
   async function loadMe() {
-    const d = await api('/api/me');
+    const data =
+      await api('/api/me');
 
-    if (!d) return;
+    if (!data) return;
 
-    $('userName').textContent =
-      d.user.full_name || 'Owner';
+    const user =
+      data.user || {};
 
-    $('businessName').textContent =
-      d.business?.name || 'Daftari+';
+    const business =
+      data.business || {};
 
-    const initials =
-      (d.user.full_name || 'DP')
-        .split(/\s+/)
-        .slice(0, 2)
-        .map(x => x[0])
-        .join('')
-        .toUpperCase();
+    const name =
+      user.full_name ||
+      'Owner';
 
-    $('avatar').textContent = initials;
+    const userName =
+      $('userName');
 
-    $('greeting').textContent =
-      `Habari, ${d.user.full_name?.split(' ')[0] || 'Owner'} 👋`;
+    if (userName) {
+      userName.textContent = name;
+    }
+
+    const businessName =
+      $('businessName');
+
+    if (businessName) {
+      businessName.textContent =
+        business.name ||
+        'Daftari+';
+    }
+
+    const avatar =
+      $('avatar');
+
+    if (avatar) {
+      const initials =
+        name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map(
+            (part) =>
+              part[0]
+          )
+          .join('')
+          .toUpperCase();
+
+      avatar.textContent =
+        initials || 'DP';
+    }
+
+    const subtitle =
+      $('subTitle');
+
+    if (subtitle) {
+      subtitle.textContent =
+        business.name
+          ? `Karibu kwenye ${business.name}`
+          : 'Muhtasari wa biashara yako';
+    }
+
+    const pill =
+      $('tbPill');
+
+    if (pill) {
+      pill.textContent =
+        `${user.role || 'Owner'} — ${business.name || 'Daftari+'}`;
+    }
   }
 
+  /* =========================
+     PRODUCTS
+  ========================= */
+
   async function loadProducts() {
-    const d = await api('/api/products');
+    const data =
+      await api('/api/products');
 
-    if (!d) return;
+    if (!data) return;
 
-    products = d.products || [];
+    products =
+      Array.isArray(data.products)
+        ? data.products
+        : [];
 
-    $('kpiProducts').textContent =
-      products.length;
+    const productsKpi =
+      $('kpiProducts');
 
-    $('kpiStock').textContent =
-      money(
-        products.reduce(
-          (a, p) => a + p.quantity * p.buy_price,
-          0
-        )
+    if (productsKpi) {
+      productsKpi.textContent =
+        products.length;
+    }
+
+    const stockValue =
+      products.reduce(
+        (total, product) =>
+          total +
+          Number(product.quantity || 0) *
+          Number(product.buy_price || 0),
+        0
       );
 
-    $('kpiLow').textContent =
+    const stockKpi =
+      $('kpiStock');
+
+    if (stockKpi) {
+      stockKpi.textContent =
+        money(stockValue);
+    }
+
+    const lowCount =
       products.filter(
-        p => p.quantity <= p.min_stock
+        (product) =>
+          Number(product.quantity || 0) <=
+          Number(product.min_stock || 0)
       ).length;
+
+    const lowKpi =
+      $('kpiLow');
+
+    if (lowKpi) {
+      lowKpi.textContent =
+        lowCount;
+    }
+
+    const reportStock =
+      $('rStock');
+
+    if (reportStock) {
+      reportStock.textContent =
+        money(stockValue);
+    }
+
+    const reportStockCost =
+      $('rStockCost');
+
+    if (reportStockCost) {
+      reportStockCost.textContent =
+        `Cost: ${money(stockValue)}`;
+    }
 
     renderProducts();
     renderLow();
     renderInsights();
   }
 
+  function renderProducts() {
+    const table =
+      $('productsTable');
+
+    if (!table) return;
+
+    if (!products.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="8" class="empty">
+            Hakuna bidhaa.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    table.innerHTML =
+      products
+        .map(
+          (product) => `
+            <tr>
+              <td>
+                <b>${esc(product.name)}</b>
+              </td>
+
+              <td>
+                ${esc(product.category_name || '—')}
+              </td>
+
+              <td>
+                ${money(product.buy_price)}
+              </td>
+
+              <td>
+                ${money(product.sell_price)}
+              </td>
+
+              <td>
+                ${money(product.quantity)}
+              </td>
+
+              <td>
+                ${money(
+                  Number(product.quantity || 0) *
+                  Number(product.buy_price || 0)
+                )}
+              </td>
+
+              <td>
+                ${
+                  Number(product.quantity || 0) <=
+                  Number(product.min_stock || 0)
+                    ? '<span class="pill warn">Low</span>'
+                    : '<span class="pill good">Healthy</span>'
+                }
+              </td>
+
+              <td>
+                <button
+                  type="button"
+                  class="btn"
+                  data-edit-product="${product.id}">
+                  Edit
+                </button>
+              </td>
+            </tr>
+          `
+        )
+        .join('');
+  }
+
+  function renderLow() {
+    const list =
+      $('lowList');
+
+    if (!list) return;
+
+    const low =
+      products
+        .filter(
+          (product) =>
+            Number(product.quantity || 0) <=
+            Number(product.min_stock || 0)
+        )
+        .sort(
+          (a, b) =>
+            Number(a.quantity || 0) -
+            Number(b.quantity || 0)
+        )
+        .slice(0, 8);
+
+    if (!low.length) {
+      list.innerHTML = `
+        <div class="empty">
+          Stock iko vizuri 🎉
+        </div>
+      `;
+
+      return;
+    }
+
+    list.innerHTML =
+      low
+        .map(
+          (product) => `
+            <div class="row">
+              <div>
+                <div class="name">
+                  ${esc(product.name)}
+                </div>
+
+                <div class="meta">
+                  Minimum ${money(product.min_stock)}
+                </div>
+              </div>
+
+              <span class="pill ${
+                Number(product.quantity || 0) === 0
+                  ? 'bad'
+                  : 'warn'
+              }">
+                ${
+                  Number(product.quantity || 0) === 0
+                    ? 'OUT'
+                    : money(product.quantity)
+                }
+              </span>
+            </div>
+          `
+        )
+        .join('');
+  }
+
+  /* =========================
+     REPORTS
+  ========================= */
+
   async function loadReports() {
-    const d = await api(
-      '/api/reports' + queryRange()
+    const data =
+      await api(
+        '/api/reports' +
+        queryRange()
+      );
+
+    if (!data) return;
+
+    sales =
+      Array.isArray(data.sales)
+        ? data.sales
+        : [];
+
+    expenses =
+      Array.isArray(data.expenses)
+        ? data.expenses
+        : [];
+
+    const summary =
+      data.summary || {};
+
+    const revenue =
+      Number(summary.revenue || 0);
+
+    const grossProfit =
+      Number(summary.grossProfit || 0);
+
+    const totalExpenses =
+      Number(summary.expenses || 0);
+
+    const profit =
+      Number(summary.profit || 0);
+
+    const margin =
+      Number(summary.margin || 0);
+
+    const salesKpi =
+      $('kpiSales');
+
+    if (salesKpi) {
+      salesKpi.textContent =
+        money(revenue);
+    }
+
+    const profitKpi =
+      $('kpiProfit');
+
+    if (profitKpi) {
+      profitKpi.textContent =
+        money(profit);
+    }
+
+    const expenseKpi =
+      $('kpiExpenses');
+
+    if (expenseKpi) {
+      expenseKpi.textContent =
+        money(totalExpenses);
+    }
+
+    const marginKpi =
+      $('kpiMargin');
+
+    if (marginKpi) {
+      marginKpi.textContent =
+        `${margin.toFixed(1)}%`;
+    }
+
+    const rRevenue =
+      $('rRevenue');
+
+    if (rRevenue) {
+      rRevenue.textContent =
+        money(revenue);
+    }
+
+    const rGross =
+      $('rGross');
+
+    if (rGross) {
+      rGross.textContent =
+        money(grossProfit);
+    }
+
+    const rExpenses =
+      $('rExpenses');
+
+    if (rExpenses) {
+      rExpenses.textContent =
+        money(totalExpenses);
+    }
+
+    const rProfit =
+      $('rProfit');
+
+    if (rProfit) {
+      rProfit.textContent =
+        money(profit);
+    }
+
+    const rMargin =
+      $('rMargin');
+
+    if (rMargin) {
+      rMargin.textContent =
+        `${margin.toFixed(1)}%`;
+    }
+
+    const period =
+      $('reportPeriod');
+
+    if (period) {
+      period.textContent =
+        data.from && data.to
+          ? `${data.from} → ${data.to}`
+          : '—';
+    }
+
+    renderChart(
+      'chart',
+      sales,
+      expenses
     );
-
-    if (!d) return;
-
-    lastReports = d;
-    sales = d.sales || [];
-    expenses = d.expenses || [];
-
-    const s = d.summary || {};
-
-    $('kpiSales').textContent =
-      money(s.revenue);
-
-    $('kpiProfit').textContent =
-      money(s.profit);
-
-    $('kpiExpenses').textContent =
-      money(s.expenses);
-
-    $('kpiMargin').textContent =
-      `${Number(s.margin || 0).toFixed(1)}%`;
-
-    renderChart('chart', sales, expenses);
-    renderSales();
-    renderExpenses();
-    renderInsights();
-
-    $('rRevenue').textContent =
-      money(s.revenue);
-
-    $('rGross').textContent =
-      money(s.grossProfit);
-
-    $('rExpenses').textContent =
-      money(s.expenses);
-
-    $('rProfit').textContent =
-      money(s.profit);
-
-    $('reportPeriod').textContent =
-      `${d.from} → ${d.to}`;
 
     renderChart(
       'reportChart',
       sales,
       expenses
     );
+
+    renderRecentTransactions();
+    renderCategoryDonut();
+    renderInsights();
   }
 
-  async function loadDebts() {
-    const d = await api('/api/debts');
+  /* =========================
+     CHART
+  ========================= */
 
-    if (!d) return;
+  function dayKey(value) {
+    return dateISO(value);
+  }
 
-    debts = d.debts || [];
+  function renderChart(
+    elementId,
+    rows,
+    expenseRows
+  ) {
+    const element =
+      $(elementId);
 
-    const open = debts.filter(
-      x =>
-        x.status !== 'voided' &&
-        Number(x.amount) > Number(x.paid)
+    if (!element) return;
+
+    const map =
+      new Map();
+
+    rows.forEach(
+      (sale) => {
+        const key =
+          dayKey(sale.created_at);
+
+        const item =
+          map.get(key) || {
+            sales: 0,
+            profit: 0
+          };
+
+        item.sales +=
+          Number(sale.total || 0);
+
+        item.profit +=
+          (
+            Number(sale.sell_price || 0) -
+            Number(sale.buy_price || 0)
+          ) *
+          Number(sale.quantity || 0) -
+          Number(sale.discount || 0);
+
+        map.set(
+          key,
+          item
+        );
+      }
     );
 
-    const outstanding = open.reduce(
-      (a, x) =>
-        a +
-        (Number(x.amount) - Number(x.paid)),
-      0
+    expenseRows.forEach(
+      (expense) => {
+        const key =
+          dayKey(expense.created_at);
+
+        const item =
+          map.get(key) || {
+            sales: 0,
+            profit: 0
+          };
+
+        item.profit -=
+          Number(expense.amount || 0);
+
+        map.set(
+          key,
+          item
+        );
+      }
     );
 
-    $('kpiDebt').textContent =
-      money(outstanding);
+    let data =
+      [...map.entries()]
+        .sort(
+          (a, b) =>
+            a[0].localeCompare(b[0])
+        );
 
-    $('debtTotal').textContent =
-      `Outstanding: ${money(outstanding)}`;
-
-    renderDebts();
-  }
-
-  function renderProducts() {
-    $('productsTable').innerHTML =
-      products.length
-        ? products.map(p => `
-          <tr>
-            <td>
-              <b>${esc(p.name)}</b>
-            </td>
-
-            <td>
-              ${esc(p.category_name || '—')}
-            </td>
-
-            <td>
-              ${money(p.buy_price)}
-            </td>
-
-            <td>
-              ${money(p.sell_price)}
-            </td>
-
-            <td>
-              ${money(p.quantity)}
-            </td>
-
-            <td>
-              ${money(p.quantity * p.buy_price)}
-            </td>
-
-            <td>
-              ${
-                p.quantity <= p.min_stock
-                  ? '<span class="pill warn">Low</span>'
-                  : '<span class="pill good">Healthy</span>'
-              }
-            </td>
-
-            <td>
-              <button
-                class="btn"
-                data-edit-product="${p.id}">
-                Edit
-              </button>
-            </td>
-          </tr>
-        `).join('')
-        : `
-          <tr>
-            <td colspan="8" class="empty">
-              Hakuna bidhaa.
-            </td>
-          </tr>
-        `;
-  }
-
-  function renderLow() {
-    const low = products
-      .filter(
-        p => p.quantity <= p.min_stock
-      )
-      .sort(
-        (a, b) => a.quantity - b.quantity
-      )
-      .slice(0, 8);
-
-    $('lowList').innerHTML =
-      low.length
-        ? low.map(p => `
-          <div class="row">
-            <div>
-              <div class="name">
-                ${esc(p.name)}
-              </div>
-
-              <div class="meta">
-                Minimum ${p.min_stock}
-              </div>
-            </div>
-
-            <span class="pill ${
-              p.quantity === 0
-                ? 'bad'
-                : 'warn'
-            }">
-              ${
-                p.quantity === 0
-                  ? 'OUT'
-                  : p.quantity
-              }
-            </span>
-          </div>
-        `).join('')
-        : `
-          <div class="empty">
-            Stock iko vizuri 🎉
-          </div>
-        `;
-  }
-
-  function renderInsights() {
-    const sold = new Map();
-
-    sales.forEach(s => {
-      sold.set(
-        Number(s.product_id),
-        (sold.get(Number(s.product_id)) || 0) +
-        Number(s.quantity || 0)
-      );
-    });
-
-    const best = products
-      .map(p => ({
-        ...p,
-        sold: sold.get(p.id) || 0
-      }))
-      .filter(p => p.sold > 0)
-      .sort(
-        (a, b) => b.sold - a.sold
-      )
-      .slice(0, 6);
-
-    const never = products
-      .filter(p => !sold.has(p.id))
-      .slice(0, 5);
-
-    const slow = products
-      .filter(p => sold.has(p.id))
-      .map(p => ({
-        ...p,
-        sold: sold.get(p.id)
-      }))
-      .sort(
-        (a, b) => a.sold - b.sold
-      )
-      .slice(0, 5);
-
-    const list = best.length
-      ? best.map((p, i) => `
-          <div class="row">
-            <div>
-              <div class="name">
-                ${i + 1}. ${esc(p.name)}
-              </div>
-
-              <div class="meta">
-                ${p.sold} units
-              </div>
-            </div>
-
-            <b>
-              ${money(p.sold * p.sell_price)}
-            </b>
-          </div>
-        `).join('')
-      : `
+    if (!data.length) {
+      element.innerHTML = `
         <div class="empty">
-          Hakuna data ya mauzo.
+          Hakuna data ya graph kwa kipindi hiki.
         </div>
       `;
 
-    $('bestList').innerHTML = list;
+      return;
+    }
 
-    const arr = [
-      ...never.map(p => ({
-        ...p,
-        label: 'Never sold'
-      })),
-      ...slow.map(p => ({
-        ...p,
-        label: `${p.sold} sold`
-      }))
-    ].slice(0, 7);
+    if (data.length > 31) {
+      const bucket =
+        new Map();
 
-    $('slowList').innerHTML =
-      arr.length
-        ? arr.map(p => `
-          <div class="row">
-            <div>
-              <div class="name">
-                ${esc(p.name)}
+      data.forEach(
+        ([key, value]) => {
+          const date =
+            new Date(
+              key + 'T00:00:00'
+            );
+
+          const month =
+            `${date.getFullYear()}-${String(
+              date.getMonth() + 1
+            ).padStart(2, '0')}`;
+
+          const item =
+            bucket.get(month) || {
+              sales: 0,
+              profit: 0
+            };
+
+          item.sales +=
+            value.sales;
+
+          item.profit +=
+            value.profit;
+
+          bucket.set(
+            month,
+            item
+          );
+        }
+      );
+
+      data =
+        [...bucket.entries()];
+    }
+
+    const width = 900;
+    const height = 250;
+
+    const padding = {
+      left: 45,
+      right: 15,
+      top: 15,
+      bottom: 32
+    };
+
+    const max =
+      Math.max(
+        1,
+        ...data.map(
+          ([, value]) =>
+            Math.max(
+              value.sales,
+              Math.max(
+                0,
+                value.profit
+              )
+            )
+        )
+      );
+
+    const x =
+      (index) =>
+        padding.left +
+        (
+          index /
+          Math.max(
+            1,
+            data.length - 1
+          )
+        ) *
+        (
+          width -
+          padding.left -
+          padding.right
+        );
+
+    const y =
+      (value) =>
+        height -
+        padding.bottom -
+        (
+          Math.max(0, value) /
+          max
+        ) *
+        (
+          height -
+          padding.top -
+          padding.bottom
+        );
+
+    const salesPoints =
+      data
+        .map(
+          ([, value], index) =>
+            `${x(index)},${y(value.sales)}`
+        )
+        .join(' ');
+
+    const profitPoints =
+      data
+        .map(
+          ([, value], index) =>
+            `${x(index)},${y(value.profit)}`
+        )
+        .join(' ');
+
+    const labels =
+      data
+        .map(
+          ([key], index) => {
+            if (
+              data.length > 12 &&
+              index %
+                Math.ceil(
+                  data.length / 6
+                ) !== 0
+            ) {
+              return '';
+            }
+
+            return `
+              <text
+                x="${x(index)}"
+                y="${height - 8}"
+                text-anchor="middle">
+                ${esc(key.slice(5))}
+              </text>
+            `;
+          }
+        )
+        .join('');
+
+    element.innerHTML = `
+      <svg
+        viewBox="0 0 ${width} ${height}"
+        preserveAspectRatio="none">
+
+        <line
+          x1="${padding.left}"
+          y1="${height - padding.bottom}"
+          x2="${width - padding.right}"
+          y2="${height - padding.bottom}"
+          stroke="#E7E8F2"/>
+
+        <polyline
+          class="line-sales"
+          points="${salesPoints}"/>
+
+        <polyline
+          class="line-profit"
+          points="${profitPoints}"/>
+
+        ${data
+          .map(
+            ([, value], index) => `
+              <circle
+                class="dot-sales"
+                cx="${x(index)}"
+                cy="${y(value.sales)}"
+                r="3"/>
+
+              <circle
+                class="dot-profit"
+                cx="${x(index)}"
+                cy="${y(value.profit)}"
+                r="3"/>
+            `
+          )
+          .join('')}
+
+        ${labels}
+      </svg>
+    `;
+  }
+
+  /* =========================
+     INSIGHTS
+  ========================= */
+
+  function renderInsights() {
+    const sold =
+      new Map();
+
+    sales.forEach(
+      (sale) => {
+        const id =
+          Number(sale.product_id);
+
+        sold.set(
+          id,
+          (
+            sold.get(id) || 0
+          ) +
+          Number(sale.quantity || 0)
+        );
+      }
+    );
+
+    const best =
+      products
+        .map(
+          (product) => ({
+            ...product,
+            sold:
+              sold.get(
+                Number(product.id)
+              ) || 0
+          })
+        )
+        .filter(
+          (product) =>
+            product.sold > 0
+        )
+        .sort(
+          (a, b) =>
+            b.sold - a.sold
+        )
+        .slice(0, 6);
+
+    const bestList =
+      $('bestList');
+
+    if (bestList) {
+      bestList.innerHTML =
+        best.length
+          ? best
+              .map(
+                (product, index) => `
+                  <div class="row">
+                    <div>
+                      <div class="name">
+                        ${index + 1}. ${esc(product.name)}
+                      </div>
+
+                      <div class="meta">
+                        ${money(product.sold)} units
+                      </div>
+                    </div>
+
+                    <b>
+                      ${money(
+                        product.sold *
+                        Number(product.sell_price || 0)
+                      )}
+                    </b>
+                  </div>
+                `
+              )
+              .join('')
+          : `
+              <div class="empty">
+                Hakuna data ya mauzo.
               </div>
+            `;
+    }
 
-              <div class="meta">
-                ${p.label}
+    const never =
+      products
+        .filter(
+          (product) =>
+            !sold.has(
+              Number(product.id)
+            )
+        )
+        .slice(0, 5);
+
+    const slow =
+      products
+        .filter(
+          (product) =>
+            sold.has(
+              Number(product.id)
+            )
+        )
+        .map(
+          (product) => ({
+            ...product,
+            sold:
+              sold.get(
+                Number(product.id)
+              )
+          })
+        )
+        .sort(
+          (a, b) =>
+            a.sold - b.sold
+        )
+        .slice(0, 5);
+
+    const slowList =
+      $('slowList');
+
+    if (slowList) {
+      const combined = [
+        ...never.map(
+          (product) => ({
+            ...product,
+            label: 'Never sold'
+          })
+        ),
+        ...slow.map(
+          (product) => ({
+            ...product,
+            label:
+              `${product.sold} sold`
+          })
+        )
+      ].slice(0, 7);
+
+      slowList.innerHTML =
+        combined.length
+          ? combined
+              .map(
+                (product) => `
+                  <div class="row">
+                    <div>
+                      <div class="name">
+                        ${esc(product.name)}
+                      </div>
+
+                      <div class="meta">
+                        ${esc(product.label)}
+                      </div>
+                    </div>
+
+                    <span class="pill ${
+                      product.label === 'Never sold'
+                        ? 'bad'
+                        : 'warn'
+                    }">
+                      ${
+                        product.label === 'Never sold'
+                          ? 'Never'
+                          : 'Slow'
+                      }
+                    </span>
+                  </div>
+                `
+              )
+              .join('')
+          : `
+              <div class="empty">
+                Hakuna bidhaa.
               </div>
-            </div>
-
-            <span class="pill ${
-              p.label === 'Never sold'
-                ? 'bad'
-                : 'warn'
-            }">
-              ${
-                p.label === 'Never sold'
-                  ? 'Never'
-                  : 'Slow'
-              }
-            </span>
-          </div>
-        `).join('')
-        : `
-          <div class="empty">
-            Hakuna bidhaa.
-          </div>
-        `;
+            `;
+    }
   }
 
-  function renderSales() {
-    const rows = sales
-      .slice()
-      .sort(
-        (a, b) =>
-          new Date(b.created_at) -
-          new Date(a.created_at)
-      )
-      .slice(0, 100);
+  /* =========================
+     RECENT TRANSACTIONS
+  ========================= */
 
-    $('salesTable').innerHTML =
-      rows.length
-        ? rows.map(s => `
-          <tr>
-            <td>
-              #${s.id}
-            </td>
+  function renderRecentTransactions() {
+    const table =
+      $('recentTxTable');
 
-            <td>
-              ${esc(s.product_name)} ×${s.quantity}
-            </td>
+    if (!table) return;
 
-            <td>
-              ${esc(s.customer_name || 'Cash')}
-            </td>
+    const recent =
+      sales
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(b.created_at) -
+            new Date(a.created_at)
+        )
+        .slice(0, 8);
 
-            <td>
-              ${s.quantity}
-            </td>
+    if (!recent.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty">
+            Hakuna miamala.
+          </td>
+        </tr>
+      `;
 
-            <td>
-              ${money(s.total)}
-            </td>
+      return;
+    }
 
-            <td>
-              ${esc(s.sold_by_name)}
-            </td>
-
-            <td>
-              ${new Date(
-                s.created_at
-              ).toLocaleString(
-                'sw-TZ',
-                {
-                  day: '2-digit',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }
-              )}
-            </td>
-
-            <td>
-              <button
-                class="btn danger"
-                data-void-sale="${s.id}">
-                Undo
-              </button>
-            </td>
-          </tr>
-        `).join('')
-        : `
-          <tr>
-            <td colspan="8" class="empty">
-              Hakuna mauzo kwa kipindi hiki.
-            </td>
-          </tr>
-        `;
-  }
-
-  function renderExpenses() {
-    $('expensesTable').innerHTML =
-      expenses.length
-        ? expenses
-            .slice()
-            .reverse()
-            .slice(0, 100)
-            .map(e => `
-              <tr>
-                <td>
-                  ${esc(e.description)}
-                </td>
-
-                <td>
-                  ${esc(e.category || '—')}
-                </td>
-
-                <td>
-                  ${money(e.amount)}
-                </td>
-
-                <td>
-                  ${esc(e.created_by_name)}
-                </td>
-
-                <td>
-                  ${new Date(
-                    e.created_at
-                  ).toLocaleString(
-                    'sw-TZ',
-                    {
-                      day: '2-digit',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }
-                  )}
-                </td>
-              </tr>
-            `).join('')
-        : `
-          <tr>
-            <td colspan="5" class="empty">
-              Hakuna matumizi kwa kipindi hiki.
-            </td>
-          </tr>
-        `;
-  }
-
-  function renderDebts() {
-    $('debtsTable').innerHTML =
-      debts.length
-        ? debts.map(d => {
-            const bal =
-              Number(d.amount) -
-              Number(d.paid);
+    table.innerHTML =
+      recent
+        .map(
+          (sale) => {
+            const profit =
+              (
+                Number(sale.sell_price || 0) -
+                Number(sale.buy_price || 0)
+              ) *
+              Number(sale.quantity || 0) -
+              Number(sale.discount || 0);
 
             return `
               <tr>
                 <td>
                   ${esc(
-                    d.customer_name ||
-                    d.person_name
+                    sale.product_name || '—'
+                  )}
+                </td>
+
+                <td>
+                  ${money(sale.quantity)}
+                </td>
+
+                <td class="right">
+                  ${money(sale.total)}
+                </td>
+
+                <td class="right">
+                  ${money(profit)}
+                </td>
+              </tr>
+            `;
+          }
+        )
+        .join('');
+  }
+
+  /* =========================
+     CATEGORY DONUT
+  ========================= */
+
+  function renderCategoryDonut() {
+    const container =
+      $('categoryDonut');
+
+    if (!container) return;
+
+    const categories =
+      new Map();
+
+    sales.forEach(
+      (sale) => {
+        const name =
+          sale.category_name ||
+          'Other';
+
+        categories.set(
+          name,
+          (
+            categories.get(name) || 0
+          ) +
+          Number(sale.total || 0)
+        );
+      }
+    );
+
+    const entries =
+      [...categories.entries()]
+        .sort(
+          (a, b) =>
+            b[1] - a[1]
+        )
+        .slice(0, 6);
+
+    if (!entries.length) {
+      container.innerHTML = `
+        <div class="empty">
+          Hakuna data ya category.
+        </div>
+      `;
+
+      return;
+    }
+
+    const total =
+      entries.reduce(
+        (sum, [, value]) =>
+          sum + value,
+        0
+      );
+
+    let current =
+      0;
+
+    const radius = 70;
+    const circumference =
+      2 * Math.PI * radius;
+
+    const colors = [
+      '#8B7CF6',
+      '#0FA968',
+      '#3B82F6',
+      '#D97706',
+      '#DC2626',
+      '#14B8A6'
+    ];
+
+    const circles =
+      entries
+        .map(
+          ([, value], index) => {
+            const percentage =
+              value / total;
+
+            const length =
+              percentage *
+              circumference;
+
+            const dash =
+              `${length} ${
+                circumference - length
+              }`;
+
+            const offset =
+              -current;
+
+            current += length;
+
+            return `
+              <circle
+                cx="100"
+                cy="100"
+                r="${radius}"
+                fill="none"
+                stroke="${colors[index % colors.length]}"
+                stroke-width="24"
+                stroke-dasharray="${dash}"
+                stroke-dashoffset="${offset}"
+                transform="rotate(-90 100 100)"/>
+            `;
+          }
+        )
+        .join('');
+
+    const legend =
+      entries
+        .map(
+          ([name, value], index) => `
+            <div class="drow">
+              <div class="dname">
+                <i style="background:${colors[index % colors.length]}"></i>
+                <span>${esc(name)}</span>
+              </div>
+
+              <span class="dpct">
+                ${(
+                  value /
+                  total *
+                  100
+                ).toFixed(1)}%
+              </span>
+            </div>
+          `
+        )
+        .join('');
+
+    container.innerHTML = `
+      <div class="donut-wrap">
+        <svg
+          viewBox="0 0 200 200"
+          aria-label="Sales by category">
+
+          <circle
+            cx="100"
+            cy="100"
+            r="${radius}"
+            fill="none"
+            stroke="#E7E8F2"
+            stroke-width="24"/>
+
+          ${circles}
+
+          <text
+            x="100"
+            y="96"
+            text-anchor="middle"
+            font-size="11"
+            fill="#6B7290">
+            SALES
+          </text>
+
+          <text
+            x="100"
+            y="116"
+            text-anchor="middle"
+            font-size="16"
+            font-weight="700"
+            fill="#171A2B">
+            ${money(total)}
+          </text>
+        </svg>
+
+        <div class="donut-legend">
+          ${legend}
+        </div>
+      </div>
+    `;
+  }
+
+  /* =========================
+     SALES
+  ========================= */
+
+  function renderSales() {
+    const table =
+      $('salesTable');
+
+    if (!table) return;
+
+    const rows =
+      sales
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(b.created_at) -
+            new Date(a.created_at)
+        )
+        .slice(0, 100);
+
+    if (!rows.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="8" class="empty">
+            Hakuna mauzo kwa kipindi hiki.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    table.innerHTML =
+      rows
+        .map(
+          (sale) => `
+            <tr>
+              <td>#${sale.id}</td>
+
+              <td>
+                ${esc(sale.product_name || '—')}
+              </td>
+
+              <td>
+                ${esc(
+                  sale.customer_name || 'Cash'
+                )}
+              </td>
+
+              <td>
+                ${money(sale.quantity)}
+              </td>
+
+              <td>
+                ${money(sale.total)}
+              </td>
+
+              <td>
+                ${esc(
+                  sale.sold_by_name || '—'
+                )}
+              </td>
+
+              <td>
+                ${formatDate(
+                  sale.created_at
+                )}
+              </td>
+
+              <td>
+                <button
+                  type="button"
+                  class="btn danger"
+                  data-void-sale="${sale.id}">
+                  Undo
+                </button>
+              </td>
+            </tr>
+          `
+        )
+        .join('');
+  }
+
+  function formatDate(value) {
+    const date =
+      new Date(value);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return '—';
+    }
+
+    return date.toLocaleString(
+      'sw-TZ',
+      {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      }
+    );
+  }
+
+  /* =========================
+     EXPENSES
+  ========================= */
+
+  function renderExpenses() {
+    const table =
+      $('expensesTable');
+
+    if (!table) return;
+
+    if (!expenses.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="5" class="empty">
+            Hakuna matumizi kwa kipindi hiki.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    table.innerHTML =
+      expenses
+        .slice()
+        .reverse()
+        .slice(0, 100)
+        .map(
+          (expense) => `
+            <tr>
+              <td>
+                ${esc(
+                  expense.description || '—'
+                )}
+              </td>
+
+              <td>
+                ${esc(
+                  expense.category || '—'
+                )}
+              </td>
+
+              <td>
+                ${money(expense.amount)}
+              </td>
+
+              <td>
+                ${esc(
+                  expense.created_by_name || '—'
+                )}
+              </td>
+
+              <td>
+                ${formatDate(
+                  expense.created_at
+                )}
+              </td>
+            </tr>
+          `
+        )
+        .join('');
+  }
+
+  /* =========================
+     DEBTS
+  ========================= */
+
+  async function loadDebts() {
+    const data =
+      await api('/api/debts');
+
+    if (!data) return;
+
+    debts =
+      Array.isArray(data.debts)
+        ? data.debts
+        : [];
+
+    const open =
+      debts.filter(
+        (debt) =>
+          debt.status !== 'voided' &&
+          Number(debt.amount || 0) >
+          Number(debt.paid || 0)
+      );
+
+    const outstanding =
+      open.reduce(
+        (sum, debt) =>
+          sum +
+          (
+            Number(debt.amount || 0) -
+            Number(debt.paid || 0)
+          ),
+        0
+      );
+
+    const debtKpi =
+      $('kpiDebt');
+
+    if (debtKpi) {
+      debtKpi.textContent =
+        money(outstanding);
+    }
+
+    const debtTotal =
+      $('debtTotal');
+
+    if (debtTotal) {
+      debtTotal.textContent =
+        `Outstanding: ${money(outstanding)}`;
+    }
+
+    renderDebts();
+  }
+
+  function renderDebts() {
+    const table =
+      $('debtsTable');
+
+    if (!table) return;
+
+    if (!debts.length) {
+      table.innerHTML = `
+        <tr>
+          <td colspan="8" class="empty">
+            Hakuna madeni.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    table.innerHTML =
+      debts
+        .map(
+          (debt) => {
+            const balance =
+              Number(debt.amount || 0) -
+              Number(debt.paid || 0);
+
+            return `
+              <tr>
+                <td>
+                  ${esc(
+                    debt.customer_name ||
+                    debt.person_name ||
+                    '—'
                   )}
                 </td>
 
                 <td>
                   ${esc(
-                    d.description || '—'
+                    debt.description || '—'
                   )}
                 </td>
 
                 <td>
-                  ${money(d.amount)}
+                  ${money(debt.amount)}
                 </td>
 
                 <td>
-                  ${money(d.paid)}
+                  ${money(debt.paid)}
                 </td>
 
                 <td>
                   <b>
-                    ${money(Math.max(0, bal))}
+                    ${money(
+                      Math.max(
+                        0,
+                        balance
+                      )
+                    )}
                   </b>
                 </td>
 
                 <td>
-                  ${esc(d.due_date || '—')}
+                  ${esc(
+                    debt.due_date || '—'
+                  )}
                 </td>
 
                 <td>
                   <span class="pill ${
-                    d.status === 'paid'
+                    debt.status === 'paid'
                       ? 'good'
-                      : d.status === 'voided'
+                      : debt.status === 'voided'
                         ? 'bad'
                         : 'warn'
                   }">
-                    ${esc(d.status)}
+                    ${esc(
+                      debt.status || 'open'
+                    )}
                   </span>
                 </td>
 
                 <td>
                   ${
-                    bal > 0 &&
-                    d.status !== 'voided'
+                    balance > 0 &&
+                    debt.status !== 'voided'
                       ? `
                         <button
+                          type="button"
                           class="btn"
-                          data-pay-debt="${d.id}">
+                          data-pay-debt="${debt.id}">
                           Pay
                         </button>
                       `
@@ -638,218 +1610,130 @@
                 </td>
               </tr>
             `;
-          }).join('')
-        : `
-          <tr>
-            <td colspan="8" class="empty">
-              Hakuna madeni.
-            </td>
-          </tr>
-        `;
+          }
+        )
+        .join('');
   }
 
-  function dayKey(s) {
-    return dateISO(s);
-  }
+  /* =========================
+     PRODUCT MODAL
+  ========================= */
 
-  function renderChart(id, rows, exps) {
-    const el = $(id);
-
-    if (!el) return;
-
-    const map = new Map();
-
-    rows.forEach(s => {
-      const k = dayKey(s.created_at);
-
-      const v =
-        map.get(k) || {
-          sales: 0,
-          profit: 0
-        };
-
-      v.sales += Number(s.total || 0);
-
-      v.profit +=
-        (
-          Number(s.sell_price) -
-          Number(s.buy_price)
-        ) *
-        Number(s.quantity) -
-        Number(s.discount || 0);
-
-      map.set(k, v);
-    });
-
-    exps.forEach(e => {
-      const k = dayKey(e.created_at);
-
-      const v =
-        map.get(k) || {
-          sales: 0,
-          profit: 0
-        };
-
-      v.profit -= Number(e.amount || 0);
-
-      map.set(k, v);
-    });
-
-    let data = [...map.entries()]
-      .sort(
-        (a, b) =>
-          a[0].localeCompare(b[0])
+  function openEditProduct(id) {
+    const product =
+      products.find(
+        (item) =>
+          Number(item.id) ===
+          Number(id)
       );
 
-    if (!data.length) {
-      el.innerHTML = `
-        <div class="empty">
-          Hakuna data ya graph kwa kipindi hiki.
-        </div>
-      `;
+    if (!product) return;
+
+    const title =
+      $('productModalTitle');
+
+    if (title) {
+      title.textContent =
+        'Edit Bidhaa';
+    }
+
+    const editId =
+      $('editProductId');
+
+    if (editId) {
+      editId.value =
+        product.id;
+    }
+
+    const name =
+      $('pName');
+
+    if (name) {
+      name.value =
+        product.name || '';
+    }
+
+    const buy =
+      $('pBuy');
+
+    if (buy) {
+      buy.value =
+        product.buy_price ?? '';
+    }
+
+    const sell =
+      $('pSell');
+
+    if (sell) {
+      sell.value =
+        product.sell_price ?? '';
+    }
+
+    const quantity =
+      $('pQty');
+
+    if (quantity) {
+      quantity.value =
+        product.quantity ?? 0;
+    }
+
+    const minimum =
+      $('pMin');
+
+    if (minimum) {
+      minimum.value =
+        product.min_stock ?? 5;
+    }
+
+    const modal =
+      $('productModal');
+
+    if (modal) {
+      modal.classList.add('show');
+    }
+  }
+
+  function prepareNewProduct() {
+    const editId =
+      $('editProductId');
+
+    if (
+      editId &&
+      editId.value
+    ) {
       return;
     }
 
-    if (data.length > 31) {
-      const bucket = new Map();
+    const title =
+      $('productModalTitle');
 
-      data.forEach(([k, v]) => {
-        const d =
-          new Date(k + 'T00:00:00');
-
-        const key =
-          `${d.getFullYear()}-${String(
-            d.getMonth() + 1
-          ).padStart(2, '0')}`;
-
-        const x =
-          bucket.get(key) || {
-            sales: 0,
-            profit: 0
-          };
-
-        x.sales += v.sales;
-        x.profit += v.profit;
-
-        bucket.set(key, x);
-      });
-
-      data = [...bucket.entries()];
+    if (title) {
+      title.textContent =
+        'Ongeza Bidhaa';
     }
 
-    const w = 900;
-    const h = 250;
+    const form =
+      $('productForm');
 
-    const pad = {
-      l: 45,
-      r: 15,
-      t: 15,
-      b: 32
-    };
+    if (form) {
+      form.reset();
+    }
 
-    const max = Math.max(
-      1,
-      ...data.map(x =>
-        Math.max(
-          x[1].sales,
-          Math.max(0, x[1].profit)
-        )
-      )
-    );
+    if (editId) {
+      editId.value = '';
+    }
 
-    const x = i =>
-      pad.l +
-      (i /
-        Math.max(
-          1,
-          data.length - 1
-        )) *
-        (w - pad.l - pad.r);
+    const minimum =
+      $('pMin');
 
-    const y = v =>
-      h -
-      pad.b -
-      (Math.max(0, v) / max) *
-        (h - pad.t - pad.b);
-
-    const salesPts =
-      data
-        .map(
-          (d, i) =>
-            `${x(i)},${y(d[1].sales)}`
-        )
-        .join(' ');
-
-    const profitPts =
-      data
-        .map(
-          (d, i) =>
-            `${x(i)},${y(d[1].profit)}`
-        )
-        .join(' ');
-
-    const labels =
-      data
-        .map((d, i) => {
-          if (
-            data.length > 12 &&
-            i %
-              Math.ceil(
-                data.length / 6
-              ) !== 0
-          ) {
-            return '';
-          }
-
-          return `
-            <text
-              x="${x(i)}"
-              y="${h - 8}"
-              text-anchor="middle">
-              ${esc(d[0].slice(5))}
-            </text>
-          `;
-        })
-        .join('');
-
-    el.innerHTML = `
-      <svg
-        viewBox="0 0 ${w} ${h}"
-        preserveAspectRatio="none">
-
-        <line
-          x1="${pad.l}"
-          y1="${h - pad.b}"
-          x2="${w - pad.r}"
-          y2="${h - pad.b}"
-          stroke="#28304a"/>
-
-        <polyline
-          class="line-sales"
-          points="${salesPts}"/>
-
-        <polyline
-          class="line-profit"
-          points="${profitPts}"/>
-
-        ${data.map((d, i) => `
-          <circle
-            class="dot-sales"
-            cx="${x(i)}"
-            cy="${y(d[1].sales)}"
-            r="3"/>
-
-          <circle
-            class="dot-profit"
-            cx="${x(i)}"
-            cy="${y(d[1].profit)}"
-            r="3"/>
-        `).join('')}
-
-        ${labels}
-      </svg>
-    `;
+    if (minimum) {
+      minimum.value = 5;
+    }
   }
+
+  /* =========================
+     REFRESH
+  ========================= */
 
   async function refresh() {
     try {
@@ -858,322 +1742,561 @@
         loadReports(),
         loadDebts()
       ]);
-    } catch (e) {
-      toast(e.message);
+
+      renderSales();
+      renderExpenses();
+    } catch (error) {
+      console.error(
+        'Daftari+ refresh error:',
+        error
+      );
+
+      toast(
+        error.message ||
+        'Hitilafu ya kupakia dashboard.'
+      );
     }
   }
 
-  document
-    .querySelectorAll('#nav button')
-    .forEach(b => {
-      b.addEventListener('click', () => {
-        document
-          .querySelectorAll('#nav button')
-          .forEach(x =>
-            x.classList.remove('active')
-          );
+  /* =========================
+     NAVIGATION
+  ========================= */
 
-        b.classList.add('active');
-
-        document
-          .querySelectorAll('.section')
-          .forEach(x =>
-            x.classList.remove('active')
-          );
-
-        $(b.dataset.section)
-          .classList.add('active');
-      });
-    });
-
-  document
-    .querySelectorAll('[data-open]')
-    .forEach(b => {
-      b.addEventListener('click', () => {
-        $(b.dataset.open)
-          .classList.add('show');
-      });
-    });
-
-  document.addEventListener('click', e => {
-    const c =
-      e.target.closest('[data-close]');
-
-    if (c) {
-      $(c.dataset.close)
-        .classList.remove('show');
-    }
-
-    const ep =
-      e.target.closest(
-        '[data-edit-product]'
-      );
-
-    if (ep) {
-      openEdit(
-        Number(ep.dataset.editProduct)
-      );
-    }
-
-    const vs =
-      e.target.closest(
-        '[data-void-sale]'
-      );
-
-    if (vs) {
-      $('voidSaleId').value =
-        vs.dataset.voidSale;
-
-      $('voidReason').value = '';
-
-      $('voidModal')
-        .classList.add('show');
-    }
-
-    const pd =
-      e.target.closest(
-        '[data-pay-debt]'
-      );
-
-    if (pd) {
-      const amt = prompt(
-        'Weka kiasi cha malipo:'
-      );
-
-      if (amt) {
-        payDebt(
-          Number(pd.dataset.payDebt),
-          Number(amt)
-        );
-      }
-    }
-  });
-
-  document
-    .querySelectorAll(
-      '#globalFilters>button'
-    )
-    .forEach(b => {
-      b.addEventListener('click', () => {
-        document
-          .querySelectorAll(
-            '#globalFilters>button'
-          )
-          .forEach(x =>
-            x.classList.remove('active')
-          );
-
-        b.classList.add('active');
-
-        const p = b.dataset.period;
-
-        $('customRange').style.display =
-          p === 'custom'
-            ? 'flex'
-            : 'none';
-
-        if (p !== 'custom') {
-          currentRange =
-            p === 'day'
-              ? rangeFor('day')
-              : rangeFor(p);
-
-          refresh();
-        }
-      });
-    });
-
-  $('applyCustom')
-    .addEventListener('click', () => {
-      if (
-        $('fromDate').value &&
-        $('toDate').value
-      ) {
-        currentRange = {
-          from: $('fromDate').value,
-          to: $('toDate').value
-        };
-
-        refresh();
-      }
-    });
-
-  $('productForm')
-    .addEventListener('submit', async e => {
-      e.preventDefault();
-
-      try {
-        const id =
-          Number(
-            $('editProductId').value
-          );
-
-        const body = {
-          name: $('pName').value,
-          buyPrice:
-            Number($('pBuy').value),
-          sellPrice:
-            Number($('pSell').value),
-          quantity:
-            Number($('pQty').value),
-          minStock:
-            Number($('pMin').value)
-        };
-
-        await api(
-          id
-            ? `/api/products/${id}`
-            : '/api/products',
-          {
-            method: id ? 'PUT' : 'POST',
-            body: JSON.stringify(body)
-          }
-        );
-
-        $('productModal')
-          .classList.remove('show');
-
-        toast(
-          id
-            ? 'Bidhaa imehaririwa.'
-            : 'Bidhaa imeongezwa.'
-        );
-
-        await refresh();
-      } catch (e) {
-        toast(e.message);
-      }
-    });
-
-  function openEdit(id) {
-    const p =
-      products.find(x => x.id === id);
-
-    if (!p) return;
-
-    $('productModalTitle').textContent =
-      'Edit Bidhaa';
-
-    $('editProductId').value =
-      p.id;
-
-    $('pName').value =
-      p.name;
-
-    $('pBuy').value =
-      p.buy_price;
-
-    $('pSell').value =
-      p.sell_price;
-
-    $('pQty').value =
-      p.quantity;
-
-    $('pMin').value =
-      p.min_stock;
-
-    $('productModal')
-      .classList.add('show');
-  }
-
-  document
-    .querySelector(
-      '[data-open="productModal"]'
-    )
-    .addEventListener('click', () => {
-      if (
-        !$('editProductId').value
-      ) {
-        $('productModalTitle')
-          .textContent =
-          'Ongeza Bidhaa';
-
-        $('productForm').reset();
-
-        $('editProductId').value =
-          '';
-
-        $('pMin').value = 5;
-      }
-    });
-
-  $('expenseForm')
-    .addEventListener('submit', async e => {
-      e.preventDefault();
-
-      try {
-        await api(
-          '/api/expenses',
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              description:
-                $('eDesc').value,
-              category:
-                $('eCat').value,
-              amount:
-                Number(
-                  $('eAmount').value
+  function setupNavigation() {
+    document
+      .querySelectorAll(
+        '#nav button'
+      )
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            'click',
+            () => {
+              document
+                .querySelectorAll(
+                  '#nav button'
                 )
-            })
+                .forEach(
+                  (item) =>
+                    item.classList.remove(
+                      'active'
+                    )
+                );
+
+              button.classList.add(
+                'active'
+              );
+
+              document
+                .querySelectorAll(
+                  '.section'
+                )
+                .forEach(
+                  (section) =>
+                    section.classList.remove(
+                      'active'
+                    )
+                );
+
+              const section =
+                $(
+                  button.dataset.section
+                );
+
+              if (section) {
+                section.classList.add(
+                  'active'
+                );
+              }
+            }
+          );
+        }
+      );
+  }
+
+  /* =========================
+     MODALS + ACTIONS
+  ========================= */
+
+  function setupGlobalClicks() {
+    document.addEventListener(
+      'click',
+      (event) => {
+        const open =
+          event.target.closest(
+            '[data-open]'
+          );
+
+        if (open) {
+          const modal =
+            $(
+              open.dataset.open
+            );
+
+          if (modal) {
+            modal.classList.add(
+              'show'
+            );
           }
-        );
 
-        $('expenseModal')
-          .classList.remove('show');
-
-        $('expenseForm').reset();
-
-        toast(
-          'Matumizi yamehifadhiwa.'
-        );
-
-        await refresh();
-      } catch (e) {
-        toast(e.message);
-      }
-    });
-
-  $('voidForm')
-    .addEventListener('submit', async e => {
-      e.preventDefault();
-
-      try {
-        await api(
-          `/api/sales/${Number(
-            $('voidSaleId').value
-          )}/void`,
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              reason:
-                $('voidReason').value
-            })
+          if (
+            open.dataset.open ===
+            'productModal'
+          ) {
+            prepareNewProduct();
           }
-        );
 
-        $('voidModal')
-          .classList.remove('show');
+          return;
+        }
 
-        toast(
-          'Sale ime-void na stock imerudishwa.'
-        );
+        const close =
+          event.target.closest(
+            '[data-close]'
+          );
 
-        await refresh();
-      } catch (e) {
-        toast(e.message);
+        if (close) {
+          const modal =
+            $(
+              close.dataset.close
+            );
+
+          if (modal) {
+            modal.classList.remove(
+              'show'
+            );
+          }
+
+          return;
+        }
+
+        const edit =
+          event.target.closest(
+            '[data-edit-product]'
+          );
+
+        if (edit) {
+          openEditProduct(
+            Number(
+              edit.dataset.editProduct
+            )
+          );
+
+          return;
+        }
+
+        const voidButton =
+          event.target.closest(
+            '[data-void-sale]'
+          );
+
+        if (voidButton) {
+          const id =
+            $('voidSaleId');
+
+          const reason =
+            $('voidReason');
+
+          if (id) {
+            id.value =
+              voidButton.dataset.voidSale;
+          }
+
+          if (reason) {
+            reason.value = '';
+          }
+
+          const modal =
+            $('voidModal');
+
+          if (modal) {
+            modal.classList.add(
+              'show'
+            );
+          }
+
+          return;
+        }
+
+        const pay =
+          event.target.closest(
+            '[data-pay-debt]'
+          );
+
+        if (pay) {
+          const amount =
+            window.prompt(
+              'Weka kiasi cha malipo:'
+            );
+
+          if (
+            amount !== null &&
+            amount.trim() !== ''
+          ) {
+            payDebt(
+              Number(
+                pay.dataset.payDebt
+              ),
+              Number(amount)
+            );
+          }
+        }
       }
-    });
+    );
+  }
 
-  async function payDebt(id, amount) {
+  /* =========================
+     FILTERS
+  ========================= */
+
+  function setupFilters() {
+    document
+      .querySelectorAll(
+        '#globalFilters > button'
+      )
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            'click',
+            () => {
+              document
+                .querySelectorAll(
+                  '#globalFilters > button'
+                )
+                .forEach(
+                  (item) =>
+                    item.classList.remove(
+                      'active'
+                    )
+                );
+
+              button.classList.add(
+                'active'
+              );
+
+              const period =
+                button.dataset.period;
+
+              currentRange =
+                rangeFor(
+                  period
+                );
+
+              refresh();
+            }
+          );
+        }
+      );
+
+    const from =
+      $('fromDate');
+
+    const to =
+      $('toDate');
+
+    if (from) {
+      from.addEventListener(
+        'change',
+        () => {
+          if (
+            from.value &&
+            to &&
+            to.value
+          ) {
+            currentRange = {
+              from: from.value,
+              to: to.value
+            };
+
+            refresh();
+          }
+        }
+      );
+    }
+
+    if (to) {
+      to.addEventListener(
+        'change',
+        () => {
+          if (
+            from &&
+            from.value &&
+            to.value
+          ) {
+            currentRange = {
+              from: from.value,
+              to: to.value
+            };
+
+            refresh();
+          }
+        }
+      );
+    }
+  }
+
+  /* =========================
+     PRODUCT FORM
+  ========================= */
+
+  function setupProductForm() {
+    const form =
+      $('productForm');
+
+    if (!form) return;
+
+    form.addEventListener(
+      'submit',
+      async (event) => {
+        event.preventDefault();
+
+        try {
+          const id =
+            Number(
+              $('editProductId')?.value || 0
+            );
+
+          const body = {
+            name:
+              $('pName')?.value?.trim() || '',
+
+            buyPrice:
+              Number(
+                $('pBuy')?.value || 0
+              ),
+
+            sellPrice:
+              Number(
+                $('pSell')?.value || 0
+              ),
+
+            quantity:
+              Number(
+                $('pQty')?.value || 0
+              ),
+
+            minStock:
+              Number(
+                $('pMin')?.value || 0
+              )
+          };
+
+          if (!body.name) {
+            throw new Error(
+              'Weka jina la bidhaa.'
+            );
+          }
+
+          await api(
+            id
+              ? `/api/products/${id}`
+              : '/api/products',
+            {
+              method:
+                id ? 'PUT' : 'POST',
+
+              body:
+                JSON.stringify(body)
+            }
+          );
+
+          $('productModal')
+            ?.classList.remove(
+              'show'
+            );
+
+          toast(
+            id
+              ? 'Bidhaa imehaririwa.'
+              : 'Bidhaa imeongezwa.'
+          );
+
+          await refresh();
+        } catch (error) {
+          console.error(error);
+
+          toast(
+            error.message ||
+            'Imeshindikana kuhifadhi bidhaa.'
+          );
+        }
+      }
+    );
+  }
+
+  /* =========================
+     EXPENSE FORM
+  ========================= */
+
+  function setupExpenseForm() {
+    const form =
+      $('expenseForm');
+
+    if (!form) return;
+
+    form.addEventListener(
+      'submit',
+      async (event) => {
+        event.preventDefault();
+
+        try {
+          const description =
+            $('eDesc')?.value?.trim() || '';
+
+          const category =
+            $('eCat')?.value?.trim() || '';
+
+          const amount =
+            Number(
+              $('eAmount')?.value || 0
+            );
+
+          if (!description) {
+            throw new Error(
+              'Weka maelezo ya matumizi.'
+            );
+          }
+
+          if (amount <= 0) {
+            throw new Error(
+              'Kiasi cha matumizi si sahihi.'
+            );
+          }
+
+          await api(
+            '/api/expenses',
+            {
+              method: 'POST',
+
+              body:
+                JSON.stringify({
+                  description,
+                  category,
+                  amount
+                })
+            }
+          );
+
+          $('expenseModal')
+            ?.classList.remove(
+              'show'
+            );
+
+          form.reset();
+
+          toast(
+            'Matumizi yamehifadhiwa.'
+          );
+
+          await refresh();
+        } catch (error) {
+          console.error(error);
+
+          toast(
+            error.message ||
+            'Imeshindikana kuhifadhi matumizi.'
+          );
+        }
+      }
+    );
+  }
+
+  /* =========================
+     VOID SALE
+  ========================= */
+
+  function setupVoidForm() {
+    const form =
+      $('voidForm');
+
+    if (!form) return;
+
+    form.addEventListener(
+      'submit',
+      async (event) => {
+        event.preventDefault();
+
+        try {
+          const id =
+            Number(
+              $('voidSaleId')?.value || 0
+            );
+
+          const reason =
+            $('voidReason')?.value?.trim() || '';
+
+          if (!id) {
+            throw new Error(
+              'Sale haijachaguliwa.'
+            );
+          }
+
+          if (!reason) {
+            throw new Error(
+              'Weka sababu ya ku-void sale.'
+            );
+          }
+
+          await api(
+            `/api/sales/${id}/void`,
+            {
+              method: 'POST',
+
+              body:
+                JSON.stringify({
+                  reason
+                })
+            }
+          );
+
+          $('voidModal')
+            ?.classList.remove(
+              'show'
+            );
+
+          toast(
+            'Sale ime-void na stock imerudishwa.'
+          );
+
+          await refresh();
+        } catch (error) {
+          console.error(error);
+
+          toast(
+            error.message ||
+            'Imeshindikana ku-void sale.'
+          );
+        }
+      }
+    );
+  }
+
+  /* =========================
+     DEBT PAYMENT
+  ========================= */
+
+  async function payDebt(
+    id,
+    amount
+  ) {
     try {
+      if (
+        !Number.isFinite(amount) ||
+        amount <= 0
+      ) {
+        throw new Error(
+          'Weka kiasi sahihi.'
+        );
+      }
+
       await api(
         `/api/debts/${id}/payments`,
         {
           method: 'POST',
-          body: JSON.stringify({
-            amount
-          })
+
+          body:
+            JSON.stringify({
+              amount
+            })
         }
       );
 
@@ -1182,31 +2305,97 @@
       );
 
       await loadDebts();
-    } catch (e) {
-      toast(e.message);
+    } catch (error) {
+      console.error(error);
+
+      toast(
+        error.message ||
+        'Imeshindikana kuhifadhi malipo.'
+      );
     }
   }
 
-  $('logout')
-    .addEventListener('click', async () => {
-      try {
-        await api('/api/logout');
-      } catch {}
+  /* =========================
+     LOGOUT
+  ========================= */
 
-      localStorage.removeItem(
-        'dp_token'
+  function setupLogout() {
+    const button =
+      $('logout');
+
+    if (!button) return;
+
+    button.addEventListener(
+      'click',
+      async () => {
+        try {
+          await api(
+            '/api/logout',
+            {
+              method: 'POST'
+            }
+          );
+        } catch (error) {
+          console.warn(
+            'Logout API failed:',
+            error
+          );
+        }
+
+        localStorage.removeItem(
+          'dp_token'
+        );
+
+        localStorage.removeItem(
+          'daftari_token'
+        );
+
+        localStorage.removeItem(
+          'dp_user'
+        );
+
+        localStorage.removeItem(
+          'daftari_user'
+        );
+
+        window.location.href =
+          '/login.html';
+      }
+    );
+  }
+
+  /* =========================
+     INIT
+  ========================= */
+
+  async function init() {
+    try {
+      currentRange =
+        rangeFor('day');
+
+      setupNavigation();
+      setupGlobalClicks();
+      setupFilters();
+      setupProductForm();
+      setupExpenseForm();
+      setupVoidForm();
+      setupLogout();
+
+      await loadMe();
+      await refresh();
+    } catch (error) {
+      console.error(
+        'Daftari+ dashboard init error:',
+        error
       );
 
-      localStorage.removeItem(
-        'dp_user'
+      toast(
+        error.message ||
+        'Imeshindikana kufungua dashboard.'
       );
+    }
+  }
 
-      location.href =
-        '/login.html';
-    });
+  init();
 
-  currentRange =
-    rangeFor('day');
-
-  loadMe().then(refresh);
 })();
