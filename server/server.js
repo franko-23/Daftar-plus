@@ -1072,3 +1072,1224 @@ function ensureSuperAdmin(){
       SELECT id
       FROM users
       WHERE email=?
+       if(active){
+
+    return {
+
+      active:true,
+
+      status:'ACTIVE',
+
+      subscription:active
+
+    };
+
+  }
+
+
+  const last =
+    db.prepare(`
+      SELECT
+        s.*,
+        p.name plan_name,
+        p.code plan_code
+
+      FROM subscriptions s
+
+      JOIN subscription_plans p
+        ON p.id=s.plan_id
+
+      WHERE s.business_id=?
+
+      ORDER BY s.created_at DESC
+
+      LIMIT 1
+    `)
+    .get(bid);
+
+
+  return {
+
+    active:false,
+
+    status:
+      last
+        ? 'EXPIRED'
+        : 'NO_SUBSCRIPTION',
+
+    subscription:
+      last || null
+
+  };
+
+}
+
+
+/*
+ * Subscription gate bado ipo kwa modules
+ * zinazotaka kuitumia.
+ */
+function requireSubscription(
+  req,
+  res,
+  u
+){
+
+  if(
+    !u ||
+    u.role === 'super_admin'
+  )
+    return true;
+
+
+  const st =
+    subscriptionStatus(
+      u.business_id
+    );
+
+
+  if(st.active)
+    return true;
+
+
+  json(
+    res,
+    402,
+    {
+      error:
+        'Subscription yako imeisha au haijawezeshwa. Renew subscription ili uendelee kutumia Daftari+.',
+
+      code:
+        'SUBSCRIPTION_REQUIRED',
+
+      subscriptionStatus:
+        st.status,
+
+      redirect:
+        '/subscription/subscription.html'
+    }
+  );
+
+
+  return false;
+
+}
+
+
+/* =========================================================
+   PALMPESA
+   ========================================================= */
+
+async function palmPesaRequest(
+  endpoint,
+  payload
+){
+
+  const c =
+    subscriptionConfig();
+
+
+  if(!c.token){
+
+    throw Object.assign(
+      new Error(
+        'PalmPesa haija-configurewa: PALMPESA_API_TOKEN haipo.'
+      ),
+      {
+        statusCode:503
+      }
+    );
+
+  }
+
+
+  const r =
+    await fetch(
+      c.baseUrl + endpoint,
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+            'application/json',
+
+          'Authorization':
+            `Bearer ${c.token}`
+        },
+
+        body:
+          JSON.stringify(payload)
+      }
+    );
+
+
+  let d={};
+
+
+  try{
+
+    d=await r.json();
+
+  }catch{}
+
+
+  if(!r.ok){
+
+    throw Object.assign(
+      new Error(
+        d?.message ||
+        d?.error ||
+        `PalmPesa request failed (${r.status})`
+      ),
+      {
+        statusCode:r.status
+      }
+    );
+
+  }
+
+
+  return d;
+
+}
+
+
+function normalizePhone(v){
+
+  let s =
+    clean(v)
+      .replace(/[^\d+]/g,'');
+
+
+  if(
+    s.startsWith('+')
+  )
+    s=s.slice(1);
+
+
+  if(
+    s.startsWith('255')
+  )
+    return s;
+
+
+  if(
+    /^0[67]\d{8}$/.test(s)
+  )
+    return s;
+
+
+  throw Error(
+    'Namba ya simu si sahihi. Tumia 07XXXXXXXX, 06XXXXXXXX au 255XXXXXXXXX.'
+  );
+
+}
+
+
+function makeSubscriptionTransactionId(
+  bid
+){
+
+  return (
+    `DP-SUB-${bid}-${Date.now()}-` +
+    crypto
+      .randomBytes(4)
+      .toString('hex')
+      .toUpperCase()
+  );
+
+}
+
+
+/* =========================================================
+   ACTIVATE SUBSCRIPTION
+   ========================================================= */
+
+function activateSubscription(
+  payment
+){
+
+  return transaction(
+    ()=>{
+      
+      const p =
+        db.prepare(
+          'SELECT * FROM subscription_payments WHERE id=?'
+        )
+        .get(payment.id);
+
+
+      if(!p)
+        return null;
+
+
+      if(
+        p.status === 'SUCCESSFUL' &&
+        p.subscription_id
+      ){
+
+        return db.prepare(
+          'SELECT * FROM subscriptions WHERE id=?'
+        )
+        .get(
+          p.subscription_id
+        );
+
+      }
+
+
+      const plan =
+        db.prepare(`
+          SELECT *
+          FROM subscription_plans
+          WHERE id=?
+          AND active=1
+        `)
+        .get(
+          p.plan_id
+        );
+
+
+      if(!plan){
+
+        throw Error(
+          'Subscription plan haipo tena.'
+        );
+
+      }
+
+
+      const existing =
+        subscriptionForBusiness(
+          p.business_id
+        );
+
+
+      const start =
+        existing
+          ? new Date(existing.expires_at)
+          : new Date();
+
+
+      const expires =
+        new Date(
+          start.getTime() +
+          Number(plan.duration_days) *
+          864e5
+        );
+
+
+      const r =
+        db.prepare(`
+          INSERT INTO subscriptions
+          (
+            business_id,
+            plan_id,
+            amount_paid_tzs,
+            status,
+            start_at,
+            expires_at,
+            order_id,
+            transaction_id,
+            phone
+          )
+          VALUES(?,?,?,?,?,?,?,?,?)
+        `)
+        .run(
+          p.business_id,
+          plan.id,
+          p.amount_tzs,
+          'ACTIVE',
+          start.toISOString(),
+          expires.toISOString(),
+          p.order_id,
+          p.transaction_id,
+          p.phone
+        );
+
+
+      const sid =
+        Number(
+          r.lastInsertRowid
+        );
+
+
+      db.prepare(`
+        UPDATE subscription_payments
+        SET
+          status='SUCCESSFUL',
+          subscription_id=?,
+          updated_at=datetime('now')
+        WHERE id=?
+      `)
+      .run(
+        sid,
+        p.id
+      );
+
+      distributeReferralCommission(p.id);
+
+
+      return db.prepare(`
+        SELECT
+          s.*,
+          p.name plan_name,
+          p.code plan_code,
+          p.duration_days
+
+        FROM subscriptions s
+
+        JOIN subscription_plans p
+          ON p.id=s.plan_id
+
+        WHERE s.id=?
+      `)
+      .get(sid);
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SOCIAL AUTH — GOOGLE + APPLE
+   ========================================================= */
+
+function publicBaseUrl(){
+  return String(process.env.PUBLIC_BASE_URL||`http://localhost:${PORT}`).replace(/\/+$/,'');
+}
+
+function oauthRedirect(provider){
+  return `${publicBaseUrl()}/api/auth/${provider}/callback`;
+}
+
+function oauthState(provider,referralCode=''){
+  const state=crypto.randomBytes(32).toString('base64url');
+  const expires=new Date(Date.now()+10*60e3).toISOString();
+
+  db.prepare(
+    'INSERT INTO oauth_states(state,provider,expires_at,referral_code) VALUES(?,?,?,?)'
+  )
+  .run(
+    state,
+    provider,
+    expires,
+    clean(referralCode)||null
+  );
+
+  return state;
+}
+
+function consumeOauthState(state,provider){
+  const x=db.prepare(
+    'SELECT * FROM oauth_states WHERE state=? AND provider=?'
+  ).get(
+    state,
+    provider
+  );
+
+  if(
+    !x ||
+    new Date(x.expires_at)<=new Date()
+  ){
+    if(x)
+      db.prepare(
+        'DELETE FROM oauth_states WHERE state=?'
+      ).run(state);
+
+    return null;
+  }
+
+  db.prepare(
+    'DELETE FROM oauth_states WHERE state=?'
+  ).run(state);
+
+  return x;
+}
+
+function b64urlJson(v){
+  const s=String(v||'');
+
+  return JSON.parse(
+    Buffer.from(
+      s
+        .replace(/-/g,'+')
+        .replace(/_/g,'/')+
+        '='.repeat(
+          (4-s.length%4)%4
+        ),
+      'base64'
+    ).toString('utf8')
+  );
+}
+
+function parseJwt(v){
+  const p=String(v||'').split('.');
+
+  if(p.length!==3)
+    throw Error(
+      'Identity token si sahihi.'
+    );
+
+  return {
+    header:b64urlJson(p[0]),
+    payload:b64urlJson(p[1]),
+    signature:
+      Buffer.from(
+        p[2]
+          .replace(/-/g,'+')
+          .replace(/_/g,'/')+
+          '='.repeat(
+            (4-p[2].length%4)%4
+          ),
+        'base64'
+      ),
+    signed:`${p[0]}.${p[1]}`
+  };
+}
+
+let googleCertCache={
+  data:null,
+  expires:0
+};
+
+async function googlePublicKey(kid){
+
+  const now=Date.now();
+
+  if(
+    !googleCertCache.data ||
+    now>googleCertCache.expires
+  ){
+
+    const r=
+      await fetch(
+        'https://www.googleapis.com/oauth2/v3/certs'
+      );
+
+    if(!r.ok)
+      throw Error(
+        'Google public keys hazijapatikana.'
+      );
+
+    googleCertCache.data=
+      await r.json();
+
+    googleCertCache.expires=
+      now+3600e3;
+  }
+
+  const cert=
+    googleCertCache.data[kid];
+
+  if(!cert)
+    throw Error(
+      'Google token key haijatambuliwa.'
+    );
+
+  return crypto.createPublicKey(cert);
+}
+
+async function verifyGoogleIdToken(idToken){
+
+  const t=
+    parseJwt(idToken);
+
+  if(
+    t.header.alg!=='RS256'
+  )
+    throw Error(
+      'Google token algorithm si sahihi.'
+    );
+
+  const v=
+    crypto.createVerify(
+      'RSA-SHA256'
+    );
+
+  v.update(t.signed);
+  v.end();
+
+  if(
+    !(await v.verify(
+      await googlePublicKey(
+        t.header.kid
+      ),
+      t.signature
+    ))
+  )
+    throw Error(
+      'Google token signature si sahihi.'
+    );
+
+  const p=t.payload,
+        now=Math.floor(
+          Date.now()/1000
+        ),
+        aud=String(
+          process.env.GOOGLE_CLIENT_ID||''
+        );
+
+  if(
+    !aud ||
+    p.iss!=='https://accounts.google.com' ||
+    p.aud!==aud ||
+    !p.sub ||
+    !p.email ||
+    p.email_verified!==true ||
+    Number(p.exp||0)<now
+  )
+    throw Error(
+      'Google account verification imeshindikana.'
+    );
+
+  return {
+    subject:String(p.sub),
+    email:email(p.email),
+    fullName:
+      clean(
+        p.name||
+        p.given_name||
+        p.email.split('@')[0]
+      )
+  };
+}
+
+function formEncode(obj){
+  return new URLSearchParams(
+    Object.entries(obj)
+      .map(
+        ([k,v])=>[
+          k,
+          String(v)
+        ]
+      )
+  ).toString();
+}
+
+function appleClientSecret(){
+
+  const team=
+    clean(
+      process.env.APPLE_TEAM_ID
+    );
+
+  const kid=
+    clean(
+      process.env.APPLE_KEY_ID
+    );
+
+  const client=
+    clean(
+      process.env.APPLE_CLIENT_ID
+    );
+
+  const pem=
+    String(
+      process.env.APPLE_PRIVATE_KEY||''
+    )
+    .replace(/\\n/g,'\n');
+
+  if(
+    !team ||
+    !kid ||
+    !client ||
+    !pem
+  )
+    throw Error(
+      'Apple OAuth haija-configurewa kikamilifu.'
+    );
+
+  const enc=
+    o =>
+      Buffer
+        .from(
+          JSON.stringify(o)
+        )
+        .toString('base64url');
+
+  const h=
+    enc({
+      alg:'ES256',
+      kid,
+      typ:'JWT'
+    });
+
+  const now=
+    Math.floor(
+      Date.now()/1000
+    );
+
+  const b=
+    enc({
+      iss:team,
+      iat:now,
+      exp:now+15777000,
+      aud:'https://appleid.apple.com',
+      sub:client
+    });
+
+  const input=
+    `${h}.${b}`;
+
+  const sig=
+    crypto.createSign(
+      'SHA256'
+    );
+
+  sig.update(input);
+  sig.end();
+
+  return (
+    `${input}.`+
+    sig.sign({
+      key:pem,
+      dsaEncoding:'ieee-p1363'
+    })
+    .toString('base64url')
+  );
+}
+
+let appleJwksCache={
+  data:null,
+  expires:0
+};
+
+async function applePublicKey(kid){
+
+  const now=Date.now();
+
+  if(
+    !appleJwksCache.data ||
+    now>appleJwksCache.expires
+  ){
+
+    const r=
+      await fetch(
+        'https://appleid.apple.com/auth/keys'
+      );
+
+    if(!r.ok)
+      throw Error(
+        'Apple public keys hazijapatikana.'
+      );
+
+    appleJwksCache.data=
+      await r.json();
+
+    appleJwksCache.expires=
+      now+3600e3;
+  }
+
+  const jwk=
+    appleJwksCache.data.keys.find(
+      k=>k.kid===kid
+    );
+
+  if(!jwk)
+    throw Error(
+      'Apple token key haijatambuliwa.'
+    );
+
+  return crypto.createPublicKey({
+    key:jwk,
+    format:'jwk'
+  });
+}
+
+async function verifyAppleIdToken(
+  idToken
+){
+
+  const t=
+    parseJwt(idToken);
+
+  if(
+    t.header.alg!=='RS256'
+  )
+    throw Error(
+      'Apple token algorithm si sahihi.'
+    );
+
+  const v=
+    crypto.createVerify(
+      'RSA-SHA256'
+    );
+
+  v.update(t.signed);
+  v.end();
+
+  if(
+    !(await v.verify(
+      await applePublicKey(
+        t.header.kid
+      ),
+      t.signature
+    ))
+  )
+    throw Error(
+      'Apple token signature si sahihi.'
+    );
+
+  const p=t.payload,
+        now=Math.floor(
+          Date.now()/1000
+        ),
+        aud=clean(
+          process.env.APPLE_CLIENT_ID
+        );
+
+  if(
+    p.iss!=='https://appleid.apple.com' ||
+    p.aud!==aud ||
+    !p.sub ||
+    !p.email ||
+    Number(p.exp||0)<now
+  )
+    throw Error(
+      'Apple account verification imeshindikana.'
+    );
+
+  return {
+    subject:String(p.sub),
+    email:email(p.email),
+    fullName:clean(p.name||'')
+  };
+}
+
+function createOauthTicket(
+  kind,
+  profile,
+  userId,
+  referralCode=''
+){
+
+  const token=
+    crypto
+      .randomBytes(32)
+      .toString('base64url');
+
+  const expires=
+    new Date(
+      Date.now()+15*60e3
+    ).toISOString();
+
+  db.prepare(
+    'INSERT INTO oauth_tickets(token,kind,provider,subject,user_id,email,full_name,expires_at,referral_code) VALUES(?,?,?,?,?,?,?,?,?)'
+  )
+  .run(
+    token,
+    kind,
+    profile.provider,
+    profile.subject,
+    userId||null,
+    profile.email,
+    profile.fullName||null,
+    expires,
+    clean(referralCode)||null
+  );
+
+  return token;
+}
+
+function oauthFindOrTicket(
+  provider,
+  profile,
+  referralCode=''
+){
+
+  profile.provider=provider;
+
+  const identity=
+    db.prepare(`
+      SELECT i.user_id
+      FROM oauth_identities i
+      JOIN users u
+        ON u.id=i.user_id
+      WHERE i.provider=?
+      AND i.subject=?
+      AND u.active=1
+    `)
+    .get(
+      provider,
+      profile.subject
+    );
+
+  if(identity)
+    return createOauthTicket(
+      'login',
+      profile,
+      identity.user_id
+    );
+
+  const byEmail=
+    db.prepare(`
+      SELECT id
+      FROM users
+      WHERE email=?
+      AND active=1
+    `)
+    .get(
+      profile.email
+    );
+
+  if(byEmail){
+
+    db.prepare(`
+      INSERT OR IGNORE INTO oauth_identities
+      (provider,subject,user_id,email)
+      VALUES(?,?,?,?)
+    `)
+    .run(
+      provider,
+      profile.subject,
+      byEmail.id,
+      profile.email
+    );
+
+    const bu=
+      db.prepare(
+        'SELECT business_id FROM users WHERE id=?'
+      )
+      .get(
+        byEmail.id
+      );
+
+    audit(
+      bu?.business_id,
+      byEmail.id,
+      'OAUTH_LINK',
+      provider
+    );
+
+    return createOauthTicket(
+      'login',
+      profile,
+      byEmail.id
+    );
+  }
+
+  return createOauthTicket(
+    'signup',
+    profile,
+    null,
+    referralCode
+  );
+}
+
+async function oauthGoogleStart(
+  req,
+  res
+){
+
+  const client=
+    clean(
+      process.env.GOOGLE_CLIENT_ID
+    );
+
+  if(!client)
+    return json(
+      res,
+      503,
+      {
+        error:
+          'Google login bado haija-configurewa: GOOGLE_CLIENT_ID haipo.'
+      }
+    );
+
+  const z=q(req),
+        state=
+          oauthState(
+            'google',
+            z.ref||z.referral||''
+          ),
+        u=
+          new URL(
+            'https://accounts.google.com/o/oauth2/v2/auth'
+          );
+
+  u.searchParams.set(
+    'client_id',
+    client
+  );
+
+  u.searchParams.set(
+    'redirect_uri',
+    oauthRedirect('google')
+  );
+
+  u.searchParams.set(
+    'response_type',
+    'code'
+  );
+
+  u.searchParams.set(
+    'scope',
+    'openid email profile'
+  );
+
+  u.searchParams.set(
+    'state',
+    state
+  );
+
+  u.searchParams.set(
+    'prompt',
+    'select_account'
+  );
+
+  return res
+    .writeHead(
+      302,
+      {
+        Location:
+          u.toString()
+      }
+    )
+    .end();
+}
+
+async function oauthGoogleCallback(
+  req,
+  res
+){
+
+  const z=q(req);
+
+  const oauth=
+    consumeOauthState(
+      z.state,
+      'google'
+    );
+
+  if(!oauth)
+    return res
+      .writeHead(400)
+      .end(
+        'OAuth state si sahihi au ime-expire.'
+      );
+
+  if(z.error)
+    return res
+      .writeHead(400)
+      .end(
+        `Google login: ${clean(z.error_description||z.error)}`
+      );
+
+  const r=
+    await fetch(
+      'https://oauth2.googleapis.com/token',
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+            'application/x-www-form-urlencoded'
+        },
+
+        body:
+          formEncode({
+            code:z.code,
+            client_id:
+              process.env.GOOGLE_CLIENT_ID,
+            client_secret:
+              process.env.GOOGLE_CLIENT_SECRET,
+            redirect_uri:
+              oauthRedirect('google'),
+            grant_type:
+              'authorization_code'
+          })
+      }
+    );
+
+  const d=
+    await r.json();
+
+  if(
+    !r.ok ||
+    !d.id_token
+  )
+    throw Error(
+      'Google haikurudisha identity token.'
+    );
+
+  const profile=
+    await verifyGoogleIdToken(
+      d.id_token
+    );
+
+  return res
+    .writeHead(
+      302,
+      {
+        Location:
+          `/oauth-complete.html?ticket=${encodeURIComponent(
+            oauthFindOrTicket(
+              'google',
+              profile,
+              oauth.referral_code||''
+            )
+          )}`
+      }
+    )
+    .end();
+}
+
+async function oauthAppleStart(
+  req,
+  res
+){
+
+  const client=
+    clean(
+      process.env.APPLE_CLIENT_ID
+    );
+
+  if(!client)
+    return json(
+      res,
+      503,
+      {
+        error:
+          'Apple login bado haija-configurewa: APPLE_CLIENT_ID haipo.'
+      }
+    );
+
+  const z=q(req),
+        state=
+          oauthState(
+            'apple',
+            z.ref||z.referral||''
+          ),
+        u=
+          new URL(
+            'https://appleid.apple.com/auth/authorize'
+          );
+
+  u.searchParams.set(
+    'client_id',
+    client
+  );
+
+  u.searchParams.set(
+    'redirect_uri',
+    oauthRedirect('apple')
+  );
+
+  u.searchParams.set(
+    'response_type',
+    'code'
+  );
+
+  u.searchParams.set(
+    'response_mode',
+    'query'
+  );
+
+  u.searchParams.set(
+    'scope',
+    'name email'
+  );
+
+  u.searchParams.set(
+    'state',
+    state
+  );
+
+  return res
+    .writeHead(
+      302,
+      {
+        Location:
+          u.toString()
+      }
+    )
+    .end();
+}
+
+async function oauthAppleCallback(
+  req,
+  res
+){
+
+  const z=q(req);
+
+  const oauth=
+    consumeOauthState(
+      z.state,
+      'apple'
+    );
+
+  if(!oauth)
+    return res
+      .writeHead(400)
+      .end(
+        'OAuth state si sahihi au ime-expire.'
+      );
+
+  if(z.error)
+    return res
+      .writeHead(400)
+      .end(
+        `Apple login: ${clean(z.error_description||z.error)}`
+      );
+
+  const r=
+    await fetch(
+      'https://appleid.apple.com/auth/token',
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+            'application/x-www-form-urlencoded'
+        },
+
+        body:
+          formEncode({
+            client_id:
+              process.env.APPLE_CLIENT_ID,
+            client_secret:
+              appleClientSecret(),
+            code:z.code,
+            grant_type:
+              'authorization_code',
+            redirect_uri:
+              oauthRedirect('apple')
+          })
+      }
+    );
+
+  const d=
+    await r.json();
+
+  if(
+    !r.ok ||
+    !d.id_token
+  )
+    throw Error(
+      'Apple haikurudisha identity token.'
+    );
+
+  const profile=
+    await verifyAppleIdToken(
+      d.id_token
+    );
+
+  return res
+    .writeHead(
+      302,
+      {
+        Location:
+          `/oauth-complete.html?ticket=${encodeURIComponent(
+            oauthFindOrTicket(
+              'apple',
+              profile,
+              oauth.referral_code||''
+            )
+          )}`
+      }
+    )
+    .end();
+} 
