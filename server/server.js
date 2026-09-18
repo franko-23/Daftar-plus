@@ -2293,3 +2293,1075 @@ async function oauthAppleCallback(
     )
     .end();
 } 
+const r=await fetch('https://appleid.apple.com/auth/token',{
+  method:'POST',
+  headers:{
+    'Content-Type':'application/x-www-form-urlencoded'
+  },
+  body:formEncode({
+    client_id:process.env.APPLE_CLIENT_ID,
+    client_secret:appleClientSecret(),
+    code:z.code,
+    grant_type:'authorization_code',
+    redirect_uri:oauthRedirect('apple')
+  })
+});
+  const d=await r.json();
+
+  if(!r.ok||!d.id_token)
+    throw Error('Apple haikurudisha identity token.');
+
+  const profile=
+    await verifyAppleIdToken(
+      d.id_token
+    );
+
+  return res
+    .writeHead(
+      302,
+      {
+        Location:
+          `/oauth-complete.html?ticket=${
+            encodeURIComponent(
+              oauthFindOrTicket(
+                'apple',
+                profile,
+                oauth.referral_code||''
+              )
+            )
+          }`
+      }
+    )
+    .end();
+}
+
+
+/* =========================================================
+   REFERRAL SYSTEM
+   ========================================================= */
+
+const REFERRAL_RATES={
+  1:0.05,
+  2:0.03,
+  3:0.01
+};
+
+
+function makeReferralCode(){
+
+  const chars=
+    'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+  for(
+    let attempt=0;
+    attempt<100;
+    attempt++
+  ){
+
+    let code='DP-';
+
+    for(
+      let i=0;
+      i<8;
+      i++
+    )
+      code+=chars[
+        crypto.randomInt(
+          chars.length
+        )
+      ];
+
+    if(
+      !db.prepare(
+        'SELECT 1 FROM users WHERE referral_code=?'
+      )
+      .get(code)
+    )
+      return code;
+
+  }
+
+  throw Error(
+    'Referral code imeshindikana kutengenezwa.'
+  );
+
+}
+
+
+function ensureReferralCode(uid){
+
+  const u=
+    typeof uid==='object'
+      ? uid
+      : db.prepare(
+          'SELECT * FROM users WHERE id=?'
+        ).get(uid);
+
+  if(!u)
+    return null;
+
+  if(!u.referral_code){
+
+    const code=
+      makeReferralCode();
+
+    db.prepare(
+      'UPDATE users SET referral_code=? WHERE id=?'
+    )
+    .run(
+      code,
+      u.id
+    );
+
+    u.referral_code=code;
+
+  }
+
+  return u.referral_code;
+
+}
+
+
+function referralLink(code){
+
+  const base=
+    publicBaseUrl();
+
+  return `${
+    base
+  }/register.html?ref=${
+    encodeURIComponent(code)
+  }`;
+
+}
+
+
+function findReferrer(code){
+
+  const c=
+    clean(code).toUpperCase();
+
+  if(!c)
+    return null;
+
+  return db.prepare(
+    'SELECT * FROM users WHERE UPPER(referral_code)=? AND active=1'
+  )
+  .get(c)||null;
+
+}
+
+
+function attachReferral(
+  userId,
+  code
+){
+
+  const u=
+    db.prepare(
+      'SELECT * FROM users WHERE id=?'
+    )
+    .get(userId);
+
+  if(!u)
+    return {
+      accepted:false,
+      error:'Mtumiaji haipo.'
+    };
+
+  ensureReferralCode(u);
+
+  if(!clean(code))
+    return {
+      accepted:false,
+      reason:'no_referral'
+    };
+
+  if(u.referred_by_user_id)
+    return {
+      accepted:false,
+      already_attached:true,
+      referrer_id:
+        u.referred_by_user_id
+    };
+
+  const r=
+    findReferrer(code);
+
+  if(!r)
+    return {
+      accepted:false,
+      error:'Referral code haipo.'
+    };
+
+  if(r.id===u.id)
+    return {
+      accepted:false,
+      error:
+        'Huwezi kutumia referral link yako mwenyewe.'
+    };
+
+  /* Prevent cycles against malformed/legacy data. */
+
+  let cur=r.id,
+      seen=new Set([u.id]);
+
+  for(
+    let i=0;
+    i<10 && cur;
+    i++
+  ){
+
+    if(seen.has(cur))
+      return {
+        accepted:false,
+        error:'Referral chain si sahihi.'
+      };
+
+    seen.add(cur);
+
+    const x=
+      db.prepare(
+        'SELECT referred_by_user_id FROM users WHERE id=?'
+      )
+      .get(cur);
+
+    cur=
+      x?.referred_by_user_id||null;
+
+  }
+
+  db.prepare(`
+    UPDATE users
+    SET
+      referred_by_user_id=?,
+      referral_code_used=?
+    WHERE id=?
+  `)
+  .run(
+    r.id,
+    r.referral_code,
+    u.id
+  );
+
+  db.prepare(`
+    INSERT OR IGNORE INTO referrals
+    (
+      user_id,
+      referrer_id,
+      level,
+      status
+    )
+    VALUES(?,?,1,'active')
+  `)
+  .run(
+    u.id,
+    r.id
+  );
+
+  return {
+    accepted:true,
+    referrer_id:r.id,
+    referral_code:
+      r.referral_code
+  };
+
+}
+
+
+function referralAncestors(userId){
+
+  const out=[];
+
+  let currentId=userId;
+
+  const seen=
+    new Set([userId]);
+
+  for(
+    let level=1;
+    level<=3;
+    level++
+  ){
+
+    const row=
+      db.prepare(
+        'SELECT referred_by_user_id FROM users WHERE id=?'
+      )
+      .get(currentId);
+
+    const rid=
+      row?.referred_by_user_id;
+
+    if(
+      !rid ||
+      seen.has(rid)
+    )
+      break;
+
+    const u=
+      db.prepare(
+        'SELECT * FROM users WHERE id=? AND active=1'
+      )
+      .get(rid);
+
+    if(!u)
+      break;
+
+    seen.add(rid);
+
+    out.push({
+      level,
+      user:u
+    });
+
+    currentId=rid;
+
+  }
+
+  return out;
+
+}
+
+
+function distributeReferralCommission(
+  paymentId
+){
+
+  const payment=
+    db.prepare(
+      'SELECT * FROM subscription_payments WHERE id=?'
+    )
+    .get(paymentId);
+
+  if(
+    !payment ||
+    payment.status!=='SUCCESSFUL'
+  )
+    return [];
+
+  const buyer=
+    db.prepare(`
+      SELECT *
+      FROM users
+      WHERE business_id=?
+      AND role='owner'
+      AND active=1
+      ORDER BY id
+      LIMIT 1
+    `)
+    .get(
+      payment.business_id
+    );
+
+  if(!buyer)
+    return [];
+
+  const ancestors=
+    referralAncestors(
+      buyer.id
+    );
+
+  const rows=[];
+
+  for(
+    const a of ancestors
+  ){
+
+    const pct=
+      REFERRAL_RATES[
+        a.level
+      ];
+
+    if(!pct)
+      continue;
+
+    const amount=
+      Math.round(
+        Number(
+          payment.amount_tzs||0
+        )*pct
+      );
+
+    if(amount<=0)
+      continue;
+
+    const existing=
+      db.prepare(`
+        SELECT id
+        FROM referral_commissions
+        WHERE payment_id=?
+        AND user_id=?
+        AND level=?
+      `)
+      .get(
+        payment.id,
+        a.user.id,
+        a.level
+      );
+
+    if(existing)
+      continue;
+
+    const r=
+      db.prepare(`
+        INSERT INTO referral_commissions
+        (
+          payment_id,
+          user_id,
+          referred_user_id,
+          level,
+          percentage,
+          base_amount_tzs,
+          amount_tzs,
+          status
+        )
+        VALUES(?,?,?,?,?,?,?,'pending')
+      `)
+      .run(
+        payment.id,
+        a.user.id,
+        buyer.id,
+        a.level,
+        pct*100,
+        Number(
+          payment.amount_tzs||0
+        ),
+        amount
+      );
+
+    rows.push({
+      ...db.prepare(
+        'SELECT * FROM referral_commissions WHERE id=?'
+      )
+      .get(
+        Number(
+          r.lastInsertRowid
+        )
+      )
+    });
+
+  }
+
+  return rows;
+
+}
+
+
+function safeReferralUser(u){
+
+  return {
+    id:u.id,
+    full_name:u.full_name,
+    email:u.email,
+    phone:u.phone||'',
+    role:u.role,
+    business_id:
+      u.business_id||null,
+    referral_code:
+      u.referral_code||null,
+    referral_link:
+      u.referral_code
+        ? referralLink(
+            u.referral_code
+          )
+        : null,
+    referred_by_user_id:
+      u.referred_by_user_id||null
+  };
+
+}
+
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+
+function auth(
+  req,
+  res,
+  roles
+){
+
+  const u=
+    current(req);
+
+  if(!u){
+
+    json(
+      res,
+      401,
+      {
+        error:
+          'Haujaingia au session imeisha.'
+      }
+    );
+
+    return null;
+
+  }
+
+  if(
+    roles &&
+    (
+      Array.isArray(roles)
+        ? !roles.includes(u.role)
+        : u.role!==roles
+    )
+  ){
+
+    json(
+      res,
+      403,
+      {
+        error:
+          'Huna ruhusa ya kufanya kitendo hiki.'
+      }
+    );
+
+    return null;
+
+  }
+
+  return u;
+
+}
+
+
+/*
+ * BUSINESS DATA:
+ *
+ * HAPA TUMEONDOA subscription gate
+ * ili Owner Dashboard isiende
+ * subscription baada ya login.
+ */
+
+function bizOnly(
+  req,
+  res
+){
+
+  const u=
+    auth(req,res);
+
+  if(!u)
+    return null;
+
+  if(
+    u.role==='super_admin'
+  ){
+
+    json(
+      res,
+      403,
+      {
+        error:
+          'Tumia Super Admin panel kwa shughuli za platform.'
+      }
+    );
+
+    return null;
+
+  }
+
+  return u;
+
+}
+
+
+/*
+ * OWNER:
+ *
+ * Subscription haitamzuia Owner
+ * kufungua Dashboard.
+ */
+
+function owner(
+  req,
+  res
+){
+
+  const u=
+    auth(
+      req,
+      res,
+      [
+        'owner',
+        'super_admin'
+      ]
+    );
+
+  if(!u)
+    return null;
+
+  return u;
+
+}
+
+
+/* =========================================================
+   AUDIT
+   ========================================================= */
+
+function audit(
+  bid,
+  uid,
+  action,
+  details
+){
+
+  try{
+
+    db.prepare(`
+      INSERT INTO audit_logs
+      (
+        business_id,
+        user_id,
+        action,
+        details
+      )
+      VALUES(?,?,?,?)
+    `)
+    .run(
+      bid,
+      uid,
+      action,
+      details||null
+    );
+
+  }catch{}
+
+}
+
+
+/* =========================================================
+   TRANSACTION
+   ========================================================= */
+
+function transaction(
+  fn
+){
+
+  db.exec(
+    'BEGIN IMMEDIATE'
+  );
+
+  try{
+
+    const r=
+      fn();
+
+    db.exec(
+      'COMMIT'
+    );
+
+    return r;
+
+  }catch(e){
+
+    try{
+      db.exec(
+        'ROLLBACK'
+      );
+    }catch{}
+
+    throw e;
+
+  }
+
+}
+
+
+/* =========================================================
+   DATE RANGE
+   ========================================================= */
+
+function range(x){
+
+  const now=
+    new Date();
+
+  const toDay=
+    now
+      .toISOString()
+      .slice(0,10);
+
+  let f=x.from,
+      t=x.to;
+
+  if(
+    x.period &&
+    !f
+  ){
+
+    const d=
+      new Date(now);
+
+    if(
+      x.period==='day'
+    )
+      d.setHours(
+        0,0,0,0
+      );
+
+    if(
+      x.period==='week'
+    ){
+
+      d.setDate(
+        d.getDate()-
+        (
+          (d.getDay()+6)%7
+        )
+      );
+
+      d.setHours(
+        0,0,0,0
+      );
+
+    }
+
+    if(
+      x.period==='month'
+    )
+      d.setDate(1);
+
+    if(
+      x.period==='3m'
+    ){
+
+      d.setDate(1);
+
+      d.setMonth(
+        d.getMonth()-2
+      );
+
+    }
+
+    if(
+      x.period==='6m'
+    ){
+
+      d.setDate(1);
+
+      d.setMonth(
+        d.getMonth()-5
+      );
+
+    }
+
+    if(
+      x.period==='year'
+    ){
+
+      d.setMonth(
+        0,
+        1
+      );
+
+      d.setHours(
+        0,0,0,0
+      );
+
+    }
+
+    f=
+      d
+        .toISOString()
+        .slice(0,10);
+
+    t=toDay;
+
+  }
+
+  if(x.year){
+
+    f=
+      `${x.year}-01-01`;
+
+    t=
+      `${x.year}-12-31`;
+
+  }
+
+  return [
+
+    f
+      ? f+' 00:00:00'
+      : '1970-01-01 00:00:00',
+
+    t
+      ? t+' 23:59:59'
+      : '2999-12-31 23:59:59'
+
+  ];
+
+}
+
+
+/* =========================================================
+   SUPER ADMIN
+   ========================================================= */
+
+function ensureSuperAdmin(){
+
+  const e=
+    email(
+      process.env.SUPER_ADMIN_EMAIL
+    );
+
+  const p=
+    process.env.SUPER_ADMIN_PASSWORD;
+
+  if(!e && !p)
+    return;
+
+  if(
+    !validEmail(e) ||
+    !p ||
+    p.length<12
+  ){
+
+    throw Error(
+      'SUPER_ADMIN_EMAIL na SUPER_ADMIN_PASSWORD (angalau herufi 12) lazima viwe valid.'
+    );
+
+  }
+
+  const x=
+    db.prepare(`
+      SELECT id
+      FROM users
+      WHERE email=?
+      AND role='super_admin'
+    `)
+    .get(e);
+
+  if(!x){
+
+    db.prepare(`
+      INSERT INTO users
+      (
+        full_name,
+        business_id,
+        email,
+        password_hash,
+        role
+      )
+      VALUES(?,?,?,?, 'super_admin')
+    `)
+    .run(
+      'Daftari+ Super Admin',
+      0,
+      e,
+      hash(p)
+    );
+
+  }
+
+}
+
+
+ensureSuperAdmin();
+
+
+/* =========================================================
+   RATE LIMIT
+   ========================================================= */
+
+const attempts=
+  new Map();
+
+
+function rate(
+  req,
+  key
+){
+
+  const ip=
+    req.socket.remoteAddress||
+    'unknown';
+
+  const k=
+    key+':'+ip;
+
+  const now=
+    Date.now();
+
+  const a=
+    (
+      attempts.get(k)||[]
+    )
+    .filter(
+      t=>
+        now-t<9e5
+    );
+
+  if(
+    a.length>=10
+  ){
+
+    attempts.set(
+      k,
+      a
+    );
+
+    return false;
+
+  }
+
+  a.push(now);
+
+  attempts.set(
+    k,
+    a
+  );
+
+  return true;
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+function dashboard(
+  req,
+  res
+){
+
+  /*
+   * IMPORTANT:
+   * Dashboard inatumia auth owner tu.
+   * Subscription haitumiki hapa.
+   */
+
+  const u=
+    auth(
+      req,
+      res,
+      'owner'
+    );
+
+  if(!u)
+    return;
+
+  const b=
+    u.business_id;
+
+  const s=
+    db.prepare(`
+      SELECT
+        COUNT(*) count,
+
+        COALESCE(
+          SUM(total),
+          0
+        ) revenue,
+
+        COALESCE(
+          SUM(
+            (sell_price-buy_price)
+            * quantity
+            - discount
+          ),
+          0
+        ) gross
+
+      FROM sales
+
+      WHERE business_id=?
+    `)
+    .get(b);
+
+  const e=
+    db.prepare(`
+      SELECT
+        COALESCE(
+          SUM(amount),
+          0
+        ) total
+
+      FROM expenses
+
+      WHERE business_id=?
+    `)
+    .get(b);
+
+  const d=
+    db.prepare(`
+      SELECT
+        COALESCE(
+          SUM(amount-paid),
+          0
+        ) total
+
+      FROM debts
+
+      WHERE business_id=?
+      AND amount>paid
+    `)
+    .get(b);
+
+  const p=
+    db.prepare(`
+      SELECT
+        COUNT(*) count
+
+      FROM products
+
+      WHERE business_id=?
+      AND active=1
+    `)
+    .get(b);
+
+  const lowStock=
+    db.prepare(`
+      SELECT
+        id,
+        name,
+        quantity,
+        min_stock
+
+      FROM products
+
+      WHERE business_id=?
+      AND active=1
+      AND quantity<=min_stock
+
+      ORDER BY quantity
+    `)
+    .all(b);
+
+  json(
+    res,
+    200,
+    {
+      summary:{
+
+        totalSales:
+          s.count,
+
+        totalRevenue:
+          s.revenue,
+
+        totalExpenses:
+          e.total,
+
+        totalDebts:
+          d.total,
+
+        totalProfit:
+          s.gross-e.total,
+
+        productCount:
+          p.count,
+
+        lowStock
+
+      }
+    }
+  );
+
+}
