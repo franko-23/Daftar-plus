@@ -3365,3 +3365,1479 @@ function dashboard(
   );
 
 }
+/* =======================================================
+   API
+   ======================================================= */
+
+async function api(
+  req,
+  res
+){
+
+  const p =
+    req.url.split('?')[0];
+
+  const m =
+    req.method;
+
+  if(
+    m === 'OPTIONS'
+  ){
+
+    return json(
+      res,
+      204,
+      {}
+    );
+
+  }
+
+  db.prepare(
+    "DELETE FROM sessions WHERE expires_at<=datetime('now')"
+  )
+  .run();
+
+
+  /* =======================================================
+     HEALTH
+     ======================================================= */
+
+  if(
+    p === '/api/health'
+  ){
+
+    return json(
+      res,
+      200,
+      {
+        ok:true,
+        service:'daftari-plus'
+      }
+    );
+
+  }
+
+
+  if(
+    p === '/api/auth/google/start' &&
+    m === 'GET'
+  )
+    return oauthGoogleStart(req,res);
+
+  if(
+    p === '/api/auth/google/callback' &&
+    m === 'GET'
+  )
+    return oauthGoogleCallback(req,res);
+
+  if(
+    p === '/api/auth/apple/start' &&
+    m === 'GET'
+  )
+    return oauthAppleStart(req,res);
+
+  if(
+    p === '/api/auth/apple/callback' &&
+    m === 'GET'
+  )
+    return oauthAppleCallback(req,res);
+
+
+  /* =======================================================
+     OAUTH TICKET
+     ======================================================= */
+
+  if(
+    p === '/api/oauth/ticket' &&
+    m === 'POST'
+  ){
+
+    const x =
+      await body(req);
+
+    const token =
+      clean(x.ticket);
+
+    const t =
+      db.prepare(
+        'SELECT * FROM oauth_tickets WHERE token=?'
+      )
+      .get(token);
+
+    if(
+      !t ||
+      new Date(t.expires_at)<=new Date()
+    ){
+
+      if(t){
+
+        db.prepare(
+          'DELETE FROM oauth_tickets WHERE token=?'
+        )
+        .run(token);
+
+      }
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'OAuth session ime-expire. Anza tena.'
+        }
+      );
+
+    }
+
+
+    if(
+      t.kind === 'login'
+    ){
+
+      const u =
+        db.prepare(`
+          SELECT
+            id,
+            full_name,
+            phone,
+            business_id,
+            email,
+            role,
+            active
+
+          FROM users
+
+          WHERE id=?
+        `)
+        .get(
+          t.user_id
+        );
+
+      if(
+        !u ||
+        !u.active
+      ){
+
+        return json(
+          res,
+          403,
+          {
+            error:
+              'Account haipatikani au imezimwa.'
+          }
+        );
+
+      }
+
+      db.prepare(
+        'DELETE FROM oauth_tickets WHERE token=?'
+      )
+      .run(token);
+
+      audit(
+        u.business_id,
+        u.id,
+        'LOGIN',
+        `OAuth login via ${t.provider}`
+      );
+
+      return json(
+        res,
+        200,
+        {
+          token:
+            session(u.id),
+
+          user:u
+        }
+      );
+
+    }
+
+    return json(
+      res,
+      200,
+      {
+        type:'signup',
+        provider:t.provider,
+        email:t.email,
+        fullName:t.full_name||''
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     OAUTH COMPLETE
+     ======================================================= */
+
+  if(
+    p === '/api/oauth/complete' &&
+    m === 'POST'
+  ){
+
+    const x =
+      await body(req);
+
+    const token =
+      clean(x.ticket);
+
+    const t =
+      db.prepare(`
+        SELECT *
+        FROM oauth_tickets
+        WHERE token=?
+        AND kind='signup'
+      `)
+      .get(token);
+
+    if(
+      !t ||
+      new Date(t.expires_at)<=new Date()
+    ){
+
+      if(t){
+
+        db.prepare(
+          'DELETE FROM oauth_tickets WHERE token=?'
+        )
+        .run(token);
+
+      }
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'OAuth session ime-expire. Anza tena.'
+        }
+      );
+
+    }
+
+
+    const role =
+      x.role === 'saler'
+        ? 'saler'
+        : 'owner';
+
+    const name =
+      clean(x.fullName) ||
+      t.full_name ||
+      t.email.split('@')[0];
+
+    const phone =
+      clean(x.phone);
+
+
+    if(!phone){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Namba ya simu inahitajika.'
+        }
+      );
+
+    }
+
+
+    let bid,
+        biz;
+
+
+    if(
+      role === 'owner'
+    ){
+
+      const bn =
+        clean(x.businessName);
+
+      const businessType =
+        clean(x.businessType);
+
+      const businessPhone =
+        clean(x.businessPhone);
+
+      const region =
+        clean(x.region);
+
+      const district =
+        clean(x.district);
+
+      const ward =
+        clean(x.ward);
+
+      const loc =
+        clean(x.businessLocation);
+
+
+      if(
+        !bn ||
+        !businessType ||
+        !businessPhone ||
+        !region ||
+        !district ||
+        !ward ||
+        !loc
+      ){
+
+        return json(
+          res,
+          400,
+          {
+            error:
+              'Jaza taarifa zote za biashara.'
+          }
+        );
+
+      }
+
+
+      const c =
+        makeCode();
+
+      const r =
+        db.prepare(`
+          INSERT INTO businesses
+          (
+            name,
+            code,
+            location,
+            business_type,
+            business_phone,
+            region,
+            district,
+            ward
+          )
+          VALUES(?,?,?,?,?,?,?,?)
+        `)
+        .run(
+          bn,
+          c,
+          loc,
+          businessType,
+          businessPhone,
+          region,
+          district,
+          ward
+        );
+
+      bid =
+        Number(
+          r.lastInsertRowid
+        );
+
+      biz =
+        db.prepare(
+          'SELECT * FROM businesses WHERE id=?'
+        )
+        .get(bid);
+
+    }else{
+
+      const bc =
+        clean(x.businessCode)
+        .toUpperCase();
+
+      biz =
+        db.prepare(
+          'SELECT * FROM businesses WHERE code=?'
+        )
+        .get(bc);
+
+
+      if(!biz){
+
+        return json(
+          res,
+          404,
+          {
+            error:
+              'Business Code haipo.'
+          }
+        );
+
+      }
+
+
+      if(
+        biz.status !== 'active'
+      ){
+
+        return json(
+          res,
+          403,
+          {
+            error:
+              'Biashara hii imesimamishwa.'
+          }
+        );
+
+      }
+
+      bid =
+        biz.id;
+
+    }
+
+
+    if(
+      db.prepare(
+        'SELECT id FROM users WHERE email=?'
+      )
+      .get(t.email)
+    ){
+
+      return json(
+        res,
+        409,
+        {
+          error:
+            'Email hii tayari ipo kwenye mfumo.'
+        }
+      );
+
+    }
+
+
+    const randomPassword =
+      crypto
+        .randomBytes(32)
+        .toString('base64url');
+
+
+    const r =
+      db.prepare(`
+        INSERT INTO users
+        (
+          full_name,
+          phone,
+          business_id,
+          email,
+          password_hash,
+          role
+        )
+        VALUES(?,?,?,?,?,?)
+      `)
+      .run(
+        name,
+        phone,
+        bid,
+        t.email,
+        hash(randomPassword),
+        role
+      );
+
+
+    const uid =
+      Number(
+        r.lastInsertRowid
+      );
+
+
+    if(
+      role === 'owner'
+    ){
+
+      db.prepare(
+        'UPDATE businesses SET owner_id=? WHERE id=?'
+      )
+      .run(
+        uid,
+        bid
+      );
+
+    }
+
+
+    db.prepare(`
+      INSERT INTO oauth_identities
+      (
+        provider,
+        subject,
+        user_id,
+        email
+      )
+      VALUES(?,?,?,?)
+    `)
+    .run(
+      t.provider,
+      t.subject,
+      uid,
+      t.email
+    );
+
+
+    const referralResult =
+      attachReferral(
+        uid,
+        t.referral_code || ''
+      );
+
+
+    db.prepare(
+      'DELETE FROM oauth_tickets WHERE token=?'
+    )
+    .run(token);
+
+
+    audit(
+      bid,
+      uid,
+      'OAUTH_REGISTER',
+      `New ${role} via ${t.provider}`
+    );
+
+
+    const userRow =
+      db.prepare(
+        'SELECT referral_code FROM users WHERE id=?'
+      )
+      .get(uid);
+
+
+    return json(
+      res,
+      201,
+      {
+        token:
+          session(uid),
+
+        user:{
+          id:uid,
+          full_name:name,
+          phone,
+          email:t.email,
+          role,
+          business_id:bid,
+
+          referral_code:
+            userRow?.referral_code || null,
+
+          referral_link:
+            referralLink(
+              userRow?.referral_code || ''
+            )
+        },
+
+        business:{
+          name:biz.name,
+          code:biz.code,
+          location:biz.location
+        },
+
+        referral:
+          referralResult
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     LOGIN
+     ======================================================= */
+
+  if(
+    p === '/api/login' &&
+    m === 'POST'
+  ){
+
+    if(
+      !rate(
+        req,
+        'login'
+      )
+    ){
+
+      return json(
+        res,
+        429,
+        {
+          error:
+            'Majaribio mengi. Subiri dakika 15.'
+        }
+      );
+
+    }
+
+
+    const x =
+      await body(req);
+
+    const e =
+      email(x.email);
+
+    const pw =
+      String(
+        x.password || ''
+      );
+
+
+    const u =
+      db.prepare(
+        'SELECT * FROM users WHERE email=?'
+      )
+      .get(e);
+
+
+    if(
+      !u ||
+      !verify(
+        pw,
+        u.password_hash
+      ) ||
+      !u.active
+    ){
+
+      return json(
+        res,
+        401,
+        {
+          error:
+            'Email au password si sahihi.'
+        }
+      );
+
+    }
+
+
+    if(
+      u.role !== 'super_admin'
+    ){
+
+      const b =
+        db.prepare(
+          'SELECT status FROM businesses WHERE id=?'
+        )
+        .get(
+          u.business_id
+        );
+
+
+      if(!b){
+
+        return json(
+          res,
+          403,
+          {
+            error:
+              'Biashara haipo.'
+          }
+        );
+
+      }
+
+
+      if(
+        b.status !== 'active'
+      ){
+
+        return json(
+          res,
+          403,
+          {
+            error:
+              'Biashara imesimamishwa.'
+          }
+        );
+
+      }
+
+    }
+
+
+    if(
+      u.business_id
+    ){
+
+      audit(
+        u.business_id,
+        u.id,
+        'LOGIN',
+        'Successful login'
+      );
+
+    }
+
+
+    return json(
+      res,
+      200,
+      {
+        token:
+          session(u.id),
+
+        user:{
+          id:u.id,
+          full_name:u.full_name,
+          phone:u.phone,
+          email:u.email,
+          role:u.role,
+          business_id:u.business_id
+        }
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     REGISTER
+     ======================================================= */
+
+  if(
+    p === '/api/register' &&
+    m === 'POST'
+  ){
+
+    if(
+      !rate(
+        req,
+        'register'
+      )
+    ){
+
+      return json(
+        res,
+        429,
+        {
+          error:
+            'Majaribio mengi. Subiri dakika 15.'
+        }
+      );
+
+    }
+
+
+    const x =
+      await body(req);
+
+    const name =
+      clean(x.fullName);
+
+    const phone =
+      clean(x.phone);
+
+    const e =
+      email(x.email);
+
+    const pw =
+      String(
+        x.password || ''
+      );
+
+    const role =
+      x.role === 'saler'
+        ? 'saler'
+        : 'owner';
+
+
+    if(
+      !name ||
+      !phone ||
+      !validEmail(e) ||
+      pw.length < 10
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Jina, simu, email sahihi na password ya angalau herufi 10 vinahitajika.'
+        }
+      );
+
+    }
+
+
+    if(
+      db.prepare(
+        'SELECT id FROM users WHERE email=?'
+      )
+      .get(e)
+    ){
+
+      return json(
+        res,
+        409,
+        {
+          error:
+            'Email hii tayari imesajiliwa.'
+        }
+      );
+
+    }
+
+
+    let bid,
+        biz;
+
+
+    if(
+      role === 'owner'
+    ){
+
+      const bn =
+        clean(x.businessName);
+
+      const businessType =
+        clean(x.businessType);
+
+      const businessPhone =
+        clean(x.businessPhone);
+
+      const region =
+        clean(x.region);
+
+      const district =
+        clean(x.district);
+
+      const ward =
+        clean(x.ward);
+
+      const loc =
+        clean(x.businessLocation);
+
+
+      if(
+        !bn ||
+        !businessType ||
+        !businessPhone ||
+        !region ||
+        !district ||
+        !ward ||
+        !loc
+      ){
+
+        return json(
+          res,
+          400,
+          {
+            error:
+              'Jina la biashara, aina ya biashara, simu ya biashara, Mkoa, Wilaya, Kata na eneo la biashara vinahitajika.'
+          }
+        );
+
+      }
+
+
+      const c =
+        makeCode();
+
+
+      const r =
+        db.prepare(`
+          INSERT INTO businesses
+          (
+            name,
+            code,
+            location,
+            business_type,
+            business_phone,
+            region,
+            district,
+            ward
+          )
+          VALUES(?,?,?,?,?,?,?,?)
+        `)
+        .run(
+          bn,
+          c,
+          loc,
+          businessType,
+          businessPhone,
+          region,
+          district,
+          ward
+        );
+
+
+      bid =
+        Number(
+          r.lastInsertRowid
+        );
+
+
+      biz =
+        db.prepare(
+          'SELECT * FROM businesses WHERE id=?'
+        )
+        .get(bid);
+
+    }else{
+
+      const bc =
+        clean(
+          x.businessCode
+        )
+        .toUpperCase();
+
+
+      biz =
+        db.prepare(
+          'SELECT * FROM businesses WHERE code=?'
+        )
+        .get(bc);
+
+
+      if(!biz){
+
+        return json(
+          res,
+          404,
+          {
+            error:
+              'Business Code haipo.'
+          }
+        );
+
+      }
+
+
+      if(
+        biz.status !== 'active'
+      ){
+
+        return json(
+          res,
+          403,
+          {
+            error:
+              'Biashara hii imesimamishwa.'
+          }
+        );
+
+      }
+
+
+      bid =
+        biz.id;
+
+    }
+
+
+    const r =
+      db.prepare(`
+        INSERT INTO users
+        (
+          full_name,
+          phone,
+          business_id,
+          email,
+          password_hash,
+          role
+        )
+        VALUES(?,?,?,?,?,?)
+      `)
+      .run(
+        name,
+        phone,
+        bid,
+        e,
+        hash(pw),
+        role
+      );
+
+
+    const uid =
+      Number(
+        r.lastInsertRowid
+      );
+
+
+    ensureReferralCode(uid);
+
+    const referralResult =
+      attachReferral(
+        uid,
+        x.referralCode ||
+        x.referral ||
+        x.ref ||
+        ''
+      );
+
+
+    if(
+      role === 'owner'
+    ){
+
+      db.prepare(
+        'UPDATE businesses SET owner_id=? WHERE id=?'
+      )
+      .run(
+        uid,
+        bid
+      );
+
+    }
+
+
+    audit(
+      bid,
+      uid,
+      'REGISTER',
+      `New ${role}`
+    );
+
+
+    const referralUser =
+      db.prepare(
+        'SELECT referral_code FROM users WHERE id=?'
+      )
+      .get(uid);
+
+
+    return json(
+      res,
+      201,
+      {
+
+        token:
+          session(uid),
+
+        user:{
+          id:uid,
+
+          full_name:
+            name,
+
+          phone,
+
+          email:e,
+
+          role,
+
+          business_id:
+            bid,
+
+          referral_code:
+            referralUser?.referral_code ||
+            null,
+
+          referral_link:
+            referralUser?.referral_code
+              ? referralLink(
+                  referralUser.referral_code
+                )
+              : null
+        },
+
+        business:{
+          name:
+            biz.name,
+
+          code:
+            biz.code,
+
+          location:
+            biz.location,
+
+          business_type:
+            biz.business_type,
+
+          business_phone:
+            biz.business_phone,
+
+          region:
+            biz.region,
+
+          district:
+            biz.district,
+
+          ward:
+            biz.ward
+        },
+
+        referral:
+          referralResult
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     ME
+     ======================================================= */
+
+  if(
+    p === '/api/me'
+  ){
+
+    const u =
+      auth(
+        req,
+        res
+      );
+
+    if(!u)
+      return;
+
+
+    return json(
+      res,
+      200,
+      {
+
+        user:u,
+
+        business:
+          u.role === 'super_admin'
+            ? null
+            :
+              db.prepare(`
+                SELECT
+                  name,
+                  code,
+                  status,
+                  location,
+                  business_type,
+                  business_phone,
+                  region,
+                  district,
+                  ward
+
+                FROM businesses
+
+                WHERE id=?
+              `)
+              .get(
+                u.business_id
+              ),
+
+        subscription:
+          u.role === 'super_admin'
+            ? null
+            :
+              subscriptionStatus(
+                u.business_id
+              )
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     LOGOUT
+     ======================================================= */
+
+  if(
+    p === '/api/logout'
+  ){
+
+    const mm =
+      (
+        req.headers.authorization || ''
+      )
+      .match(
+        /^Bearer\s+(.+)$/i
+      );
+
+
+    if(mm){
+
+      db.prepare(
+        'DELETE FROM sessions WHERE token=?'
+      )
+      .run(
+        mm[1]
+      );
+
+    }
+
+
+    return json(
+      res,
+      200,
+      {
+        ok:true
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     OWNER DASHBOARD
+     ======================================================= */
+
+  if(
+    p === '/api/dashboard' &&
+    m === 'GET'
+  ){
+
+    return dashboard(
+      req,
+      res
+    );
+
+  }
+
+
+  /* =======================================================
+     PRODUCTS GET
+     ======================================================= */
+
+  if(
+    p === '/api/products' &&
+    m === 'GET'
+  ){
+
+    const u =
+      bizOnly(
+        req,
+        res
+      );
+
+    if(!u)
+      return;
+
+
+    const rows =
+      db.prepare(`
+        SELECT
+          p.*,
+          c.name category_name
+
+        FROM products p
+
+        LEFT JOIN categories c
+          ON c.id=p.category_id
+
+        WHERE
+          p.business_id=?
+          AND p.active=1
+
+        ORDER BY p.name
+      `)
+      .all(
+        u.business_id
+      );
+
+
+    if(
+      u.role === 'saler'
+    ){
+
+      rows.forEach(
+        x => {
+          delete x.buy_price;
+        }
+      );
+
+    }
+
+
+    return json(
+      res,
+      200,
+      {
+        products:rows
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     PRODUCT PUT
+     ======================================================= */
+
+  if(
+    p.startsWith('/api/products/') &&
+    m === 'PUT'
+  ){
+
+    const u =
+      owner(
+        req,
+        res
+      );
+
+
+    if(
+      !u ||
+      u.role === 'super_admin'
+    )
+      return;
+
+
+    const id =
+      Number(
+        p.split('/').pop()
+      );
+
+
+    const x =
+      await body(req);
+
+
+    const old =
+      db.prepare(`
+        SELECT *
+        FROM products
+        WHERE id=?
+        AND business_id=?
+        AND active=1
+      `)
+      .get(
+        id,
+        u.business_id
+      );
+
+
+    if(!old){
+
+      return json(
+        res,
+        404,
+        {
+          error:
+            'Bidhaa haipo.'
+        }
+      );
+
+    }
+
+
+    const n =
+      clean(x.name);
+
+    const buy =
+      Number(x.buyPrice);
+
+    const sell =
+      Number(x.sellPrice);
+
+    const qty =
+      Math.floor(
+        Number(x.quantity)
+      );
+
+    const min =
+      Math.floor(
+        Number(
+          x.minStock ??
+          old.min_stock
+        )
+      );
+
+
+    if(
+      !n ||
+      ![
+        buy,
+        sell,
+        qty,
+        min
+      ].every(
+        Number.isFinite
+      ) ||
+      buy < 0 ||
+      sell < 0 ||
+      qty < 0 ||
+      min < 0
+    ){
+
+      return json(
+        res,
+        400,
+        {
+          error:
+            'Taarifa za bidhaa si sahihi.'
+        }
+      );
+
+    }
+
+
+    transaction(
+      ()=>{
+
+        db.prepare(`
+          UPDATE products
+
+          SET
+            name=?,
+            buy_price=?,
+            sell_price=?,
+            quantity=?,
+            min_stock=?
+
+          WHERE
+            id=?
+            AND business_id=?
+        `)
+        .run(
+          n,
+          buy,
+          sell,
+          qty,
+          min,
+          id,
+          u.business_id
+        );
+
+
+        const diff =
+          qty -
+          old.quantity;
+
+
+        if(diff){
+
+          db.prepare(`
+            INSERT INTO stock_movements
+            (
+              business_id,
+              product_id,
+              type,
+              quantity,
+              reference,
+              created_by
+            )
+            VALUES(?,?,?,?,?,?)
+          `)
+          .run(
+            u.business_id,
+            id,
+            'adjustment',
+            diff,
+            'Manual stock adjustment',
+            u.id
+          );
+
+        }
+
+      }
+    );
+
+
+    audit(
+      u.business_id,
+      u.id,
+      'PRODUCT_UPDATE',
+      n
+    );
+
+
+    return json(
+      res,
+      200,
+      {
+        ok:true
+      }
+    );
+
+  }
+      
