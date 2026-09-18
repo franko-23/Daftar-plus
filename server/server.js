@@ -9335,13 +9335,19 @@ http
 
     }
   )
-  .listen(
+)
+.listen(
     PORT,
+    '0.0.0.0',
     ()=>{
-
-      console.log(
-        `Daftari+ running on :${PORT}`
-      );
-
+        console.log(
+            `Daftari+ running on :${PORT}`
+        );
+        console.log(
+            `PORT=${PORT}`
+        );
+        console.log(
+            `NODE_ENV=${process.env.NODE_ENV||'development'}`
+        );
     }
-  );
+);
