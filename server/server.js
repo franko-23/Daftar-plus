@@ -1,3 +1,23 @@
+process.on('uncaughtException', (err) => {
+  console.error('DAFTARI_PLUS_UNCAUGHT_EXCEPTION');
+  console.error(err);
+  console.error(err?.stack || '');
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('DAFTARI_PLUS_UNHANDLED_REJECTION');
+  console.error(reason);
+  console.error(reason?.stack || '');
+});
+
+const http=require('http'),
+    fs=require('fs'),
+    path=require('path'),
+    crypto=require('crypto');
+
+const {DatabaseSync}=require('node:sqlite');
+
+const PORT=Number(process.env.PORT||3000);
 const http=require('http'),
       fs=require('fs'),
       path=require('path'),
