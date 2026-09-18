@@ -1011,3 +1011,64 @@ function effectivePlanPrice(
   );
 
 }
+  if(x.year){
+
+    f=`${x.year}-01-01`;
+
+    t=`${x.year}-12-31`;
+
+  }
+
+
+  return [
+
+    f
+      ? f+' 00:00:00'
+      : '1970-01-01 00:00:00',
+
+    t
+      ? t+' 23:59:59'
+      : '2999-12-31 23:59:59'
+
+  ];
+
+}
+
+
+/* =========================================================
+   SUPER ADMIN
+   ========================================================= */
+
+function ensureSuperAdmin(){
+
+  const e =
+    email(
+      process.env.SUPER_ADMIN_EMAIL
+    );
+
+  const p =
+    process.env.SUPER_ADMIN_PASSWORD;
+
+
+  if(!e && !p)
+    return;
+
+
+  if(
+    !validEmail(e) ||
+    !p ||
+    p.length < 12
+  ){
+
+    throw Error(
+      'SUPER_ADMIN_EMAIL na SUPER_ADMIN_PASSWORD (angalau herufi 12) lazima viwe valid.'
+    );
+
+  }
+
+
+  const x =
+    db.prepare(`
+      SELECT id
+      FROM users
+      WHERE email=?
