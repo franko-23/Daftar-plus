@@ -2469,19 +2469,22 @@ function ensureReferralCode(uid){
 
 }
 
-
 function referralLink(code){
 
-  const base=
+  const base =
     publicBaseUrl();
 
-  return `${
-    base
-  }/register.html?ref=${
+  return (
+    base +
+    '/register.html?ref=' +
     encodeURIComponent(code)
-  }`;
-
+  );
 }
+
+
+  
+
+
 
 
 function findReferrer(code){
