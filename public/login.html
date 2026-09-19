@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftari+ | Ingia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#00BFA6; --teal-dark:#009984; --teal-soft:#E3FBF7;
+  --bg:#F7FBFA; --panel:#FFFFFF; --text:#0B1E1C; --text-dim:#5B6E6B; --text-faint:#8FA19E;
+  --border:#E3ECEA; --danger:#DC2626; --danger-soft:#FEF2F2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;color:var(--text)}
+.container{width:100%;max-width:420px}
+.mark{width:76px;height:76px;margin:0 auto 20px;border-radius:22px;background:linear-gradient(135deg,var(--teal),#00E0C0);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Poppins',sans-serif;font-weight:800;font-size:26px;box-shadow:0 10px 26px rgba(0,191,166,.3)}
+h1{font-family:'Poppins',sans-serif;font-weight:800;font-size:28px;text-align:center;letter-spacing:-.02em;margin-bottom:8px}
+.subtitle{text-align:center;color:var(--text-dim);font-size:14.5px;margin-bottom:32px;line-height:1.5}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:12px;border:1px solid var(--border);background:#fff;color:var(--text)}
+.btn:hover{background:#fafafa}
+.btn svg,.btn .ico{width:20px;height:20px;flex-shrink:0}
+.btn-email{color:var(--teal-dark);border-color:var(--teal-soft);background:var(--teal-soft)}
+
+.divider{display:flex;align-items:center;gap:14px;margin:22px 0;color:var(--text-faint);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.email-form{display:none}
+.email-form.show{display:block}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:var(--text)}
+input{width:100%;height:50px;border:1px solid var(--border);border-radius:12px;padding:0 15px;font-size:14.5px;outline:none;background:#fff;font-family:inherit}
+input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:52px}
+.toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;color:var(--text-dim);font-size:13px;padding:5px}
+.submit-btn{width:100%;height:52px;border:0;border-radius:14px;background:var(--teal);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(0,191,166,.28)}
+.submit-btn:hover{background:var(--teal-dark)}
+.submit-btn:disabled{opacity:.65;cursor:not-allowed}
+.back-link{display:block;text-align:center;margin-top:14px;color:var(--text-dim);font-size:13.5px;cursor:pointer}
+
+.message{display:none;margin-bottom:16px;padding:11px 14px;border-radius:11px;font-size:13.5px;line-height:1.4}
+.message.error{display:block;background:var(--danger-soft);color:var(--danger);border:1px solid #fecaca}
+.message.success{display:block;background:var(--teal-soft);color:var(--teal-dark);border:1px solid #b8f0e6}
+.message.info{display:block;background:#F0F4FF;color:#3730A3;border:1px solid #DBE4FF}
+
+.signup-row{text-align:center;margin-top:26px;color:var(--text-dim);font-size:14px}
+.signup-row a{color:var(--teal-dark);font-weight:700;text-decoration:none}
+.footer-note{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:28px;color:var(--text-faint);font-size:12.5px}
+.super-link{text-align:center;margin-top:14px}
+.super-link a{color:var(--text-faint);font-size:12.5px;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="mark">D+</div>
+  <h1>Karibu Daftari+</h1>
+  <p class="subtitle">Simamia mauzo, stock na wateja wako popote ulipo.</p>
+
+  <div id="message" class="message"></div>
+
+  <div id="providerButtons">
+    <button type="button" class="btn" id="appleBtn"><span class="ico"></span>Endelea na Apple</button>
+    <button type="button" class="btn" id="googleBtn"><span class="ico"></span>Endelea na Google</button>
+    <div class="divider">au</div>
+    <button type="button" class="btn btn-email" id="showEmailBtn">Endelea kwa Email</button>
+  </div>
+
+  <div id="emailForm" class="email-form">
+    <form id="loginForm">
+      <div class="form-group"><label>Barua Pepe</label><input id="email" type="email" placeholder="jina@biashara.com" required></div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrap">
+          <input id="password" type="password" placeholder="••••••••" required>
+          <button type="button" class="toggle-password" id="togglePassword">Onyesha</button>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="loginBtn">Ingia</button>
+    </form>
+    <span class="back-link" id="backBtn">← Rudi nyuma</span>
+  </div>
+
+  <div class="signup-row">Huna akaunti? <a href="/register.html">Fungua Akaunti</a></div>
+  <div class="footer-note">🔒 Taarifa za biashara yako ziko salama na faragha</div>
+  <div class="super-link"><a href="/super-admin-login.html">Super Admin</a></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function showMessage(text, type='error'){
+  const el = $('message');
+  el.textContent = text;
+  el.className = 'message ' + type;
+}
+function clearMessage(){ $('message').textContent = ''; $('message').className = 'message'; }
+
+$('showEmailBtn').addEventListener('click', () => {
+  $('providerButtons').style.display = 'none';
+  $('emailForm').classList.add('show');
+  clearMessage();
+});
+$('backBtn').addEventListener('click', () => {
+  $('emailForm').classList.remove('show');
+  $('providerButtons').style.display = 'block';
+  clearMessage();
+});
+
+['appleBtn','googleBtn'].forEach(id => {
+  $(id).addEventListener('click', () => {
+    const provider = id === 'googleBtn' ? 'google' : 'apple';
+    window.location.href = '/api/auth/' + provider + '/start';
+  });
+});
+
+$('togglePassword').addEventListener('click', () => {
+  const inp = $('password');
+  if(inp.type === 'password'){ inp.type = 'text'; $('togglePassword').textContent = 'Ficha'; }
+  else { inp.type = 'password'; $('togglePassword').textContent = 'Onyesha'; }
+});
+
+function saveSession(data){
+  if(!data || !data.token || !data.user) throw new Error('Server haikurudisha taarifa sahihi za login.');
+  localStorage.setItem('dp_token', data.token);
+  localStorage.setItem('dp_user', JSON.stringify(data.user));
+}
+function clearSession(){
+  localStorage.removeItem('dp_token');
+  localStorage.removeItem('dp_user');
+}
+function redirectUser(user){
+  if(!user || !user.role){ clearSession(); window.location.replace('/login.html'); return; }
+  if(user.role === 'super_admin'){ window.location.replace('/super-admin.html'); return; }
+  if(user.role === 'owner'){ window.location.replace('/dashboard.html'); return; }
+  if(user.role === 'saler' || user.role === 'seller'){ window.location.replace('/saler.html'); return; }
+  clearSession();
+  showMessage('Role ya account haijatambuliwa. Wasiliana na administrator.');
+}
+
+async function api(path, options={}){
+  const headers = { 'Content-Type': 'application/json', ...(options.headers||{}) };
+  const token = localStorage.getItem('dp_token');
+  if(token) headers.Authorization = 'Bearer ' + token;
+  const response = await fetch(path, { ...options, headers });
+  let data = {};
+  try{ data = await response.json(); }catch{}
+  if(!response.ok){
+    const error = new Error(data.error || data.message || 'Kuna tatizo kwenye server.');
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+$('loginForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  clearMessage();
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if(!email){ showMessage('Tafadhali ingiza barua pepe.'); return; }
+  if(!password){ showMessage('Tafadhali ingiza password.'); return; }
+
+  const btn = $('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inaingia...';
+
+  try{
+    const data = await api('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    saveSession(data);
+    showMessage('Login imefanikiwa. Tunaelekeza...', 'success');
+    setTimeout(() => redirectUser(data.user), 250);
+  }catch(error){
+    clearSession();
+    let errorMessage = 'Barua pepe au password si sahihi.';
+    if(error && error.data && (error.data.error || error.data.message)) errorMessage = error.data.error || error.data.message;
+    else if(error && error.message) errorMessage = error.message;
+    showMessage(errorMessage);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Ingia';
+  }
+});
+
+async function checkExistingSession(){
+  const token = localStorage.getItem('dp_token');
+  if(!token) return;
+  try{
+    const data = await api('/api/me');
+    if(data && data.user){
+      localStorage.setItem('dp_user', JSON.stringify(data.user));
+      redirectUser(data.user);
+    }
+  }catch{
+    clearSession();
+  }
+}
+checkExistingSession();
+</script>
+
+</body>
+</html>
