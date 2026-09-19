@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftari+ | Saler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#00BFA6; --teal-dark:#009984; --teal-soft:#E3FBF7; --teal-deep:#00A896;
+  --bg:#F7FBFA; --panel:#FFFFFF; --text:#0B1E1C; --text-dim:#5B6E6B; --text-faint:#8FA19E;
+  --border:#E3ECEA; --amber:#F5A623; --amber-soft:#FEF3E2; --coral:#E4453A; --coral-soft:#FEF2F2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:78px}
+h1,h2,h3{font-family:'Poppins',sans-serif;font-weight:700;margin:0;letter-spacing:-.02em}
+button{font-family:'Inter',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.hidden{display:none !important}
+
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;z-index:20}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--teal),#00E0C0);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px}
+.hdr-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:15px}
+.hdr-sub{font-size:11px;color:var(--text-faint)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;cursor:pointer}
+
+.content{padding:18px;max-width:680px;margin:0 auto}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px}
+.stat-card.accent{background:linear-gradient(135deg,var(--teal),var(--teal-deep));border:none}
+.stat-card .label{font-size:11px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.stat-card.accent .label{color:rgba(255,255,255,.85)}
+.stat-card .value{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-top:7px}
+.stat-card.accent .value{color:#fff}
+
+.panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:18px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.panel-head h3{font-size:15px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:100px;font-weight:700;font-size:13.5px;border:1.5px solid transparent;cursor:pointer}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-outline{border-color:var(--border);color:var(--text);background:#fff}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:9px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--text-faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;font-weight:700;padding:8px;border-bottom:1px solid var(--border)}
+td{padding:10px 8px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.table-wrap{overflow-x:auto}
+.empty-row{text-align:center;color:var(--text-faint);padding:22px 8px}
+
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px}
+.pill.good{background:var(--teal-soft);color:var(--teal-dark)}
+.pill.warn{background:var(--amber-soft);color:#9A5B04}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}
+.form-group label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+input,select{width:100%;height:44px;border:1px solid var(--border);border-radius:11px;padding:0 12px;font-size:13.5px;outline:none;background:#fff;font-family:inherit;color:var(--text)}
+input:focus,select:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:30}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 12px;border:none;background:transparent;color:var(--text-dim);font-size:10.5px;font-weight:600;cursor:pointer}
+.tab-item .ic{font-size:18px}
+.tab-item.active{color:var(--teal-dark)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(11,30,28,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:420px}
+.modal h3{font-size:16px;margin-bottom:14px}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-actions .btn{flex:1}
+
+.toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;z-index:200;display:none;box-shadow:0 10px 26px rgba(0,0,0,.2)}
+.toast.show{display:block}
+.toast.error{background:var(--coral)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-left">
+    <div class="brand-mark">D+</div>
+    <div><div class="hdr-title" id="bizNameTop">Daftari+</div><div class="hdr-sub">Muuzaji</div></div>
+  </div>
+  <div class="avatar" id="avatar" title="Toka">A</div>
+</header>
+
+<div class="content">
+
+  <!-- OVERVIEW -->
+  <section id="page-overview">
+    <div class="stat-grid">
+      <div class="stat-card accent"><div class="label">Mauzo Yangu (Jumla)</div><div class="value mono" id="statMyRevenue">TSh 0</div></div>
+      <div class="stat-card"><div class="label">Idadi ya Mauzo</div><div class="value mono" id="statMyCount">0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Mauzo ya Hivi Karibuni</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Bidhaa</th><th>Kiasi</th><th>Jumla</th><th>Muda</th></tr></thead>
+          <tbody id="recentSalesTable"><tr><td class="empty-row" colspan="4">Inapakia...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELL -->
+  <section id="page-sell" class="hidden">
+    <div class="panel">
+      <div class="panel-head"><h3>Rekodi Mauzo Mapya</h3></div>
+      <form id="saleForm" class="form-grid">
+        <div class="form-group"><label>Bidhaa</label><select id="saleProduct" required></select></div>
+        <div class="form-group"><label>Kiasi</label><input id="saleQty" type="number" min="1" value="1" required></div>
+        <div class="form-group"><label>Punguzo (Hiari)</label><input id="saleDiscount" type="number" min="0" value="0"></div>
+        <div class="form-group"><label>Namna ya Malipo</label>
+          <select id="salePayment">
+            <option value="cash">Taslimu (Cash)</option>
+            <option value="mobile">Mobile Money</option>
+            <option value="bank">Benki</option>
+            <option value="credit">Deni (Credit)</option>
+          </select>
+        </div>
+        <div class="form-group" id="saleCustomerWrap" style="display:none"><label>Mteja</label><select id="saleCustomer"></select></div>
+        <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary" id="saleSubmitBtn" style="width:100%">+ Rekodi Mauzo</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>+ Ongeza Mteja Mpya</h3></div>
+      <form id="customerForm" class="form-grid">
+        <div class="form-group"><label>Jina</label><input id="custName" type="text" required></div>
+        <div class="form-group"><label>Namba ya Simu</label><input id="custPhone" type="tel"></div>
+        <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-outline" style="width:100%">Ongeza Mteja</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- STOCK -->
+  <section id="page-stock" class="hidden">
+    <div class="panel">
+      <div class="panel-head"><h3>Bidhaa Zilizopo</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Jina</th><th>Bei ya Kuuzia</th><th>Stock</th></tr></thead>
+          <tbody id="stockTable"><tr><td class="empty-row" colspan="3">Inapakia...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEBTS -->
+  <section id="page-debts" class="hidden">
+    <div class="panel">
+      <div class="panel-head"><h3>Ongeza Deni</h3></div>
+      <form id="debtForm" class="form-grid">
+        <div class="form-group"><label>Jina la Mdaiwa</label><input id="debtPerson" type="text" required></div>
+        <div class="form-group"><label>Kiasi</label><input id="debtAmount" type="number" min="1" required></div>
+        <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary" style="width:100%">+ Ongeza Deni</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Madeni Niliyorekodi</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Jina</th><th>Kiasi</th><th>Kimebaki</th><th>Hali</th><th></th></tr></thead>
+          <tbody id="debtsTable"><tr><td class="empty-row" colspan="5">Inapakia...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFERRAL -->
+  <section id="page-referral" class="hidden">
+    <div class="panel">
+      <div class="panel-head"><h3>Link Yako ya Rufaa</h3></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="referralLinkInput" type="text" readonly style="flex:1;min-width:200px;height:44px;border:1px solid var(--border);border-radius:11px;padding:0 12px;font-size:12.5px;background:var(--bg);color:var(--text)">
+        <button class="btn btn-primary btn-sm" id="copyReferralBtn">Nakili</button>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card accent"><div class="label">Mapato Jumla</div><div class="value mono" id="refTotal">TSh 0</div></div>
+      <div class="stat-card"><div class="label">Watu Ulioleta</div><div class="value mono" id="refCount">0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Timu Yako</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Jina</th><th>Role</th><th>Alijiunga</th></tr></thead>
+          <tbody id="referralTeamTable"><tr><td class="empty-row" colspan="3">Inapakia...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPENSES -->
+  <section id="page-expenses" class="hidden">
+    <div class="panel">
+      <div class="panel-head"><h3>Ongeza Matumizi</h3></div>
+      <form id="expenseForm" class="form-grid">
+        <div class="form-group"><label>Maelezo</label><input id="expDesc" type="text" required></div>
+        <div class="form-group"><label>Kiasi</label><input id="expAmount" type="number" min="1" required></div>
+        <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary" style="width:100%">+ Ongeza</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Matumizi Niliyorekodi</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Maelezo</th><th>Kiasi</th><th>Muda</th></tr></thead>
+          <tbody id="expensesTable"><tr><td class="empty-row" colspan="3">Inapakia...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<nav class="tabbar">
+  <button class="tab-item active" data-page="overview"><span class="ic">📊</span>Muhtasari</button>
+  <button class="tab-item" data-page="sell"><span class="ic">🧾</span>Uza</button>
+  <button class="tab-item" data-page="stock"><span class="ic">📦</span>Stock</button>
+  <button class="tab-item" data-page="debts"><span class="ic">💳</span>Madeni</button>
+  <button class="tab-item" data-page="expenses"><span class="ic">💸</span>Matumizi</button>
+  <button class="tab-item" data-page="referral"><span class="ic">🔗</span>Rufaa</button>
+</nav>
+
+<!-- DEBT PAYMENT MODAL -->
+<div class="modal-overlay" id="paymentModalOverlay">
+  <div class="modal">
+    <h3>Rekodi Malipo</h3>
+    <form id="paymentForm">
+      <input type="hidden" id="paymentDebtId">
+      <div class="form-group"><label>Kiasi Kilicholipwa</label><input id="paymentAmount" type="number" min="1" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="paymentCancelBtn">Ghairi</button>
+        <button type="submit" class="btn btn-primary">Hifadhi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LOGOUT CONFIRM MODAL -->
+<div class="modal-overlay" id="logoutModalOverlay">
+  <div class="modal">
+    <h3>Toka kwenye akaunti?</h3>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="logoutCancelBtn">Ghairi</button>
+      <button type="button" class="btn btn-primary" id="logoutConfirmBtn">Toka</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => 'TSh ' + Math.round(Number(n)||0).toLocaleString('en-US');
+const fmtTime = s => { try{ return new Date(s.replace(' ','T')+'Z').toLocaleString('sw-TZ',{dateStyle:'medium',timeStyle:'short'}); }catch{ return s; } };
+
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let toastTimer;
+function toast(msg, type=''){
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.className = 'toast', 2600);
+}
+
+function getToken(){ return localStorage.getItem('dp_token'); }
+function clearSession(){ localStorage.removeItem('dp_token'); localStorage.removeItem('dp_user'); }
+
+async function api(path, options={}){
+  const headers = { 'Content-Type': 'application/json', ...(options.headers||{}) };
+  const token = getToken();
+  if(token) headers.Authorization = 'Bearer ' + token;
+  const response = await fetch(path, { ...options, headers });
+  let data = {};
+  try{ data = await response.json(); }catch{}
+  if(response.status === 401){
+    clearSession();
+    window.location.replace('/login.html');
+    throw new Error('Session imeisha');
+  }
+  if(response.status === 402){
+    showSubscriptionBanner(data.error || 'Subscription ya biashara imeisha au haijawezeshwa.');
+    const error = new Error(data.error || 'Subscription inahitajika.');
+    error.data = data;
+    error.subscription = true;
+    throw error;
+  }
+  if(!response.ok){
+    const error = new Error(data.error || data.message || 'Kuna tatizo kwenye server.');
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+function showSubscriptionBanner(message){
+  let banner = document.getElementById('subBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'subBanner';
+    banner.style.cssText = 'background:var(--amber-soft);color:#9A5B04;border:1px solid #f3d9a8;border-radius:14px;padding:13px 16px;margin-bottom:16px;font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:8px';
+    banner.innerHTML = `<span id="subBannerText"></span><a href="/subscription/subscription.html" class="btn btn-primary btn-sm" style="text-decoration:none;align-self:flex-start">Renew Subscription</a>`;
+    document.querySelector('.content').prepend(banner);
+  }
+  banner.querySelector('#subBannerText').textContent = message;
+}
+
+let products = [];
+let customers = [];
+
+async function init(){
+  const token = getToken();
+  if(!token){ window.location.replace('/login.html'); return; }
+  try{
+    const me = await api('/api/me');
+    if(me.user.role !== 'saler' && me.user.role !== 'seller'){
+      if(me.user.role === 'super_admin') window.location.replace('/super-admin.html');
+      else if(me.user.role === 'owner') window.location.replace('/dashboard.html');
+      else window.location.replace('/login.html');
+      return;
+    }
+    $('avatar').textContent = (me.user.full_name||'?').charAt(0).toUpperCase();
+    $('bizNameTop').textContent = me.business ? me.business.name : 'Daftari+';
+  }catch(e){
+    clearSession();
+    window.location.replace('/login.html');
+    return;
+  }
+  loadOverview();
+  loadProductsForSelect();
+}
+
+$('avatar').addEventListener('click', () => $('logoutModalOverlay').classList.add('show'));
+$('logoutCancelBtn').addEventListener('click', () => $('logoutModalOverlay').classList.remove('show'));
+$('logoutConfirmBtn').addEventListener('click', async () => {
+  try{ await api('/api/logout', { method:'POST' }); }catch{}
+  clearSession();
+  window.location.replace('/login.html');
+});
+
+/* ---------------- TABS ---------------- */
+
+document.querySelectorAll('.tab-item[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const page = btn.dataset.page;
+    document.querySelectorAll('.tab-item[data-page]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('[id^="page-"]').forEach(s=>s.classList.add('hidden'));
+    $('page-'+page).classList.remove('hidden');
+
+    if(page==='overview') loadOverview();
+    if(page==='sell') loadProductsForSelect();
+    if(page==='stock') loadStock();
+    if(page==='debts') loadDebts();
+    if(page==='expenses') loadExpenses();
+    if(page==='referral') loadReferral();
+  });
+});
+
+/* ---------------- OVERVIEW ---------------- */
+
+async function loadOverview(){
+  try{
+    const data = await api('/api/sales');
+    const revenue = data.sales.reduce((a,s)=>a+s.total,0);
+    $('statMyRevenue').textContent = fmt(revenue);
+    $('statMyCount').textContent = data.sales.length;
+
+    const tbody = $('recentSalesTable');
+    if(!data.sales.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="4">Bado hujarekodi mauzo.</td></tr>';
+    }else{
+      tbody.innerHTML = data.sales.slice(0,20).map(s => `
+        <tr>
+          <td>${escapeHtml(s.product_name)}</td>
+          <td>${s.quantity}</td>
+          <td class="mono">${fmt(s.total)}</td>
+          <td>${fmtTime(s.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+/* ---------------- PRODUCTS / SELL ---------------- */
+
+async function loadProductsForSelect(){
+  try{
+    const data = await api('/api/products');
+    products = data.products;
+    $('saleProduct').innerHTML = products.map(p =>
+      `<option value="${p.id}">${escapeHtml(p.name)} — ${fmt(p.sell_price)} (Stock: ${p.quantity})</option>`
+    ).join('') || '<option value="">Hakuna bidhaa</option>';
+  }catch(e){ toast(e.message,'error'); }
+}
+
+async function loadStock(){
+  try{
+    const data = await api('/api/products');
+    products = data.products;
+    const tbody = $('stockTable');
+    if(!products.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="3">Hakuna bidhaa.</td></tr>';
+    }else{
+      tbody.innerHTML = products.map(p => `
+        <tr>
+          <td>${escapeHtml(p.name)}</td>
+          <td class="mono">${fmt(p.sell_price)}</td>
+          <td>${p.quantity <= p.min_stock ? `<span class="pill warn">${p.quantity}</span>` : `<span class="pill good">${p.quantity}</span>`}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+async function loadCustomersIntoSelect(){
+  try{
+    const data = await api('/api/customers');
+    customers = data.customers;
+    $('saleCustomer').innerHTML = '<option value="">-- Chagua Mteja --</option>' +
+      customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  }catch(e){ /* ignore */ }
+}
+
+$('salePayment').addEventListener('change', () => {
+  const isCredit = $('salePayment').value === 'credit';
+  $('saleCustomerWrap').style.display = isCredit ? 'block' : 'none';
+  if(isCredit) loadCustomersIntoSelect();
+});
+
+$('saleForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const productId = $('saleProduct').value;
+  if(!productId){ toast('Hakuna bidhaa ya kuuza.','error'); return; }
+  const payload = {
+    productId: Number(productId),
+    quantity: Number($('saleQty').value),
+    discount: Number($('saleDiscount').value || 0),
+    paymentMethod: $('salePayment').value,
+    customerId: $('saleCustomer').value ? Number($('saleCustomer').value) : undefined
+  };
+  const btn = $('saleSubmitBtn');
+  btn.disabled = true;
+  try{
+    await api('/api/sales', { method:'POST', body: JSON.stringify(payload) });
+    toast('Mauzo yamerekodiwa.');
+    $('saleForm').reset();
+    $('saleCustomerWrap').style.display = 'none';
+    loadProductsForSelect();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+  finally{ btn.disabled = false; }
+});
+
+$('customerForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const payload = { name: $('custName').value.trim(), phone: $('custPhone').value.trim() || undefined };
+  try{
+    await api('/api/customers', { method:'POST', body: JSON.stringify(payload) });
+    toast('Mteja ameongezwa.');
+    $('customerForm').reset();
+    loadCustomersIntoSelect();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+/* ---------------- DEBTS ---------------- */
+
+async function loadDebts(){
+  try{
+    const data = await api('/api/debts');
+    const tbody = $('debtsTable');
+    if(!data.debts.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="5">Hakuna madeni uliyorekodi.</td></tr>';
+    }else{
+      tbody.innerHTML = data.debts.map(d => `
+        <tr>
+          <td>${escapeHtml(d.person_name)}</td>
+          <td class="mono">${fmt(d.amount)}</td>
+          <td class="mono">${fmt(d.amount - d.paid)}</td>
+          <td>${d.status==='paid' ? '<span class="pill good">Imelipwa</span>' : '<span class="pill warn">Haijalipwa</span>'}</td>
+          <td>${d.status==='paid' ? '' : `<button class="btn btn-outline btn-sm" data-pay-debt="${d.id}">Malipo</button>`}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('debtForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const payload = { personName: $('debtPerson').value.trim(), amount: Number($('debtAmount').value) };
+  try{
+    await api('/api/debts', { method:'POST', body: JSON.stringify(payload) });
+    toast('Deni limeongezwa.');
+    $('debtForm').reset();
+    loadDebts();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+$('debtsTable').addEventListener('click', (ev) => {
+  const id = ev.target.dataset.payDebt;
+  if(!id) return;
+  $('paymentDebtId').value = id;
+  $('paymentAmount').value = '';
+  $('paymentModalOverlay').classList.add('show');
+});
+$('paymentCancelBtn').addEventListener('click', () => $('paymentModalOverlay').classList.remove('show'));
+
+$('paymentForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const id = $('paymentDebtId').value;
+  try{
+    await api('/api/debts/'+id+'/payments', { method:'POST', body: JSON.stringify({ amount: Number($('paymentAmount').value) }) });
+    toast('Malipo yamerekodiwa.');
+    $('paymentModalOverlay').classList.remove('show');
+    loadDebts();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+/* ---------------- REFERRAL ---------------- */
+
+async function loadReferral(){
+  try{
+    const data = await api('/api/referral/me');
+    $('referralLinkInput').value = data.referral_link;
+    $('refTotal').textContent = fmt(data.totals.total);
+    $('refCount').textContent = data.direct_count;
+
+    const tbody = $('referralTeamTable');
+    if(!data.direct_members.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="3">Bado hujaleta mtu yeyote.</td></tr>';
+    }else{
+      tbody.innerHTML = data.direct_members.map(m => `
+        <tr>
+          <td>${escapeHtml(m.full_name)}</td>
+          <td>${escapeHtml(m.role)}</td>
+          <td>${fmtTime(m.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('copyReferralBtn').addEventListener('click', async () => {
+  const val = $('referralLinkInput').value;
+  if(!val) return;
+  try{
+    await navigator.clipboard.writeText(val);
+    toast('Link imenakiliwa.');
+  }catch{
+    $('referralLinkInput').select();
+    document.execCommand('copy');
+    toast('Link imenakiliwa.');
+  }
+});
+
+/* ---------------- EXPENSES ---------------- */
+
+async function loadExpenses(){
+  try{
+    const data = await api('/api/expenses');
+    const tbody = $('expensesTable');
+    if(!data.expenses.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="3">Bado hujarekodi matumizi.</td></tr>';
+    }else{
+      tbody.innerHTML = data.expenses.map(e => `
+        <tr>
+          <td>${escapeHtml(e.description)}</td>
+          <td class="mono">${fmt(e.amount)}</td>
+          <td>${fmtTime(e.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('expenseForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const payload = { description: $('expDesc').value.trim(), amount: Number($('expAmount').value) };
+  try{
+    await api('/api/expenses', { method:'POST', body: JSON.stringify(payload) });
+    toast('Matumizi yameongezwa.');
+    $('expenseForm').reset();
+    loadExpenses();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+init();
+</script>
+
+</body>
+</html>
