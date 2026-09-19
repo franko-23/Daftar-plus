@@ -18,14 +18,7 @@ const http=require('http'),
 const {DatabaseSync}=require('node:sqlite');
 
 const PORT=Number(process.env.PORT||3000);
-const http=require('http'),
-      fs=require('fs'),
-      path=require('path'),
-      crypto=require('crypto');
 
-const {DatabaseSync}=require('node:sqlite');
-
-const PORT=Number(process.env.PORT||3000);
 const ROOT=path.join(__dirname,'..');
 const PUBLIC=path.join(ROOT,'public');
 const DB_PATH=path.join(__dirname,'data','daftari.db');
