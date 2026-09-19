@@ -2368,7 +2368,77 @@ async function oauthAppleCallback(
       }
     );
 
-  const d=
+  
+            encodeURIComponent(
+              oauthFindOrTicket(
+                'apple',
+                profile,
+                oauth.referral_code||''
+              )
+            )
+          }`
+      }
+    )
+    .end();
+}
+async function oauthAppleCallback(req,res){
+
+  const z=q(req);
+
+  const oauth =
+    consumeOauthState(
+      z.state,
+      'apple'
+    );
+
+  if(!oauth)
+    return res
+      .writeHead(400)
+      .end(
+        'OAuth state si sahihi au ime-expire.'
+      );
+
+  if(z.error)
+    return res
+      .writeHead(400)
+      .end(
+        `Apple login: ${clean(
+          z.error_description || z.error
+        )}`
+      );
+
+  const r =
+    await fetch(
+      'https://appleid.apple.com/auth/token',
+      {
+        method:'POST',
+
+        headers:{
+          'Content-Type':
+            'application/x-www-form-urlencoded'
+        },
+
+        body:
+          formEncode({
+            client_id:
+              process.env.APPLE_CLIENT_ID,
+
+            client_secret:
+              appleClientSecret(),
+
+            code:
+              z.code,
+
+            grant_type:
+              'authorization_code',
+
+            redirect_uri:
+              oauthRedirect('apple')
+          })
+      }
+    );
+
+  const d =
     await r.json();
 
   if(
@@ -2379,7 +2449,7 @@ async function oauthAppleCallback(
       'Apple haikurudisha identity token.'
     );
 
-  const profile=
+  const profile =
     await verifyAppleIdToken(
       d.id_token
     );
@@ -2393,55 +2463,13 @@ async function oauthAppleCallback(
             oauthFindOrTicket(
               'apple',
               profile,
-              oauth.referral_code||''
+              oauth.referral_code || ''
             )
           )}`
       }
     )
     .end();
-} 
-const r=await fetch('https://appleid.apple.com/auth/token',{
-  method:'POST',
-  headers:{
-    'Content-Type':'application/x-www-form-urlencoded'
-  },
-  body:formEncode({
-    client_id:process.env.APPLE_CLIENT_ID,
-    client_secret:appleClientSecret(),
-    code:z.code,
-    grant_type:'authorization_code',
-    redirect_uri:oauthRedirect('apple')
-  })
-});
-  const d=await r.json();
-
-  if(!r.ok||!d.id_token)
-    throw Error('Apple haikurudisha identity token.');
-
-  const profile=
-    await verifyAppleIdToken(
-      d.id_token
-    );
-
-  return res
-    .writeHead(
-      302,
-      {
-        Location:
-          `/oauth-complete.html?ticket=${
-            encodeURIComponent(
-              oauthFindOrTicket(
-                'apple',
-                profile,
-                oauth.referral_code||''
-              )
-            )
-          }`
-      }
-    )
-    .end();
 }
-
 
 /* =========================================================
    REFERRAL SYSTEM
