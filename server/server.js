@@ -1045,9 +1045,6 @@ function effectivePlanPrice(
 
   ];
 
-
-
-
 /* =========================================================
    SUPER ADMIN
    ========================================================= */
@@ -1079,13 +1076,111 @@ function ensureSuperAdmin(){
 
   }
 
+
   const x =
     db.prepare(`
       SELECT id
       FROM users
       WHERE email=?
-    `).get(e);
-  
+      AND role='super_admin'
+    `)
+    .get(e);
+
+
+  if(!x){
+
+    db.prepare(`
+      INSERT INTO users
+      (
+        full_name,
+        business_id,
+        email,
+        password_hash,
+        role
+      )
+      VALUES(?,?,?,?, 'super_admin')
+    `)
+    .run(
+      'Daftari+ Super Admin',
+      0,
+      e,
+      hash(p)
+    );
+
+  }
+
+}
+
+
+ensureSuperAdmin();
+
+
+/* =========================================================
+   SUBSCRIPTION STATUS
+   ========================================================= */
+
+function subscriptionForBusiness(
+  bid
+){
+
+  const s =
+    db.prepare(`
+      SELECT
+        s.*,
+        p.name plan_name,
+        p.code plan_code,
+        p.duration_days,
+        p.features_json,
+        p.regular_price_tzs,
+        p.discount_percent,
+        p.promotion_name,
+        p.promotion_start,
+        p.promotion_end
+
+      FROM subscriptions s
+
+      JOIN subscription_plans p
+        ON p.id=s.plan_id
+
+      WHERE
+        s.business_id=?
+        AND s.status='ACTIVE'
+        AND s.expires_at>?
+
+      ORDER BY s.expires_at DESC
+
+      LIMIT 1
+    `)
+    .get(
+      bid,
+      new Date().toISOString()
+    );
+
+
+  return s
+    ? {
+        ...s,
+        features:
+          parseFeatures(
+            s.features_json
+          )
+      }
+    : null;
+
+}
+
+
+function subscriptionStatus(
+  bid
+){
+
+  const active =
+    subscriptionForBusiness(bid);
+
+
+  if(active){
+
+    return {
 
       active:true,
 
@@ -1185,6 +1280,7 @@ function requireSubscription(
   return false;
 
 }
+
 
 
 /* =========================================================
