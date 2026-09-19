@@ -1079,15 +1079,13 @@ function ensureSuperAdmin(){
 
   }
 
-
   const x =
     db.prepare(`
       SELECT id
       FROM users
       WHERE email=?
-       if(active){
-
-    return {
+    `).get(e);
+  
 
       active:true,
 
