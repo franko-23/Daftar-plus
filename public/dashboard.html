@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftari+ | Dashibodi</title>
+<script>
+(function(){
+  try{
+    var choice = localStorage.getItem('dp_theme_choice') || 'auto';
+    var effective = choice;
+    if(choice === 'auto'){
+      var h = new Date().getHours();
+      effective = (h >= 6 && h < 18) ? 'light' : 'dark';
+    }
+    document.documentElement.setAttribute('data-theme', effective);
+  }catch(e){}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#00BFA6; --teal-dark:#009984; --teal-soft:#E3FBF7; --teal-deep:#00A896;
+  --bg:#F7FBFA; --panel:#FFFFFF; --text:#0B1E1C; --text-dim:#5B6E6B; --text-faint:#8FA19E;
+  --border:#E3ECEA; --amber:#F5A623; --amber-soft:#FEF3E2; --coral:#E4453A; --coral-soft:#FEF2F2;
+}
+html[data-theme="dark"]{
+  --teal:#2ED9A8; --teal-dark:#1EBE91; --teal-soft:#0F2E28; --teal-deep:#17B392;
+  --bg:#0E1420; --panel:#161D2C; --text:#F3F5F8; --text-dim:#9AA4B7; --text-faint:#6B7488;
+  --border:#2A3448; --amber:#F5A623; --amber-soft:#3A2D10; --coral:#FF6B6B; --coral-soft:#3A1414;
+}
+body{transition:background .2s ease,color .2s ease}
+.sidebar,.panel,.stat-card,.modal,.biz-card{transition:background .2s ease,border-color .2s ease}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Poppins',sans-serif;font-weight:700;margin:0;letter-spacing:-.02em}
+button{font-family:'Inter',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+.sidebar{width:230px;background:var(--panel);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;padding:20px 14px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;padding:6px 8px 22px}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--teal),#00E0C0);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;font-size:13.8px;font-weight:600;color:var(--text-dim);cursor:pointer;margin-bottom:3px;border:none;background:transparent;width:100%;text-align:left}
+.nav-item .ic{font-size:16px;width:20px;text-align:center}
+.nav-item:hover{background:var(--bg)}
+.nav-item.active{background:var(--teal-soft);color:var(--teal-dark)}
+.sidebar-bottom{margin-top:auto;padding-top:14px;border-top:1px solid var(--border)}
+.biz-card{background:var(--bg);border-radius:14px;padding:12px;margin-bottom:10px}
+.biz-name{font-weight:700;font-size:13px}
+.biz-code{color:var(--text-faint);font-size:11px;margin-top:2px}
+.logout-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:12px;font-size:13.5px;font-weight:600;color:var(--coral);cursor:pointer;border:none;background:transparent;width:100%;text-align:left}
+.logout-btn:hover{background:var(--coral-soft)}
+
+.main{flex:1;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 30px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:10}
+.page-title{font-size:20px}
+.page-sub{color:var(--text-dim);font-size:12.5px;margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.content{padding:26px 30px;max-width:1180px}
+.hidden{display:none !important}
+
+/* CARDS / GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px}
+.stat-card .label{font-size:11.5px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.stat-card .value{font-family:'JetBrains Mono',monospace;font-size:23px;font-weight:700;margin-top:8px}
+.stat-card.accent{background:linear-gradient(135deg,var(--teal),var(--teal-deep));border:none}
+.stat-card.accent .label{color:rgba(255,255,255,.85)}
+.stat-card.accent .value{color:#fff}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:22px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.panel-head h3{font-size:16px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:100px;font-weight:700;font-size:13.5px;border:1.5px solid transparent;cursor:pointer}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-outline{border-color:var(--border);color:var(--text);background:var(--panel)}
+.btn-outline:hover{background:var(--bg)}
+.btn-sm{padding:7px 13px;font-size:12.5px;border-radius:9px}
+.btn-danger{color:var(--coral);border-color:#fecaca;background:var(--coral-soft)}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--text-faint);font-size:11px;text-transform:uppercase;letter-spacing:.03em;font-weight:700;padding:9px 10px;border-bottom:1px solid var(--border)}
+td{padding:11px 10px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.table-wrap{overflow-x:auto}
+.empty-row{text-align:center;color:var(--text-faint);padding:26px 10px}
+
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:100px}
+.pill.good{background:var(--teal-soft);color:var(--teal-dark)}
+.pill.warn{background:var(--amber-soft);color:#9A5B04}
+.pill.bad{background:var(--coral-soft);color:var(--coral)}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.form-group label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--text)}
+input,select,textarea{width:100%;height:44px;border:1px solid var(--border);border-radius:11px;padding:0 13px;font-size:13.5px;outline:none;background:var(--panel);font-family:inherit;color:var(--text)}
+textarea{height:auto;padding:10px 13px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(11,30,28,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+.modal-overlay.show{display:flex}
+.modal{background:var(--panel);border-radius:20px;padding:24px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto}
+.modal h3{font-size:17px;margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn{flex:1}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:13px 18px;border-radius:12px;font-size:13.5px;z-index:200;display:none;box-shadow:0 10px 26px rgba(0,0,0,.2)}
+.toast.show{display:block}
+.toast.error{background:var(--coral)}
+
+.low-stock-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.low-stock-item:last-child{border-bottom:none}
+
+.tab-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tab-btn{padding:9px 16px;border-radius:100px;border:1px solid var(--border);background:var(--panel);font-size:12.5px;font-weight:700;color:var(--text-dim);cursor:pointer}
+.tab-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+tfoot td{font-weight:700;border-top:2px solid var(--border);border-bottom:none;background:var(--bg)}
+.inline-select{width:auto;height:38px;padding:0 12px;font-size:12.5px;font-weight:600}
+.hint{color:var(--text-dim);font-size:12.5px;margin:0 0 14px}
+.num{text-align:right;white-space:nowrap}
+#page-stock th,#page-stock td{padding:10px 7px}
+#page-stock th{white-space:normal;line-height:1.3}
+th.num{text-align:right}
+.menu-toggle{display:none;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--text)}
+@media(max-width:900px){
+  .sidebar{position:fixed;left:-250px;top:0;height:100vh;z-index:50;transition:left .2s;box-shadow:0 0 30px rgba(0,0,0,.15)}
+  .sidebar.open{left:0}
+  .menu-toggle{display:block}
+  .content{padding:20px 16px}
+  .topbar{padding:14px 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand-mark">D+</span>Daftari+</div>
+    <button class="nav-item active" data-page="overview"><span class="ic">📊</span>Muhtasari</button>
+    <button class="nav-item" data-page="sales"><span class="ic">🧾</span>Mauzo</button>
+    <button class="nav-item" data-page="products"><span class="ic">📦</span>Bidhaa</button>
+    <button class="nav-item" data-page="stock"><span class="ic">🏦</span>Stock &amp; Mtaji</button>
+    <button class="nav-item" data-page="debts"><span class="ic">💳</span>Madeni</button>
+    <button class="nav-item" data-page="expenses"><span class="ic">💸</span>Matumizi</button>
+    <button class="nav-item" data-page="team"><span class="ic">👥</span>Timu</button>
+    <button class="nav-item" data-page="referral"><span class="ic">🔗</span>Rufaa</button>
+    <button class="nav-item" data-page="reports"><span class="ic">📈</span>Ripoti</button>
+    <button class="nav-item" data-page="settings"><span class="ic">⚙️</span>Mipangilio</button>
+    <div class="sidebar-bottom">
+      <div class="biz-card">
+        <div class="biz-name" id="bizName">—</div>
+        <div class="biz-code" id="bizCode">—</div>
+      </div>
+      <button class="logout-btn" id="logoutBtn"><span class="ic">🚪</span>Toka</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div>
+          <div class="page-title" id="pageTitle">Muhtasari</div>
+          <div class="page-sub" id="pageSub">Muhtasari wa biashara yako</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span id="greetLine" class="page-sub" style="margin-right:2px"></span>
+        <div class="avatar" id="avatar">A</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <section id="page-overview">
+        <div class="stat-grid">
+          <div class="stat-card accent"><div class="label">Mauzo ya Jumla</div><div class="value mono" id="statRevenue">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Faida Halisi</div><div class="value mono" id="statProfit">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Idadi ya Mauzo</div><div class="value mono" id="statSalesCount">0</div></div>
+          <div class="stat-card"><div class="label">Matumizi</div><div class="value mono" id="statExpenses">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Madeni Yaliyobaki</div><div class="value mono" id="statDebts">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Bidhaa Zilizopo</div><div class="value mono" id="statProducts">0</div></div>
+          <div class="stat-card"><div class="label">Mtaji wa Stock</div><div class="value mono" id="statCapital">TSh 0</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Bidhaa Zinazokaribia Kuisha</h3></div>
+          <div id="lowStockList"><div class="empty-row">Inapakia...</div></div>
+        </div>
+      </section>
+
+      <!-- SALES -->
+      <section id="page-sales" class="hidden">
+        <div class="panel">
+          <div class="panel-head"><h3>Rekodi Mauzo Mapya</h3></div>
+          <form id="saleForm" class="form-grid">
+            <div class="form-group"><label>Bidhaa</label><select id="saleProduct" required></select></div>
+            <div class="form-group"><label>Kiasi</label><input id="saleQty" type="number" min="1" value="1" required></div>
+            <div class="form-group"><label>Punguzo (Discount)</label><input id="saleDiscount" type="number" min="0" value="0"></div>
+            <div class="form-group"><label>Namna ya Malipo</label>
+              <select id="salePayment">
+                <option value="cash">Taslimu (Cash)</option>
+                <option value="mobile">Mobile Money</option>
+                <option value="bank">Benki</option>
+                <option value="credit">Deni (Credit)</option>
+              </select>
+            </div>
+            <div class="form-group" id="saleCustomerWrap" style="display:none"><label>Mteja</label><select id="saleCustomer"></select></div>
+            <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary" id="saleSubmitBtn" style="width:100%">+ Rekodi Mauzo</button></div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Mauzo ya Hivi Karibuni</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Bidhaa</th><th>Kiasi</th><th>Jumla</th><th>Malipo</th><th>Aliyeuza</th><th>Muda</th></tr></thead>
+              <tbody id="salesTable"><tr><td class="empty-row" colspan="6">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRODUCTS -->
+      <section id="page-products" class="hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Bidhaa Zote</h3>
+            <button class="btn btn-primary btn-sm" id="openAddProduct">+ Ongeza Bidhaa</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Jina</th><th>Bei ya Ununuzi</th><th>Bei ya Kuuzia</th><th>Stock</th><th>Kiwango cha Chini</th><th></th></tr></thead>
+              <tbody id="productsTable"><tr><td class="empty-row" colspan="6">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- STOCK & MTAJI -->
+      <section id="page-stock" class="hidden">
+        <div class="stat-grid">
+          <div class="stat-card accent"><div class="label">Mtaji wa Stock (Gharama)</div><div class="value mono" id="stkCapital">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Thamani ya Kuuza</div><div class="value mono" id="stkRetail">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Faida Inayotarajiwa</div><div class="value mono" id="stkExpected">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Jumla ya Vipande</div><div class="value mono" id="stkUnits">0</div></div>
+          <div class="stat-card"><div class="label">Aina za Bidhaa</div><div class="value mono" id="stkProducts">0</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3 id="stkTitle">Stock Yote</h3>
+            <select id="stkDays" class="inline-select" aria-label="Kipindi">
+              <option value="7">Siku 7</option>
+              <option value="30" selected>Siku 30</option>
+              <option value="90">Siku 90</option>
+              <option value="365">Mwaka 1</option>
+              <option value="0">Muda wote</option>
+            </select>
+          </div>
+          <div class="tab-row" id="stkTabs">
+            <button class="tab-btn active" data-view="all">Zote</button>
+            <button class="tab-btn" data-view="best">Zinazouzwa Sana</button>
+            <button class="tab-btn" data-view="low">Zilizobaki Chache</button>
+            <button class="tab-btn" data-view="slow">Zisizouzwa Sana</button>
+            <button class="tab-btn" data-view="profit">Zenye Faida Kubwa</button>
+          </div>
+          <p class="hint" id="stkHint"></p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bidhaa</th>
+                  <th class="num">Stock</th>
+                  <th class="num">Bei ya Ununuzi (TSh)</th>
+                  <th class="num">Mtaji / Gharama ya Stock (TSh)</th>
+                  <th class="num">Thamani ya Kuuza (TSh)</th>
+                  <th class="num" id="thSold">Zimeuzwa</th>
+                  <th class="num" id="thProfit">Faida</th>
+                  <th>Hali</th>
+                </tr>
+              </thead>
+              <tbody id="stockTable"><tr><td class="empty-row" colspan="8">Inapakia...</td></tr></tbody>
+              <tfoot id="stockFoot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEBTS -->
+      <section id="page-debts" class="hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Ongeza Deni</h3>
+          </div>
+          <form id="debtForm" class="form-grid">
+            <div class="form-group"><label>Jina la Mdaiwa</label><input id="debtPerson" type="text" required></div>
+            <div class="form-group"><label>Kiasi</label><input id="debtAmount" type="number" min="1" required></div>
+            <div class="form-group"><label>Tarehe ya Mwisho (Hiari)</label><input id="debtDue" type="date"></div>
+            <div class="form-group"><label>Maelezo (Hiari)</label><input id="debtDesc" type="text"></div>
+            <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary" style="width:100%">+ Ongeza Deni</button></div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Orodha ya Madeni</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Jina</th><th>Kiasi</th><th>Kimelipwa</th><th>Kimebaki</th><th>Hali</th><th></th></tr></thead>
+              <tbody id="debtsTable"><tr><td class="empty-row" colspan="6">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPENSES -->
+      <section id="page-expenses" class="hidden">
+        <div class="panel">
+          <div class="panel-head"><h3>Ongeza Matumizi</h3></div>
+          <form id="expenseForm" class="form-grid">
+            <div class="form-group"><label>Maelezo</label><input id="expDesc" type="text" required></div>
+            <div class="form-group"><label>Category (Hiari)</label><input id="expCategory" type="text" placeholder="Mfano: Usafiri"></div>
+            <div class="form-group"><label>Kiasi</label><input id="expAmount" type="number" min="1" required></div>
+            <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary" style="width:100%">+ Ongeza Matumizi</button></div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Orodha ya Matumizi</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Maelezo</th><th>Category</th><th>Kiasi</th><th>Aliyeongeza</th><th>Muda</th></tr></thead>
+              <tbody id="expensesTable"><tr><td class="empty-row" colspan="5">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TEAM -->
+      <section id="page-team" class="hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Wafanyakazi</h3>
+            <button class="btn btn-primary btn-sm" id="openAddEmployee">+ Ongeza Mfanyakazi</button>
+          </div>
+          <p class="page-sub" style="margin-bottom:14px">Business Code ya kushirikisha na wafanyakazi wapya: <b class="mono" id="teamBizCode">—</b></p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Jina</th><th>Email</th><th>Role</th><th>Hali</th><th></th></tr></thead>
+              <tbody id="employeesTable"><tr><td class="empty-row" colspan="5">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- REFERRAL -->
+      <section id="page-referral" class="hidden">
+        <div class="panel">
+          <div class="panel-head"><h3>Link Yako ya Rufaa</h3></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input id="referralLinkInput" type="text" readonly style="flex:1;min-width:240px;height:46px;border:1px solid var(--border);border-radius:11px;padding:0 13px;font-size:13px;background:var(--bg);color:var(--text)">
+            <button class="btn btn-primary" id="copyReferralBtn">Nakili Link</button>
+          </div>
+          <p class="page-sub" style="margin-top:10px">Shiriki <b>link</b> hii (si code peke yake) — mtu anayejisajili kwa kuifuata anasomwa/kuthibitishwa moja kwa moja papo hapo kuwa ni sehemu ya timu yako, na unapata kamisheni pale anapolipia subscription.</p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card accent"><div class="label">Mapato Yaliyolipwa</div><div class="value mono" id="refPaid">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Mapato Yanayosubiri</div><div class="value mono" id="refPending">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Mapato ya Jumla</div><div class="value mono" id="refTotal">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Watu Ulioleta</div><div class="value mono" id="refCount">0</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Toa Mapato (Withdrawal)</h3></div>
+          <div class="stat-grid" style="margin-bottom:16px">
+            <div class="stat-card accent"><div class="label">Unaweza Kutoa Sasa</div><div class="value mono" id="refWithdrawable">TSh 0</div></div>
+            <div class="stat-card"><div class="label">Umeomba (Inasubiri Kulipwa)</div><div class="value mono" id="refInWithdrawal">TSh 0</div></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label>Mtandao wa simu</label>
+              <select id="wdNetwork">
+                <option value="">-- Chagua mtandao --</option>
+                <option value="mpesa">M-Pesa (Vodacom)</option>
+                <option value="tigopesa">Mixx by Yas (Tigo Pesa)</option>
+                <option value="airtelmoney">Airtel Money</option>
+                <option value="halopesa">HaloPesa</option>
+                <option value="tpesa">T-Pesa (TTCL)</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Majina kamili (kama yalivyosajiliwa kwenye namba)</label><input id="wdName" type="text" autocomplete="name" placeholder="Mfano: Juma Ali Hamisi"></div>
+            <div class="form-group"><label>Namba ya simu</label><input id="wdPhone" type="tel" inputmode="tel" placeholder="07XXXXXXXX"></div>
+            <div class="form-group" style="align-self:end"><button class="btn btn-primary" id="wdBtn" style="width:100%" disabled>Toa Pesa (Withdraw)</button></div>
+          </div>
+          <p class="hint" id="wdHint" style="margin:12px 0 0"></p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Historia ya Kutoa Pesa</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Kiasi</th><th>Jina</th><th>Mtandao</th><th>Simu</th><th>Hali</th><th>Muda</th></tr></thead>
+              <tbody id="withdrawalsTable"><tr><td class="empty-row" colspan="6">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Timu Yako (Uliowaleta)</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Jina</th><th>Email</th><th>Role</th><th>Hali</th><th>Alijiunga</th></tr></thead>
+              <tbody id="referralTeamTable"><tr><td class="empty-row" colspan="5">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Historia ya Kamisheni</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Aliyeletwa</th><th>Kiasi</th><th>Hali</th><th>Muda</th></tr></thead>
+              <tbody id="referralCommissionsTable"><tr><td class="empty-row" colspan="4">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section id="page-reports" class="hidden">
+        <div class="tab-row">
+          <button class="tab-btn active" data-period="day">Leo</button>
+          <button class="tab-btn" data-period="week">Wiki Hii</button>
+          <button class="tab-btn" data-period="month">Mwezi Huu</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card accent"><div class="label">Mapato</div><div class="value mono" id="repRevenue">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Faida Ghafi</div><div class="value mono" id="repGross">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Matumizi</div><div class="value mono" id="repExpenses">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Faida Halisi</div><div class="value mono" id="repProfit">TSh 0</div></div>
+          <div class="stat-card"><div class="label">Margin</div><div class="value mono" id="repMargin">0%</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Mauzo Kwenye Kipindi</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Bidhaa</th><th>Kiasi</th><th>Jumla</th><th>Muda</th></tr></thead>
+              <tbody id="reportSalesTable"><tr><td class="empty-row" colspan="4">Inapakia...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="page-settings" class="hidden">
+        <div class="panel">
+          <div class="panel-head"><h3>Taarifa za Biashara</h3></div>
+          <form id="settingsForm" class="form-grid">
+            <div class="form-group"><label>Jina la Biashara</label><input id="setName" type="text" required></div>
+            <div class="form-group"><label>Namba ya Simu</label><input id="setPhone" type="tel" placeholder="07XXXXXXXX"></div>
+            <div class="form-group" style="grid-column:1/-1"><label>Anwani</label><input id="setAddress" type="text" placeholder="Mfano: Kariakoo, Dar es Salaam"></div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Mwonekano (Theme)</h3></div>
+          <p class="hint">Kiotomatiki huweka giza usiku (18:00–06:00) na nyeupe mchana kulingana na saa ya kifaa chako.</p>
+          <div class="tab-row" id="themeTabs">
+            <button type="button" class="tab-btn" data-theme-choice="auto">Kiotomatiki</button>
+            <button type="button" class="tab-btn" data-theme-choice="light">Nyeupe</button>
+            <button type="button" class="tab-btn" data-theme-choice="dark">Giza</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Arifa za Muhtasari</h3></div>
+          <p class="hint">Tuma arifa kwenye simu yenye mauzo/faida ya kipindi kilichopita, au taarifa kama hakuna mauzo.</p>
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="form-group">
+              <label>Muda kati ya arifa</label>
+              <select id="setInterval">
+                <option value="2">Dakika 2 (majaribio)</option>
+                <option value="60">Kila saa 1</option>
+                <option value="120" selected>Kila masaa 2</option>
+                <option value="240">Kila masaa 4</option>
+                <option value="480">Kila masaa 8</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Washa arifa za muhtasari</label>
+              <select id="setNotifyEnabled">
+                <option value="1">Ndiyo</option>
+                <option value="0">Hapana</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="enablePushBtn">Washa arifa kwenye simu/kompyuta hii</button>
+          <button type="button" class="btn btn-outline btn-sm" id="testNotifyBtn" style="margin-left:10px">Tuma arifa ya majaribio sasa</button>
+          <p class="hint" id="pushStatus" style="margin-top:10px"></p>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn">Hifadhi Mipangilio</button>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-overlay" id="productModalOverlay">
+  <div class="modal">
+    <h3 id="productModalTitle">Ongeza Bidhaa</h3>
+    <form id="productForm">
+      <input type="hidden" id="productId">
+      <div class="form-group" style="margin-bottom:12px"><label>Jina la Bidhaa</label><input id="pName" type="text" required></div>
+      <div class="form-grid" style="margin-bottom:12px">
+        <div class="form-group"><label>Bei ya Ununuzi</label><input id="pBuy" type="number" min="0" required></div>
+        <div class="form-group"><label>Bei ya Kuuzia</label><input id="pSell" type="number" min="0" required></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Kiasi cha Stock</label><input id="pQty" type="number" min="0" value="0" required></div>
+        <div class="form-group"><label>Kiwango cha Chini</label><input id="pMin" type="number" min="0" value="5"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="productCancelBtn">Ghairi</button>
+        <button type="submit" class="btn btn-primary" id="productSaveBtn">Hifadhi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD EMPLOYEE MODAL -->
+<div class="modal-overlay" id="employeeModalOverlay">
+  <div class="modal">
+    <h3>Ongeza Mfanyakazi</h3>
+    <form id="employeeForm">
+      <div class="form-group" style="margin-bottom:12px"><label>Jina Kamili</label><input id="eName" type="text" required></div>
+      <div class="form-group" style="margin-bottom:12px"><label>Barua Pepe</label><input id="eEmail" type="email" required></div>
+      <div class="form-group" style="margin-bottom:12px"><label>Namba ya Simu</label><input id="ePhone" type="tel"></div>
+      <div class="form-group" style="margin-bottom:12px"><label>Password ya Muda</label><input id="ePassword" type="text" minlength="10" required></div>
+      <div class="form-group"><label>Role</label>
+        <select id="eRole"><option value="saler">Saler</option><option value="manager">Manager</option></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="employeeCancelBtn">Ghairi</button>
+        <button type="submit" class="btn btn-primary">Ongeza</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DEBT PAYMENT MODAL -->
+<div class="modal-overlay" id="paymentModalOverlay">
+  <div class="modal">
+    <h3>Rekodi Malipo</h3>
+    <form id="paymentForm">
+      <input type="hidden" id="paymentDebtId">
+      <div class="form-group"><label>Kiasi Kilicholipwa</label><input id="paymentAmount" type="number" min="1" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="paymentCancelBtn">Ghairi</button>
+        <button type="submit" class="btn btn-primary">Hifadhi Malipo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+window.ONESIGNAL_APP_ID = "479c9c88-778e-4080-bc74-96709d70a059";
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(function(OneSignal){
+  OneSignal.init({ appId: window.ONESIGNAL_APP_ID });
+});
+</script>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => 'TSh ' + Math.round(Number(n)||0).toLocaleString('en-US');
+const fmtTime = s => { try{ return new Date(s.replace(' ','T')+'Z').toLocaleString('sw-TZ',{dateStyle:'medium',timeStyle:'short'}); }catch{ return s; } };
+
+let toastTimer;
+function toast(msg, type=''){
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.className = 'toast', 2600);
+
+  if(type === 'error'){
+    document.querySelectorAll('.empty-row').forEach(cell => {
+      if(cell.textContent.trim() === 'Inapakia...'){
+        cell.textContent = 'Imeshindwa kupakia: ' + msg;
+      }
+    });
+  }
+}
+
+function getToken(){ return localStorage.getItem('dp_token'); }
+function clearSession(){ localStorage.removeItem('dp_token'); localStorage.removeItem('dp_user'); }
+
+async function api(path, options={}){
+  const headers = { 'Content-Type': 'application/json', ...(options.headers||{}) };
+  const token = getToken();
+  if(token) headers.Authorization = 'Bearer ' + token;
+  const response = await fetch(path, { ...options, headers });
+  let data = {};
+  try{ data = await response.json(); }catch{}
+  if(response.status === 401){
+    clearSession();
+    window.location.replace('/login.html');
+    throw new Error('Session imeisha');
+  }
+  if(response.status === 402){
+    showSubscriptionBanner(data.error || 'Subscription yako imeisha au haijawezeshwa.');
+    const error = new Error(data.error || 'Subscription inahitajika.');
+    error.data = data;
+    error.subscription = true;
+    throw error;
+  }
+  if(!response.ok){
+    const error = new Error(data.error || data.message || 'Kuna tatizo kwenye server.');
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+function showSubscriptionBanner(message){
+  let banner = $('subBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'subBanner';
+    banner.style.cssText = 'background:var(--amber-soft);color:#9A5B04;border:1px solid #f3d9a8;border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:13.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap';
+    banner.innerHTML = `<span id="subBannerText"></span><a href="/subscription/subscription.html" class="btn btn-primary btn-sm" style="text-decoration:none">Renew Subscription</a>`;
+    document.querySelector('.content').prepend(banner);
+  }
+  banner.querySelector('#subBannerText').textContent = message;
+}
+
+/* ---------------- AUTH / INIT ---------------- */
+
+let currentUser = null;
+let products = [];
+let customers = [];
+
+async function init(){
+  const token = getToken();
+  if(!token){ window.location.replace('/login.html'); return; }
+
+  try{
+    const me = await api('/api/me');
+    if(me.user.role !== 'owner'){
+      if(me.user.role === 'super_admin') window.location.replace('/super-admin.html');
+      else if(me.user.role === 'saler' || me.user.role === 'seller') window.location.replace('/saler.html');
+      else window.location.replace('/login.html');
+      return;
+    }
+    currentUser = me.user;
+    $('avatar').textContent = (me.user.full_name||'?').charAt(0).toUpperCase();
+    $('greetLine').textContent = greetingForNow() + ', ' + (me.user.full_name||'').split(' ')[0];
+    $('bizName').textContent = me.business ? me.business.name : '—';
+    $('bizCode').textContent = me.business ? 'Code: ' + me.business.code : '';
+    $('teamBizCode').textContent = me.business ? me.business.code : '—';
+
+    if(!me.business){
+      document.querySelector('.content').innerHTML =
+        '<div class="panel"><h3>Biashara Yako Haijakamilika Kuwekwa</h3>' +
+        '<p class="page-sub" style="margin-top:8px">Akaunti hii haina taarifa za biashara bado (kawaida hutokea ukisajili kupitia Google/Apple). ' +
+        'Wasiliana na msaada wa Daftari+ ili kukamilisha uwekaji wa biashara yako.</p></div>';
+      return;
+    }
+  }catch(e){
+    clearSession();
+    window.location.replace('/login.html');
+    return;
+  }
+
+  loadOverview();
+}
+
+$('logoutBtn').addEventListener('click', async () => {
+  try{ await api('/api/logout', { method:'POST' }); }catch{}
+  clearSession();
+  window.location.replace('/login.html');
+});
+
+/* ---------------- NAVIGATION ---------------- */
+
+const pageTitles = {
+  overview:['Muhtasari','Muhtasari wa biashara yako'],
+  sales:['Mauzo','Rekodi na fuatilia mauzo yako'],
+  products:['Bidhaa','Simamia bidhaa na stock'],
+  stock:['Stock & Mtaji','Mtaji wako, bidhaa zinazouzwa sana na zenye faida'],
+  debts:['Madeni','Fuatilia madeni ya wateja'],
+  expenses:['Matumizi','Rekodi matumizi ya biashara'],
+  team:['Timu','Simamia wafanyakazi wako'],
+  referral:['Rufaa','Link yako, mapato na timu ya rufaa'],
+  reports:['Ripoti','Ripoti za mauzo na faida'],
+  settings:['Mipangilio','Taarifa za biashara, mwonekano na arifa']
+};
+
+document.querySelectorAll('.nav-item[data-page]').forEach(btn=>{
+  btn.addEventListener('click', () => {
+    const page = btn.dataset.page;
+    document.querySelectorAll('.nav-item[data-page]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('[id^="page-"]').forEach(s=>s.classList.add('hidden'));
+    $('page-'+page).classList.remove('hidden');
+    $('pageTitle').textContent = pageTitles[page][0];
+    $('pageSub').textContent = pageTitles[page][1];
+    $('sidebar').classList.remove('open');
+
+    if(page==='overview') loadOverview();
+    if(page==='sales') loadSales();
+    if(page==='products') loadProducts();
+    if(page==='stock') loadStock();
+    if(page==='debts') loadDebts();
+    if(page==='expenses') loadExpenses();
+    if(page==='team') loadEmployees();
+    if(page==='referral') loadReferral();
+    if(page==='reports') loadReports('day');
+    if(page==='settings') loadSettings();
+  });
+});
+
+$('menuToggle').addEventListener('click', () => $('sidebar').classList.toggle('open'));
+
+/* ---------------- OVERVIEW ---------------- */
+
+async function loadOverview(){
+  try{
+    const { summary } = await api('/api/dashboard');
+    $('statRevenue').textContent = fmt(summary.totalRevenue);
+    $('statProfit').textContent = fmt(summary.totalProfit);
+    $('statSalesCount').textContent = summary.totalSales;
+    $('statExpenses').textContent = fmt(summary.totalExpenses);
+    $('statDebts').textContent = fmt(summary.totalDebts);
+    $('statProducts').textContent = summary.productCount;
+
+    const list = $('lowStockList');
+    if(!summary.lowStock.length){
+      list.innerHTML = '<div class="empty-row">Hakuna bidhaa zinazokaribia kuisha 🎉</div>';
+    }else{
+      list.innerHTML = summary.lowStock.map(p => `
+        <div class="low-stock-item">
+          <span>${escapeHtml(p.name)}</span>
+          <span class="pill warn">Zimebaki ${p.quantity}</span>
+        </div>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+
+  try{
+    const st = await api('/api/stock/analytics?days=30');
+    $('statCapital').textContent = fmt(st.totals.capital);
+  }catch(e){ /* kadi ya mtaji si muhimu kuzuia overview */ }
+}
+
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- PRODUCTS ---------------- */
+
+async function loadProducts(){
+  try{
+    const data = await api('/api/products');
+    products = data.products;
+    const tbody = $('productsTable');
+    if(!products.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="6">Bado hakuna bidhaa. Ongeza bidhaa yako ya kwanza.</td></tr>';
+    }else{
+      tbody.innerHTML = products.map(p => `
+        <tr>
+          <td>${escapeHtml(p.name)}</td>
+          <td class="mono">${fmt(p.buy_price)}</td>
+          <td class="mono">${fmt(p.sell_price)}</td>
+          <td>${p.quantity <= p.min_stock ? `<span class="pill warn">${p.quantity}</span>` : `<span class="pill good">${p.quantity}</span>`}</td>
+          <td>${p.min_stock}</td>
+          <td><button class="btn btn-outline btn-sm" data-edit-product="${p.id}">Hariri</button></td>
+        </tr>
+      `).join('');
+    }
+    populateSaleProductSelect();
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('productsTable').addEventListener('click', (ev)=>{
+  const id = ev.target.dataset.editProduct;
+  if(!id) return;
+  const p = products.find(x => String(x.id) === id);
+  if(!p) return;
+  $('productModalTitle').textContent = 'Hariri Bidhaa';
+  $('productId').value = p.id;
+  $('pName').value = p.name;
+  $('pBuy').value = p.buy_price;
+  $('pSell').value = p.sell_price;
+  $('pQty').value = p.quantity;
+  $('pMin').value = p.min_stock;
+  $('productModalOverlay').classList.add('show');
+});
+
+$('openAddProduct').addEventListener('click', () => {
+  $('productModalTitle').textContent = 'Ongeza Bidhaa';
+  $('productForm').reset();
+  $('productId').value = '';
+  $('pQty').value = 0;
+  $('pMin').value = 5;
+  $('productModalOverlay').classList.add('show');
+});
+$('productCancelBtn').addEventListener('click', () => $('productModalOverlay').classList.remove('show'));
+
+$('productForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const id = $('productId').value;
+  const payload = {
+    name: $('pName').value.trim(),
+    buyPrice: Number($('pBuy').value),
+    sellPrice: Number($('pSell').value),
+    quantity: Number($('pQty').value),
+    minStock: Number($('pMin').value)
+  };
+  const btn = $('productSaveBtn');
+  btn.disabled = true;
+  try{
+    if(id) await api('/api/products/'+id, { method:'PUT', body: JSON.stringify(payload) });
+    else await api('/api/products', { method:'POST', body: JSON.stringify(payload) });
+    toast('Bidhaa imehifadhiwa.');
+    $('productModalOverlay').classList.remove('show');
+    loadProducts();
+    loadOverview();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+  finally{ btn.disabled = false; }
+});
+
+/* ---------------- STOCK & MTAJI ---------------- */
+
+let stockData = null;
+let stockView = 'all';
+const STOCK_LIMIT = 20;
+
+const stockViews = {
+  all:    { title:'Stock Yote',                 hint:'Bidhaa zote pamoja na mtaji uliowekwa kwenye kila moja.' },
+  best:   { title:'Zinazouzwa Sana',            hint:'Bidhaa zilizouzwa vipande vingi kwenye kipindi ulichochagua (zinaonyesha 20 za juu).' },
+  low:    { title:'Zilizobaki Chache',          hint:'Bidhaa ambazo stock imefikia au iko chini ya kiwango cha chini. Zenye alama nyekundu zinauzwa sana — ongeza stock haraka ("Ongeza haraka").' },
+  slow:   { title:'Zisizouzwa Sana',            hint:'Bidhaa zenye stock lakini zinauzwa kidogo (au hazijauzwa) kwenye kipindi hiki — mtaji wako umefungwa hapa (zinaonyesha 20).' },
+  profit: { title:'Zenye Faida Kubwa',          hint:'Bidhaa zilizokuletea faida kubwa zaidi kwenye kipindi ulichochagua (zinaonyesha 20 za juu).' }
+};
+
+const nf = v => Math.round(Number(v)||0).toLocaleString('en-US');
+
+function periodLabel(days){
+  return days === 0 ? 'Muda wote' : (days === 365 ? 'Mwaka 1' : 'Siku ' + days);
+}
+
+async function loadStock(){
+  const days = $('stkDays').value;
+  try{
+    stockData = await api('/api/stock/analytics?days=' + encodeURIComponent(days));
+    const t = stockData.totals;
+    $('stkCapital').textContent = fmt(t.capital);
+    $('stkRetail').textContent = fmt(t.retailValue);
+    $('stkExpected').textContent = fmt(t.expectedProfit);
+    $('stkUnits').textContent = Number(t.units).toLocaleString('en-US');
+    $('stkProducts').textContent = t.products;
+    const lbl = periodLabel(stockData.days);
+    $('thSold').textContent = 'Zimeuzwa — ' + lbl;
+    $('thProfit').textContent = 'Faida (TSh) — ' + lbl;
+    renderStock();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+}
+
+function renderStock(){
+  if(!stockData) return;
+  const items = stockData.items;
+  const v = stockViews[stockView];
+  $('stkTitle').textContent = v.title;
+  $('stkHint').textContent = v.hint;
+
+  // "Zinazouzwa sana" = 30% ya juu ya bidhaa zilizouzwa (angalau 1, isizidi 10) — hutumika kuweka alama ya "ongeza stock haraka"
+  const sellers = items.filter(i => i.sold_qty > 0).sort((a,b) => b.sold_qty - a.sold_qty);
+  const hotCount = Math.min(10, Math.max(1, Math.ceil(sellers.length * 0.3)));
+  const hotIds = new Set(sellers.slice(0, hotCount).map(i => i.id));
+
+  let list = items.slice();
+  let truncated = false;
+
+  if(stockView === 'best'){
+    list = list.filter(i => i.sold_qty > 0).sort((a,b) => b.sold_qty - a.sold_qty);
+  }else if(stockView === 'low'){
+    list = list.filter(i => i.quantity <= i.min_stock).sort((a,b) => (a.quantity - b.quantity) || (b.sold_qty - a.sold_qty));
+  }else if(stockView === 'slow'){
+    list = list.filter(i => i.quantity > 0).sort((a,b) => (a.sold_qty - b.sold_qty) || (b.stock_cost - a.stock_cost));
+  }else if(stockView === 'profit'){
+    list = list.filter(i => i.profit > 0).sort((a,b) => b.profit - a.profit);
+  }
+
+  if(stockView !== 'all' && stockView !== 'low' && list.length > STOCK_LIMIT){
+    list = list.slice(0, STOCK_LIMIT);
+    truncated = true;
+  }
+
+  const tbody = $('stockTable');
+  const tfoot = $('stockFoot');
+
+  if(!list.length){
+    const msg = {
+      all:'Bado hakuna bidhaa. Ongeza bidhaa yako ya kwanza.',
+      best:'Hakuna mauzo kwenye kipindi hiki.',
+      low:'Hakuna bidhaa zilizobaki chache 🎉',
+      slow:'Hakuna bidhaa zenye stock.',
+      profit:'Hakuna faida iliyorekodiwa kwenye kipindi hiki.'
+    }[stockView];
+    tbody.innerHTML = `<tr><td class="empty-row" colspan="8">${msg}</td></tr>`;
+    tfoot.innerHTML = '';
+    return;
+  }
+
+  const status = i => {
+    if(i.quantity <= 0) return '<span class="pill bad">Imeisha</span>';
+    if(i.quantity <= i.min_stock){
+      return hotIds.has(i.id)
+        ? '<span class="pill bad">Ongeza haraka</span>'
+        : '<span class="pill warn">Chache</span>';
+    }
+    if(i.sold_qty === 0) return '<span class="pill warn">Haijauzwa</span>';
+    return '<span class="pill good">Sawa</span>';
+  };
+
+  tbody.innerHTML = list.map(i => `
+    <tr>
+      <td>${escapeHtml(i.name)}</td>
+      <td class="num mono">${Number(i.quantity).toLocaleString('en-US')}</td>
+      <td class="num mono">${nf(i.buy_price)}</td>
+      <td class="num mono">${nf(i.stock_cost)}</td>
+      <td class="num mono">${nf(i.stock_value)}</td>
+      <td class="num mono">${nf(i.sold_qty)}</td>
+      <td class="num mono">${nf(i.profit)}</td>
+      <td>${status(i)}</td>
+    </tr>
+  `).join('');
+
+  const sum = k => list.reduce((a,i) => a + Number(i[k]||0), 0);
+  tfoot.innerHTML = `
+    <tr>
+      <td>${stockView === 'all' ? 'JUMLA' : 'Jumla (zilizoorodheshwa)'}${truncated ? ' — 20 za juu' : ''}</td>
+      <td class="num mono">${sum('quantity').toLocaleString('en-US')}</td>
+      <td></td>
+      <td class="num mono">${nf(sum('stock_cost'))}</td>
+      <td class="num mono">${nf(sum('stock_value'))}</td>
+      <td class="num mono">${nf(sum('sold_qty'))}</td>
+      <td class="num mono">${nf(sum('profit'))}</td>
+      <td></td>
+    </tr>`;
+}
+
+$('stkTabs').addEventListener('click', ev => {
+  const btn = ev.target.closest('.tab-btn[data-view]');
+  if(!btn) return;
+  document.querySelectorAll('#stkTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  stockView = btn.dataset.view;
+  renderStock();
+});
+
+$('stkDays').addEventListener('change', loadStock);
+
+/* ---------------- SALES ---------------- */
+
+function populateSaleProductSelect(){
+  $('saleProduct').innerHTML = products.map(p =>
+    `<option value="${p.id}" data-stock="${p.quantity}">${escapeHtml(p.name)} — ${fmt(p.sell_price)} (Stock: ${p.quantity})</option>`
+  ).join('') || '<option value="">Hakuna bidhaa</option>';
+}
+
+async function loadCustomersIntoSelect(){
+  try{
+    const data = await api('/api/customers');
+    customers = data.customers;
+    $('saleCustomer').innerHTML = '<option value="">-- Chagua Mteja --</option>' +
+      customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  }catch(e){ /* ignore */ }
+}
+
+$('salePayment').addEventListener('change', () => {
+  const isCredit = $('salePayment').value === 'credit';
+  $('saleCustomerWrap').style.display = isCredit ? 'block' : 'none';
+  if(isCredit && !customers.length) loadCustomersIntoSelect();
+});
+
+async function loadSales(){
+  if(!products.length) await loadProducts();
+  try{
+    const data = await api('/api/sales');
+    const tbody = $('salesTable');
+    if(!data.sales.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="6">Bado hakuna mauzo yaliyorekodiwa.</td></tr>';
+    }else{
+      tbody.innerHTML = data.sales.slice(0,100).map(s => `
+        <tr>
+          <td>${escapeHtml(s.product_name)}</td>
+          <td>${s.quantity}</td>
+          <td class="mono">${fmt(s.total)}</td>
+          <td><span class="pill good">${escapeHtml(s.payment_method)}</span></td>
+          <td>${escapeHtml(s.sold_by_name)}</td>
+          <td>${fmtTime(s.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('saleForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const productId = $('saleProduct').value;
+  if(!productId){ toast('Hakuna bidhaa ya kuuza.','error'); return; }
+  const payload = {
+    productId: Number(productId),
+    quantity: Number($('saleQty').value),
+    discount: Number($('saleDiscount').value || 0),
+    paymentMethod: $('salePayment').value,
+    customerId: $('saleCustomer').value ? Number($('saleCustomer').value) : undefined
+  };
+  const btn = $('saleSubmitBtn');
+  btn.disabled = true;
+  try{
+    await api('/api/sales', { method:'POST', body: JSON.stringify(payload) });
+    toast('Mauzo yamerekodiwa.');
+    $('saleForm').reset();
+    $('saleCustomerWrap').style.display = 'none';
+    loadProducts();
+    loadSales();
+    loadOverview();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+  finally{ btn.disabled = false; }
+});
+
+/* ---------------- DEBTS ---------------- */
+
+async function loadDebts(){
+  try{
+    const data = await api('/api/debts');
+    const tbody = $('debtsTable');
+    if(!data.debts.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="6">Hakuna madeni.</td></tr>';
+    }else{
+      tbody.innerHTML = data.debts.map(d => `
+        <tr>
+          <td>${escapeHtml(d.person_name)}</td>
+          <td class="mono">${fmt(d.amount)}</td>
+          <td class="mono">${fmt(d.paid)}</td>
+          <td class="mono">${fmt(d.amount - d.paid)}</td>
+          <td>${d.status==='paid' ? '<span class="pill good">Imelipwa</span>' : '<span class="pill warn">Haijalipwa</span>'}</td>
+          <td>${d.status==='paid' ? '' : `<button class="btn btn-outline btn-sm" data-pay-debt="${d.id}">Rekodi Malipo</button>`}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('debtForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const payload = {
+    personName: $('debtPerson').value.trim(),
+    amount: Number($('debtAmount').value),
+    dueDate: $('debtDue').value || undefined,
+    description: $('debtDesc').value.trim() || undefined
+  };
+  try{
+    await api('/api/debts', { method:'POST', body: JSON.stringify(payload) });
+    toast('Deni limeongezwa.');
+    $('debtForm').reset();
+    loadDebts();
+    loadOverview();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+$('debtsTable').addEventListener('click', (ev) => {
+  const id = ev.target.dataset.payDebt;
+  if(!id) return;
+  $('paymentDebtId').value = id;
+  $('paymentAmount').value = '';
+  $('paymentModalOverlay').classList.add('show');
+});
+$('paymentCancelBtn').addEventListener('click', () => $('paymentModalOverlay').classList.remove('show'));
+
+$('paymentForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const id = $('paymentDebtId').value;
+  try{
+    await api('/api/debts/'+id+'/payments', { method:'POST', body: JSON.stringify({ amount: Number($('paymentAmount').value) }) });
+    toast('Malipo yamerekodiwa.');
+    $('paymentModalOverlay').classList.remove('show');
+    loadDebts();
+    loadOverview();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+/* ---------------- EXPENSES ---------------- */
+
+async function loadExpenses(){
+  try{
+    const data = await api('/api/expenses');
+    const tbody = $('expensesTable');
+    if(!data.expenses.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="5">Hakuna matumizi yaliyorekodiwa.</td></tr>';
+    }else{
+      tbody.innerHTML = data.expenses.map(e => `
+        <tr>
+          <td>${escapeHtml(e.description)}</td>
+          <td>${escapeHtml(e.category||'—')}</td>
+          <td class="mono">${fmt(e.amount)}</td>
+          <td>${escapeHtml(e.created_by_name)}</td>
+          <td>${fmtTime(e.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('expenseForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const payload = {
+    description: $('expDesc').value.trim(),
+    category: $('expCategory').value.trim() || undefined,
+    amount: Number($('expAmount').value)
+  };
+  try{
+    await api('/api/expenses', { method:'POST', body: JSON.stringify(payload) });
+    toast('Matumizi yameongezwa.');
+    $('expenseForm').reset();
+    loadExpenses();
+    loadOverview();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+/* ---------------- TEAM ---------------- */
+
+async function loadEmployees(){
+  try{
+    const data = await api('/api/employees');
+    const tbody = $('employeesTable');
+    if(!data.employees.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="5">Bado hakuna wafanyakazi.</td></tr>';
+    }else{
+      tbody.innerHTML = data.employees.map(e => `
+        <tr>
+          <td>${escapeHtml(e.full_name)}</td>
+          <td>${escapeHtml(e.email)}</td>
+          <td>${escapeHtml(e.role)}</td>
+          <td>${e.active ? '<span class="pill good">Hai</span>' : '<span class="pill bad">Amezimwa</span>'}</td>
+          <td><button class="btn btn-outline btn-sm" data-toggle-employee="${e.id}">${e.active ? 'Zima' : 'Washa'}</button></td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('employeesTable').addEventListener('click', async (ev) => {
+  const id = ev.target.dataset.toggleEmployee;
+  if(!id) return;
+  try{
+    await api('/api/employees/'+id+'/toggle', { method:'PATCH' });
+    loadEmployees();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+$('openAddEmployee').addEventListener('click', () => {
+  $('employeeForm').reset();
+  $('employeeModalOverlay').classList.add('show');
+});
+$('employeeCancelBtn').addEventListener('click', () => $('employeeModalOverlay').classList.remove('show'));
+
+$('employeeForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const payload = {
+    fullName: $('eName').value.trim(),
+    email: $('eEmail').value.trim(),
+    phone: $('ePhone').value.trim() || undefined,
+    password: $('ePassword').value,
+    role: $('eRole').value
+  };
+  try{
+    await api('/api/employees', { method:'POST', body: JSON.stringify(payload) });
+    toast('Mfanyakazi ameongezwa.');
+    $('employeeModalOverlay').classList.remove('show');
+    loadEmployees();
+  }catch(e){ toast(e.data?.error || e.message,'error'); }
+});
+
+/* ---------------- REFERRAL ---------------- */
+
+let referralWithdrawable = 0;
+let wdNetworks = {
+  mpesa:'M-Pesa (Vodacom)', tigopesa:'Mixx by Yas (Tigo Pesa)', airtelmoney:'Airtel Money',
+  halopesa:'HaloPesa', tpesa:'T-Pesa (TTCL)'
+};
+
+$('wdBtn').addEventListener('click', async () => {
+  const network = $('wdNetwork').value;
+  const fullName = $('wdName').value.trim().replace(/\s+/g,' ');
+  const phone = $('wdPhone').value.trim();
+  if(!network){ toast('Chagua mtandao wa simu.','error'); return; }
+  if(fullName.length < 5 || !fullName.includes(' ')){ toast('Weka majina kamili (jina la kwanza na la mwisho).','error'); return; }
+  if(!phone){ toast('Weka namba ya simu ya kupokelea pesa.','error'); return; }
+  if(!confirm('Unatoa ' + fmt(referralWithdrawable) + '\n' + fullName + '\n' + (wdNetworks[network]||network) + ' — ' + phone + '\n\nThibitisha kuwa taarifa ni sahihi.')) return;
+  const btn = $('wdBtn');
+  btn.disabled = true;
+  try{
+    const r = await api('/api/referral/withdraw', { method:'POST', body: JSON.stringify({ network, fullName, phone }) });
+    toast(r.message || 'Ombi limetumwa.');
+  }catch(e){
+    toast(e.data?.error || e.message,'error');
+  }
+  loadReferral();   // inaweka upya hali ya kitufe
+});
+
+async function loadReferral(){
+  try{
+    const data = await api('/api/referral/me');
+    console.log('[Daftari+] /api/referral/me response:', data);
+    $('referralLinkInput').value = data.referral_link || '(Link haijapatikana - angalia console/server logs)';
+    $('refPaid').textContent = fmt(data.totals?.paid);
+    $('refPending').textContent = fmt(data.totals?.pending);
+    $('refTotal').textContent = fmt(data.totals?.total);
+    $('refCount').textContent = data.direct_count ?? 0;
+
+    // ---- Withdrawal ----
+    const withdrawable = Number(data.withdrawable || 0);
+    const minWd = Number(data.min_withdraw || 0);
+    $('refWithdrawable').textContent = fmt(withdrawable);
+    $('refInWithdrawal').textContent = fmt(data.in_withdrawal);
+    referralWithdrawable = withdrawable;
+    const canWd = withdrawable > 0 && withdrawable >= minWd;
+    $('wdBtn').disabled = !canWd;
+    $('wdHint').textContent = canWd
+      ? 'Ombi litatumwa kwa admin kisha utalipwa kwenye namba uliyoweka.'
+      : (minWd
+          ? 'Kiwango cha chini cha kutoa ni ' + fmt(minWd) + '. Endelea kualika watu ili kufikia kiwango.'
+          : 'Bado huna mapato ya kutoa.');
+    if(!$('wdPhone').value && currentUser?.phone) $('wdPhone').value = currentUser.phone;
+    if(!$('wdName').value && currentUser?.full_name) $('wdName').value = currentUser.full_name;
+    wdNetworks = data.networks || wdNetworks;
+
+    const wdTbody = $('withdrawalsTable');
+    const wds = data.withdrawals || [];
+    if(!wds.length){
+      wdTbody.innerHTML = '<tr><td class="empty-row" colspan="6">Bado hujatoa pesa.</td></tr>';
+    }else{
+      const pill = st => st==='paid' ? '<span class="pill good">Imelipwa</span>'
+                      : st==='rejected' ? '<span class="pill bad">Imekataliwa</span>'
+                      : '<span class="pill warn">Inasubiri</span>';
+      wdTbody.innerHTML = wds.map(w => `
+        <tr>
+          <td class="mono">${fmt(w.amount_tzs)}</td>
+          <td>${escapeHtml(w.account_name || '—')}</td>
+          <td>${escapeHtml(wdNetworks[w.network] || '—')}</td>
+          <td>${escapeHtml(w.phone)}</td>
+          <td>${pill(w.status)}${w.status==='rejected' && w.note ? ' <span class="page-sub">' + escapeHtml(w.note) + '</span>' : ''}</td>
+          <td>${fmtTime(w.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    const teamTbody = $('referralTeamTable');
+    if(!data.direct_members.length){
+      teamTbody.innerHTML = '<tr><td class="empty-row" colspan="5">Bado hujaleta mtu yeyote. Shiriki link yako!</td></tr>';
+    }else{
+      teamTbody.innerHTML = data.direct_members.map(m => `
+        <tr>
+          <td>${escapeHtml(m.full_name)}</td>
+          <td>${escapeHtml(m.email)}</td>
+          <td>${escapeHtml(m.role)}</td>
+          <td>${m.active ? '<span class="pill good">Hai</span>' : '<span class="pill bad">Amezimwa</span>'}</td>
+          <td>${fmtTime(m.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    const commTbody = $('referralCommissionsTable');
+    if(!data.commissions.length){
+      commTbody.innerHTML = '<tr><td class="empty-row" colspan="4">Bado hakuna kamisheni.</td></tr>';
+    }else{
+      commTbody.innerHTML = data.commissions.map(c => `
+        <tr>
+          <td>${escapeHtml(c.referred_user_name||'—')}</td>
+          <td class="mono">${fmt(c.amount_tzs)}</td>
+          <td>${c.status==='paid' ? '<span class="pill good">Imelipwa</span>' : '<span class="pill warn">Inasubiri</span>'}</td>
+          <td>${fmtTime(c.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){
+    $('referralLinkInput').value = 'Imeshindwa kupakia link: ' + e.message;
+    toast(e.message,'error');
+  }
+}
+
+$('copyReferralBtn').addEventListener('click', async () => {
+  const val = $('referralLinkInput').value;
+  if(!val || val.startsWith('Imeshindwa')) return;
+  try{
+    await navigator.clipboard.writeText(val);
+    toast('Link imenakiliwa.');
+  }catch{
+    $('referralLinkInput').select();
+    document.execCommand('copy');
+    toast('Link imenakiliwa.');
+  }
+});
+
+/* ---------------- REPORTS ---------------- */
+
+document.querySelectorAll('.tab-btn[data-period]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn[data-period]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadReports(btn.dataset.period);
+  });
+});
+
+async function loadReports(period){
+  try{
+    const data = await api('/api/reports?period='+period);
+    $('repRevenue').textContent = fmt(data.summary.revenue);
+    $('repGross').textContent = fmt(data.summary.grossProfit);
+    $('repExpenses').textContent = fmt(data.summary.expenses);
+    $('repProfit').textContent = fmt(data.summary.profit);
+    $('repMargin').textContent = (Math.round(data.summary.margin*10)/10) + '%';
+
+    const tbody = $('reportSalesTable');
+    if(!data.sales.length){
+      tbody.innerHTML = '<tr><td class="empty-row" colspan="4">Hakuna mauzo kwenye kipindi hiki.</td></tr>';
+    }else{
+      tbody.innerHTML = data.sales.slice(0,150).map(s => `
+        <tr>
+          <td>${escapeHtml(s.product_name)}</td>
+          <td>${s.quantity}</td>
+          <td class="mono">${fmt(s.total)}</td>
+          <td>${fmtTime(s.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+  }catch(e){ toast(e.message,'error'); }
+}
+
+/* ---------------- GREETING & THEME ---------------- */
+
+function greetingForNow(){
+  const h = new Date().getHours();
+  if(h >= 5 && h < 12) return 'Habari za asubuhi';
+  if(h >= 12 && h < 18) return 'Habari za mchana';
+  return 'Habari za jioni';
+}
+
+function effectiveTheme(choice){
+  if(choice !== 'auto') return choice;
+  const h = new Date().getHours();
+  return (h >= 6 && h < 18) ? 'light' : 'dark';
+}
+
+function applyTheme(choice){
+  document.documentElement.setAttribute('data-theme', effectiveTheme(choice));
+  try{ localStorage.setItem('dp_theme_choice', choice); }catch(e){}
+  document.querySelectorAll('#themeTabs .tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.themeChoice === choice);
+  });
+}
+
+// Endelea kubadilisha giza/nyeupe kiotomatiki wakati app iko wazi muda mrefu
+setInterval(() => {
+  const choice = localStorage.getItem('dp_theme_choice') || 'auto';
+  if(choice === 'auto') applyTheme('auto');
+}, 10 * 60 * 1000);
+
+document.querySelectorAll('#themeTabs .tab-btn').forEach(btn=>{
+  btn.addEventListener('click', () => applyTheme(btn.dataset.themeChoice));
+});
+
+/* ---------------- SETTINGS ---------------- */
+
+async function loadSettings(){
+  try{
+    const { business } = await api('/api/business/settings');
+    $('setName').value = business.name || '';
+    $('setPhone').value = business.phone || '';
+    $('setAddress').value = business.address || '';
+    $('setInterval').value = String(business.notify_interval_minutes || 120);
+    $('setNotifyEnabled').value = String(business.notify_summary_enabled ?? 1);
+    const theme = business.theme_preference || 'auto';
+    applyTheme(theme);
+  }catch(e){ toast(e.message,'error'); }
+}
+
+$('saveSettingsBtn').addEventListener('click', async () => {
+  const name = $('setName').value.trim();
+  if(!name){ toast('Jina la biashara linahitajika.','error'); return; }
+  const activeThemeBtn = document.querySelector('#themeTabs .tab-btn.active');
+  const theme = activeThemeBtn ? activeThemeBtn.dataset.themeChoice : 'auto';
+  const btn = $('saveSettingsBtn');
+  btn.disabled = true;
+  try{
+    await api('/api/business/settings', {
+      method:'PUT',
+      body: JSON.stringify({
+        name,
+        phone: $('setPhone').value.trim(),
+        address: $('setAddress').value.trim(),
+        theme_preference: theme,
+        notify_summary_enabled: $('setNotifyEnabled').value === '1',
+        notify_interval_minutes: Number($('setInterval').value)
+      })
+    });
+    toast('Mipangilio imehifadhiwa.');
+    $('bizName').textContent = name;
+  }catch(e){ toast(e.message,'error'); }
+  btn.disabled = false;
+});
+
+$('enablePushBtn').addEventListener('click', async () => {
+  const statusEl = $('pushStatus');
+  statusEl.style.color = '';
+
+  if(typeof Notification === 'undefined' || !('serviceWorker' in navigator)){
+    statusEl.style.color = 'var(--coral)';
+    statusEl.textContent = 'Kifaa/browser hii haiwezi kupokea arifa moja kwa moja. Kwenye iPhone: fungua kwa Safari, bonyeza Share, chagua "Add to Home Screen", kisha fungua app kutoka Home Screen na jaribu tena.';
+    return;
+  }
+
+  if(!window.OneSignal){
+    statusEl.style.color = 'var(--coral)';
+    statusEl.textContent = 'Huduma ya arifa haijapakia bado. Subiri sekunde chache kisha jaribu tena; kama haifanyi kazi, angalia mtandao wako (VPN/adblock inaweza kuzuia).';
+    return;
+  }
+
+  try{
+    await OneSignal.Notifications.requestPermission();
+    const id = OneSignal.User.PushSubscription.id;
+    if(!id){
+      statusEl.style.color = 'var(--coral)';
+      statusEl.textContent = 'Ruhusa ya arifa haijakubaliwa. Nenda Settings za simu \u2192 jina la app \u2192 Notifications \u2192 washa ruhusa, kisha jaribu tena.';
+      return;
+    }
+    await api('/api/business/push-token', {
+      method:'POST',
+      body: JSON.stringify({ token:id, platform:'web' })
+    });
+    statusEl.style.color = 'var(--teal)';
+    statusEl.textContent = 'Arifa zimewashwa kwenye kifaa hiki.';
+  }catch(e){
+    statusEl.style.color = 'var(--coral)';
+    statusEl.textContent = 'Imeshindwa kuwasha arifa: ' + e.message;
+  }
+});
+
+$('testNotifyBtn').addEventListener('click', async () => {
+  const statusEl = $('pushStatus');
+  statusEl.textContent = 'Inatuma...';
+  try{
+    const res = await api('/api/business/test-notify', { method:'POST' });
+    statusEl.textContent = 'Imetumwa kwa vifaa ' + res.sent + '. Angalia notification kwenye simu/kompyuta yako.';
+  }catch(e){
+    statusEl.textContent = 'Imeshindwa: ' + e.message;
+  }
+});
+
+init();
+</script>
+
+</body>
+</html>
