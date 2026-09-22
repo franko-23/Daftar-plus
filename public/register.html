@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<meta name="description" content="Daftari+ - Fungua akaunti ya biashara">
+<title>Daftari+ | Fungua Akaunti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f8fb;--navy:#07111f;--card:#fff;--text:#0c1726;--muted:#64748b;--line:#e4eaf1;--primary:#00bfa6;--primary-dark:#008f7c;--primary-soft:#e9fbf7;--danger:#dc3d4b;--danger-soft:#fff0f1;--info:#3157d5;--info-soft:#eef2ff;--shadow:0 24px 70px rgba(15,31,51,.10)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:22px;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(0,191,166,.10),transparent 35%),linear-gradient(315deg,rgba(49,87,213,.07),transparent 35%)}
+.container{width:100%;max-width:520px;position:relative;z-index:1}.brand{text-align:center;margin-bottom:18px}.logo{width:58px;height:58px;margin:0 auto 12px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:20px;font-weight:800;background:linear-gradient(135deg,#00c7ad,#1688df);box-shadow:0 12px 28px rgba(0,191,166,.25)}h1{font-size:24px;letter-spacing:-.04em;margin-bottom:6px}.subtitle{font-size:13.5px;color:var(--muted);line-height:1.5}
+.role-toggle{display:flex;gap:4px;background:#eaf0f4;border-radius:16px;padding:4px;margin:0 0 14px}.role-toggle button{flex:1;border:0;background:transparent;color:var(--muted);font:700 13px Inter;padding:12px 8px;border-radius:12px;cursor:pointer}.role-toggle button.active{background:#fff;color:var(--primary-dark);box-shadow:0 4px 14px rgba(15,31,51,.08)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:var(--shadow)}.progress{display:flex;align-items:center;gap:7px;margin-bottom:24px}.progress .bar{height:5px;flex:1;background:#e7edf2;border-radius:99px;transition:.25s}.progress .bar.active{background:var(--primary)}
+.slide{display:none}.slide.active{display:block}.eyebrow{font-size:11px;font-weight:800;color:var(--primary-dark);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}.title{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}.desc{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:19px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.field.full{grid-column:1/-1}label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px}input,select{width:100%;height:49px;border:1.5px solid var(--line);border-radius:13px;background:#fff;color:var(--text);font:500 13.5px Inter;padding:0 13px;outline:none;transition:.15s}select{cursor:pointer}input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}input:disabled,select:disabled{background:#f4f7f9;color:#9aa7b5;cursor:not-allowed}.hint{font-size:11px;color:#8794a5;line-height:1.45;margin-top:5px}.password{position:relative}.password input{padding-right:72px}.show-pass{position:absolute;right:9px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--primary-dark);font:700 11px Inter;cursor:pointer;padding:7px}.phone-wrap{display:flex;gap:7px}.prefix{width:73px;flex:none;height:49px;border:1.5px solid var(--line);border-radius:13px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}.phone-wrap input{flex:1}
+.actions{display:flex;gap:10px;margin-top:8px}.btn{height:51px;border-radius:99px;border:0;font:800 13.5px Inter;cursor:pointer;transition:.15s}.btn.primary{flex:1;background:var(--primary);color:#032c26;box-shadow:0 9px 20px rgba(0,191,166,.24)}.btn.primary:hover{background:#13d2bb}.btn.secondary{padding:0 19px;background:#fff;border:1.5px solid var(--line);color:var(--text)}.btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}.secure{text-align:center;color:#93a0ae;font-size:11px;margin-top:17px}
+.message{display:none;border-radius:13px;padding:11px 13px;font-size:12.5px;line-height:1.45;margin-bottom:14px}.message.show{display:block}.message.error{background:var(--danger-soft);border:1px solid #ffd1d5;color:var(--danger)}.message.success{background:var(--primary-soft);border:1px solid #b8eee4;color:var(--primary-dark)}.message.info{background:var(--info-soft);border:1px solid #d6defe;color:var(--info)}
+.otp-card{background:#f8fbfc;border:1px solid var(--line);border-radius:18px;padding:16px;margin:8px 0 14px}.otp-target{text-align:center;font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:13px}.otp-target strong{color:var(--text)}.otp-boxes{display:flex;justify-content:center;gap:7px}.otp-box{width:44px;height:52px;border:1.5px solid var(--line);border-radius:12px;text-align:center;font-size:21px;font-weight:800;padding:0}.otp-box:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}.resend{text-align:center;margin-top:12px;color:var(--muted);font-size:12px}.resend button{border:0;background:transparent;color:var(--primary-dark);font:800 12px Inter;cursor:pointer}.resend button:disabled{color:#9ca8b5;cursor:not-allowed}
+.location-note{display:flex;gap:9px;align-items:flex-start;background:#f5f9ff;border:1px solid #dfe8fb;border-radius:13px;padding:10px 11px;margin-bottom:13px;font-size:11.5px;color:#5e6d82;line-height:1.45}.location-note b{color:#263c68}.ref{display:none;background:var(--primary-soft);border:1px solid #bceee5;border-radius:13px;padding:10px 12px;margin:2px 0 13px;font-size:12px;line-height:1.45;color:var(--primary-dark)}.ref.show{display:block}.ref.invalid{background:var(--danger-soft);border-color:#ffd1d5;color:var(--danger)}
+.login{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}.login a{color:var(--primary-dark);font-weight:800;text-decoration:none}.foot{text-align:center;margin-top:16px;color:#9aa6b4;font-size:11px}
+@media(max-width:540px){body{padding:12px}.card{padding:19px;border-radius:22px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.otp-box{width:40px;height:49px}.otp-boxes{gap:5px}.role-toggle button{font-size:12px}}
+@media(max-width:370px){.otp-box{width:36px}.otp-boxes{gap:4px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand"><div class="logo">D+</div><h1>Fungua Akaunti</h1><p class="subtitle">Anza kusimamia biashara yako kwa Daftari+.</p></div>
+  <div id="message" class="message"></div>
+  <div class="role-toggle"><button id="ownerToggle" class="active" type="button">Mmiliki wa Biashara</button><button id="salerToggle" type="button">Mfanyakazi (Saler)</button></div>
+  <div class="card">
+    <div class="progress"><span class="bar active" id="bar1"></span><span class="bar" id="bar2"></span><span class="bar" id="bar3"></span></div>
+    <form id="registerForm" novalidate>
+      <section class="slide active" id="step1">
+        <div class="eyebrow">Hatua ya 1 / 3</div><div class="title">Taarifa zako</div><div class="desc">Jaza taarifa zako. Tutathibitisha namba yako kwa OTP kabla ya kufungua akaunti.</div>
+        <div class="grid">
+          <div class="field"><label for="fullName">Jina Kamili</label><input id="fullName" type="text" autocomplete="name" placeholder="Mfano: Amina Hassan"></div>
+          <div class="field"><label for="phone">Namba ya Simu</label><div class="phone-wrap"><div class="prefix">+255</div><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="7XX XXX XXX"></div><div class="hint">Unaweza kuandika 07XXXXXXXX au +2557XXXXXXXX.</div></div>
+          <div class="field full"><label for="email">Barua Pepe</label><input id="email" type="email" autocomplete="email" placeholder="jina@barua.com"></div>
+          <div class="field full"><label for="password">Password</label><div class="password"><input id="password" type="password" autocomplete="new-password" minlength="10" placeholder="Angalau herufi 10"><button class="show-pass" id="showPass" type="button">Onyesha</button></div><div class="hint">Tumia angalau herufi 10.</div></div>
+        </div>
+        <div class="actions"><button class="btn primary" id="sendOtpBtn" type="button">Tuma OTP →</button></div>
+        <div class="secure">🔒 OTP inatumika kuthibitisha umiliki wa namba yako.</div>
+      </section>
+
+      <section class="slide" id="step2">
+        <div class="eyebrow">Hatua ya 2 / 3</div><div class="title">Thibitisha simu yako</div><div class="desc">Ingiza tarakimu 6 tulizotuma kwa SMS kwenye namba yako.</div>
+        <div class="otp-card"><div class="otp-target">Code imetumwa kwa <strong id="otpTarget">—</strong></div><div class="otp-boxes" id="otpBoxes"></div><div class="resend">Hukupokea? <button id="resendBtn" type="button" disabled>Tuma tena (60s)</button></div></div>
+        <div class="actions"><button class="btn secondary" id="otpBack" type="button">← Rudi</button><button class="btn primary" id="verifyOtpBtn" type="button">Thibitisha →</button></div>
+      </section>
+
+      <section class="slide" id="step3">
+        <div class="eyebrow">Hatua ya 3 / 3</div><div class="title" id="step3Title">Taarifa za biashara</div><div class="desc" id="step3Desc">Weka eneo la biashara yako kwa usahihi.</div>
+        <div id="ownerFields">
+          <div class="grid">
+            <div class="field full"><label for="businessName">Jina la Biashara</label><input id="businessName" type="text" placeholder="Mfano: Amina Shop"></div>
+            <div class="field"><label for="businessPhone">Simu ya Biashara</label><input id="businessPhone" type="tel" inputmode="tel" placeholder="07XX XXX XXX"></div>
+            <div class="field"><label for="country">Nchi</label><select id="country"><option value="Tanzania" selected>Tanzania</option></select></div>
+            <div class="field"><label for="region">Mkoa</label><select id="region"><option value="">Chagua Mkoa</option></select></div>
+            <div class="field"><label for="district">Wilaya</label><select id="district" disabled><option value="">Chagua Mkoa kwanza</option></select></div>
+            <div class="field"><label for="ward">Kata</label><select id="ward" disabled><option value="">Chagua Wilaya kwanza</option></select></div>
+            <div class="field full"><label for="businessLocation">Mtaa / Eneo la Biashara</label><input id="businessLocation" type="text" placeholder="Mfano: Mikocheni, karibu na..."><div class="hint">Hii ni sehemu ya ziada ya anwani; Kata na Wilaya zinatumika kama taarifa rasmi za eneo.</div></div>
+          </div>
+        </div>
+        <div id="salerFields" style="display:none"><div class="field"><label for="businessCode">Business Code</label><input id="businessCode" type="text" autocomplete="off" placeholder="Mfano: DP-24X9K"><div class="hint">Omba Business Code kwa mmiliki wa biashara unayofanyia kazi.</div></div></div>
+        <div class="field" style="margin-top:15px"><label for="referralCode">Referral Code <span style="font-weight:500;color:#98a4b1">(Hiari)</span></label><input id="referralCode" type="text" placeholder="Kama umealikwa, weka code hapa"></div>
+        <div class="ref" id="refBox"></div>
+        <div class="actions"><button class="btn secondary" id="step3Back" type="button">← Rudi</button><button class="btn primary" id="registerBtn" type="submit">Fungua Akaunti</button></div>
+      </section>
+    </form>
+  </div>
+  <div class="login">Tayari una akaunti? <a href="/login.html">Ingia</a></div>
+  <div class="foot">Daftari+ · Taarifa zako zinalindwa.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let role='owner',otpVerifyToken=null,currentStep=1,resendTimer=null,refTimer=null;
+const TZ_REGIONS=['Arusha','Dar es Salaam','Dodoma','Geita','Iringa','Kagera','Katavi','Kigoma','Kilimanjaro','Lindi','Manyara','Mara','Mbeya','Morogoro','Mtwara','Mwanza','Njombe','Pwani','Rukwa','Ruvuma','Shinyanga','Simiyu','Singida','Songwe','Tabora','Tanga','Kaskazini Unguja','Kusini Unguja','Mjini Magharibi','Kaskazini Pemba','Kusini Pemba'];
+function msg(text,type='error'){const e=$('message');e.textContent=text;e.className='message show '+type}
+function clearMsg(){const e=$('message');e.textContent='';e.className='message'}
+function err(e,fallback){return e?.data?.error||e?.data?.message||e?.message||fallback}
+async function api(path,options={}){const res=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});let data={};try{data=await res.json()}catch{}if(!res.ok){const e=new Error(data.error||data.message||'Kuna tatizo kwenye server.');e.data=data;e.status=res.status;throw e}return data}
+function showStep(n){currentStep=n;document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i===n-1));['bar1','bar2','bar3'].forEach((id,i)=>$(id).classList.toggle('active',i<n));window.scrollTo({top:0,behavior:'smooth'})}
+function normalizePhone(v){let s=String(v||'').trim().replace(/[\s()-]/g,'');if(/^\+255/.test(s))return s;if(/^255/.test(s))return '+'+s;if(/^0[67]\d{8}$/.test(s))return '+255'+s.slice(1);return s}
+function validPhone(v){return /^\+255[67]\d{8}$/.test(normalizePhone(v))}
+
+TZ_REGIONS.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;$('region').appendChild(o)});
+
+async function loadDistricts(region){$('district').innerHTML='<option value="">Inapakia Wilaya...</option>';$('district').disabled=true;$('ward').innerHTML='<option value="">Chagua Wilaya kwanza</option>';$('ward').disabled=true;if(!region)return;try{const r=await fetch('https://tzgeodata.vercel.app/api/v1/regions/'+encodeURIComponent(region)+'/districts/');const d=await r.json();const list=d.districts||[];$('district').innerHTML='<option value="">Chagua Wilaya</option>'+list.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');$('district').disabled=!list.length;if(!list.length)throw new Error()}catch{$('district').innerHTML='<option value="">Wilaya haijapatikana</option>';msg('Imeshindikana kupakia Wilaya za '+region+'. Jaribu tena au refresh ukurasa.','error')}}
+async function loadWards(district){$('ward').innerHTML='<option value="">Inapakia Kata...</option>';$('ward').disabled=true;if(!district)return;try{const r=await fetch('https://tzgeodata.vercel.app/api/v1/districts/'+encodeURIComponent(district)+'/wards/');const d=await r.json();const list=d.wards||[];$('ward').innerHTML='<option value="">Chagua Kata</option>'+list.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');$('ward').disabled=!list.length;if(!list.length)throw new Error()}catch{$('ward').innerHTML='<option value="">Kata haijapatikana</option>';msg('Imeshindikana kupakia Kata za '+district+'. Jaribu tena au refresh ukurasa.','error')}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('region').addEventListener('change',()=>{clearMsg();loadDistricts($('region').value)});$('district').addEventListener('change',()=>{clearMsg();loadWards($('district').value)});
+
+$('showPass').addEventListener('click',()=>{const p=$('password');const on=p.type==='text';p.type=on?'password':'text';$('showPass').textContent=on?'Onyesha':'Ficha'});
+function startCooldown(sec=60){clearInterval(resendTimer);let n=sec;const b=$('resendBtn');b.disabled=true;b.textContent='Tuma tena ('+n+'s)';resendTimer=setInterval(()=>{n--;if(n<=0){clearInterval(resendTimer);b.disabled=false;b.textContent='Tuma tena'}else b.textContent='Tuma tena ('+n+'s)'},1000)}
+function makeOtpBoxes(){const wrap=$('otpBoxes');wrap.innerHTML='';for(let i=0;i<6;i++){const x=document.createElement('input');x.className='otp-box';x.maxLength=1;x.inputMode='numeric';x.autocomplete=i===0?'one-time-code':'off';x.dataset.i=i;x.addEventListener('input',()=>{x.value=x.value.replace(/\D/g,'').slice(-1);if(x.value&&i<5)wrap.children[i+1].focus()});x.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!x.value&&i>0)wrap.children[i-1].focus();if(e.key==='ArrowLeft'&&i>0)wrap.children[i-1].focus();if(e.key==='ArrowRight'&&i<5)wrap.children[i+1].focus()});x.addEventListener('paste',e=>{e.preventDefault();const v=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);[...v].forEach((c,j)=>{if(wrap.children[j])wrap.children[j].value=c});wrap.children[Math.min(v.length,5)].focus()});wrap.appendChild(x)}}
+function otpCode(){return [...document.querySelectorAll('.otp-box')].map(x=>x.value).join('')}
+makeOtpBoxes();
+
+$('sendOtpBtn').addEventListener('click',async()=>{clearMsg();const name=$('fullName').value.trim(),phone=normalizePhone($('phone').value),email=$('email').value.trim(),pw=$('password').value;if(!name||!phone||!email||!pw)return msg('Tafadhali jaza taarifa zote.');if(!validPhone(phone))return msg('Namba ya simu si sahihi. Tumia 07XXXXXXXX au +2557XXXXXXXX.');if(!/^\S+@\S+\.\S+$/.test(email))return msg('Weka barua pepe sahihi.');if(pw.length<10)return msg('Password inatakiwa kuwa angalau herufi 10.');$('phone').value=phone;const b=$('sendOtpBtn');b.disabled=true;b.textContent='Inatuma OTP...';try{await api('/api/otp/send',{method:'POST',body:JSON.stringify({phone,purpose:'register'})});$('otpTarget').textContent=phone;document.querySelectorAll('.otp-box').forEach(x=>x.value='');startCooldown(60);showStep(2);setTimeout(()=>document.querySelector('.otp-box')?.focus(),120)}catch(e){msg(err(e,'Imeshindikana kutuma OTP. Jaribu tena.'))}finally{b.disabled=false;b.textContent='Tuma OTP →'}});
+$('resendBtn').addEventListener('click',async()=>{if($('resendBtn').disabled)return;clearMsg();try{await api('/api/otp/send',{method:'POST',body:JSON.stringify({phone:normalizePhone($('phone').value),purpose:'register'})});startCooldown(60);msg('OTP mpya imetumwa kwa SMS.','info')}catch(e){msg(err(e,'Imeshindikana kutuma OTP mpya.'))}});
+$('otpBack').addEventListener('click',()=>{clearMsg();showStep(1)});
+$('verifyOtpBtn').addEventListener('click',async()=>{clearMsg();const code=otpCode(),phone=normalizePhone($('phone').value);if(code.length!==6)return msg('Weka code yote yenye tarakimu 6.');const b=$('verifyOtpBtn');b.disabled=true;b.textContent='Inathibitisha...';try{const d=await api('/api/otp/verify',{method:'POST',body:JSON.stringify({phone,purpose:'register',code})});otpVerifyToken=d.verifyToken;if(!otpVerifyToken)throw new Error('Server haikurudisha verifyToken.');showStep(3)}catch(e){msg(err(e,'OTP si sahihi au imeisha muda.'))}finally{b.disabled=false;b.textContent='Thibitisha →'}});
+
+function setRole(r){role=r;const owner=r==='owner';$('ownerToggle').classList.toggle('active',owner);$('salerToggle').classList.toggle('active',!owner);$('ownerFields').style.display=owner?'block':'none';$('salerFields').style.display=owner?'none':'block';$('step3Title').textContent=owner?'Taarifa za biashara':'Jiunge na biashara';$('step3Desc').textContent=owner?'Weka eneo la biashara yako kwa usahihi.':'Ingiza Business Code uliyopewa na mmiliki.'}
+$('ownerToggle').addEventListener('click',()=>setRole('owner'));$('salerToggle').addEventListener('click',()=>setRole('saler'));$('step3Back').addEventListener('click',()=>{clearMsg();showStep(2)});
+
+async function checkReferral(){const code=$('referralCode').value.trim();const box=$('refBox');clearTimeout(refTimer);if(!code){box.className='ref';box.textContent='';return}refTimer=setTimeout(async()=>{box.className='ref show';box.textContent='Inathibitisha Referral Code...';try{const r=await fetch('/api/referral/lookup?code='+encodeURIComponent(code));const d=await r.json();if(d.valid){box.className='ref show';box.innerHTML='✓ Umealikwa na <b>'+esc(d.name||'mtumiaji')+'</b>. Code hii itaunganishwa baada ya usajili.'}else{box.className='ref show invalid';box.textContent='Referral Code hii haijapatikana. Unaweza kuendelea bila referral.'}}catch{box.className='ref'}} ,450)}
+$('referralCode').addEventListener('input',checkReferral);(function(){const p=new URLSearchParams(location.search);const ref=p.get('ref')||p.get('referral')||p.get('referralCode');if(ref){$('referralCode').value=ref;checkReferral()}})();
+
+function saveSession(d){if(!d?.token||!d?.user)throw new Error('Server haikurudisha session sahihi.');localStorage.setItem('dp_token',d.token);localStorage.setItem('dp_user',JSON.stringify(d.user))}
+function redirect(u){if(u?.role==='owner')location.replace('/dashboard.html');else if(u?.role==='saler'||u?.role==='seller')location.replace('/saler.html');else if(u?.role==='super_admin')location.replace('/super-admin.html');else location.replace('/login.html')}
+$('registerForm').addEventListener('submit',async e=>{e.preventDefault();clearMsg();if(!otpVerifyToken)return showStep(2);const payload={fullName:$('fullName').value.trim(),phone:normalizePhone($('phone').value),email:$('email').value.trim(),password:$('password').value,role,referralCode:$('referralCode').value.trim()||undefined,otpVerifyToken};if(role==='owner'){const fields=['businessName','businessPhone','country','region','district','ward','businessLocation'];for(const id of fields){if(!$(id).value.trim())return msg('Tafadhali jaza taarifa zote za biashara.')}Object.assign(payload,{businessName:$('businessName').value.trim(),businessPhone:$('businessPhone').value.trim(),country:$('country').value,region:$('region').value,district:$('district').value,ward:$('ward').value,businessLocation:$('businessLocation').value.trim()})}else{const code=$('businessCode').value.trim().toUpperCase();if(!code)return msg('Tafadhali ingiza Business Code.');payload.businessCode=code}const b=$('registerBtn');b.disabled=true;b.textContent='Inafungua akaunti...';try{const d=await api('/api/register',{method:'POST',body:JSON.stringify(payload)});saveSession(d);msg('Akaunti imefunguliwa. Tunaelekeza kwenye mfumo...','success');setTimeout(()=>redirect(d.user),500)}catch(e){msg(err(e,'Imeshindikana kufungua akaunti. Jaribu tena.'));if(e.status===400&&/OTP|simu/i.test(err(e,'')))showStep(2)}finally{b.disabled=false;b.textContent='Fungua Akaunti'}});
+</script>
+</body>
+</html>
