@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Daftari+ | Ingia</title>
+<meta name="theme-color" content="#070c17">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#070c17; --teal:#00BFA6; --teal-2:#19d9bf; --teal-dark:#008f7c;
+  --mint:#e7faf6; --text:#0b1220; --muted:#5b6b80; --faint:#8b98aa;
+  --light:#f7f9fc; --card:#ffffff; --border:#e5eaf1;
+  --red:#e5484d; --red-soft:#fdecec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh;background:var(--light);display:flex;align-items:center;justify-content:center;padding:24px;color:var(--text);-webkit-font-smoothing:antialiased;position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(11,18,32,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(11,18,32,.06) 1px,transparent 1px);
+  background-size:38px 38px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,rgba(0,0,0,.9),transparent 78%);
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,rgba(0,0,0,.9),transparent 78%)}
+.container{position:relative;z-index:1}
+.container{width:100%;max-width:420px}
+
+.brand{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
+.mark{width:64px;height:64px;border-radius:18px;background:linear-gradient(140deg,#12c9a7,#0a8fd6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:23px;letter-spacing:-.04em;box-shadow:0 10px 26px rgba(0,191,166,.3);margin-bottom:14px}
+h1{font-weight:800;font-size:25px;letter-spacing:-.03em;text-align:center;margin-bottom:6px}
+.subtitle{text-align:center;color:var(--muted);font-size:14.5px;line-height:1.5}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:0 1px 2px rgba(11,18,32,.03)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px;border:1.5px solid var(--border);background:#fff;color:var(--text);transition:background .15s,transform .15s}
+.btn:hover{background:#fafbfd}
+.btn:active{transform:scale(.98)}
+.btn-email{color:var(--teal-dark);border-color:var(--mint);background:var(--mint)}
+
+.divider{display:flex;align-items:center;gap:14px;margin:20px 0;color:var(--faint);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.email-form{display:none}
+.email-form.show{display:block}
+
+.mode-toggle{display:flex;background:var(--light);border:1px solid var(--border);border-radius:100px;padding:4px;margin-bottom:18px}
+.mode-toggle button{flex:1;border:0;background:transparent;padding:10px 8px;border-radius:100px;font-family:inherit;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;transition:background .15s,color .15s}
+.mode-toggle button.active{background:var(--teal);color:#032b25;box-shadow:0 6px 14px rgba(0,191,166,.28)}
+
+.pane{display:none}
+.pane.show{display:block}
+
+.form-group{margin-bottom:15px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:var(--text)}
+input{width:100%;height:50px;border:1.5px solid var(--border);border-radius:14px;padding:0 15px;font-size:14.5px;outline:none;background:#fff;font-family:inherit;color:var(--text)}
+input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--mint)}
+input.otp-code{letter-spacing:.5em;text-align:center;font-weight:700;font-size:20px;padding-right:15px}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:52px}
+.toggle-password{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:13px;padding:5px}
+.submit-btn{width:100%;height:52px;border:0;border-radius:100px;background:var(--teal);color:#032b25;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(0,191,166,.28);font-family:inherit;transition:background .15s,transform .15s}
+.submit-btn:hover{background:var(--teal-2)}
+.submit-btn:active{transform:scale(.98)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.back-link{display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:13.5px;cursor:pointer}
+.hint{font-size:12.5px;color:var(--faint);margin-top:6px;text-align:center;line-height:1.5}
+.resend-row{text-align:center;margin-top:14px;font-size:13.5px;color:var(--muted)}
+.resend-row button{border:0;background:transparent;color:var(--teal-dark);font-weight:700;cursor:pointer;font-family:inherit;font-size:13.5px}
+.resend-row button:disabled{color:var(--faint);cursor:not-allowed}
+
+.message{display:none;margin-bottom:16px;padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.4}
+.message.error{display:block;background:var(--red-soft);color:var(--red);border:1px solid #f8c9c9}
+.message.success{display:block;background:var(--mint);color:var(--teal-dark);border:1px solid #b8f0e6}
+.message.info{display:block;background:#eef2ff;color:#3730A3;border:1px solid #dbe4ff}
+
+.signup-row{text-align:center;margin-top:24px;color:var(--muted);font-size:14px}
+.signup-row a{color:var(--teal-dark);font-weight:700;text-decoration:none}
+.footer-note{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:26px;color:var(--faint);font-size:12.5px}
+.super-link{text-align:center;margin-top:14px}
+.super-link a{color:var(--faint);font-size:12.5px;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand">
+    <div class="mark">D+</div>
+    <h1>Karibu Daftari+</h1>
+    <p class="subtitle">Simamia mauzo, stock na wateja wako popote ulipo.</p>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <div class="card">
+    <div id="providerButtons">
+      <button type="button" class="btn" id="appleBtn"><span class="ico"></span>Endelea na Apple</button>
+      <button type="button" class="btn" id="googleBtn"><span class="ico"></span>Endelea na Google</button>
+      <div class="divider">au</div>
+      <button type="button" class="btn btn-email" id="showEmailBtn">Endelea kwa Email au OTP</button>
+    </div>
+
+    <div id="emailForm" class="email-form">
+
+      <div class="mode-toggle">
+        <button type="button" class="active" id="pwModeBtn">Password</button>
+        <button type="button" id="otpModeBtn">OTP kwa SMS</button>
+      </div>
+
+      <!-- PASSWORD PANE -->
+      <div class="pane show" id="pwPane">
+        <form id="loginForm">
+          <div class="form-group"><label>Barua Pepe</label><input id="email" type="email" placeholder="jina@biashara.com" required></div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="password-wrap">
+              <input id="password" type="password" placeholder="••••••••" required>
+              <button type="button" class="toggle-password" id="togglePassword">Onyesha</button>
+            </div>
+          </div>
+          <button type="submit" class="submit-btn" id="loginBtn">Ingia</button>
+        </form>
+        <span class="back-link" id="forgotPasswordLink">Umesahau password?</span>
+      </div>
+
+      <!-- OTP PANE -->
+      <div class="pane" id="otpPane">
+
+        <div id="otpPhoneStep">
+          <div class="form-group"><label>Namba ya Simu</label><input id="otpPhone" type="tel" placeholder="0700 000 000" required></div>
+          <button type="button" class="submit-btn" id="otpSendBtn">Tuma Namba ya Uthibitisho</button>
+          <p class="hint">Tutakutumia SMS yenye code ya kuingia bila password.</p>
+        </div>
+
+        <div id="otpCodeStep" style="display:none">
+          <div class="form-group">
+            <label>Weka Code Uliyopokea</label>
+            <input id="otpCode" class="otp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" required>
+          </div>
+          <button type="button" class="submit-btn" id="otpVerifyBtn">Ingia</button>
+          <div class="resend-row">
+            Hukupokea code? <button type="button" id="otpResendBtn" disabled>Tuma tena (60s)</button>
+          </div>
+          <span class="back-link" id="otpChangePhoneBtn">← Badilisha namba ya simu</span>
+        </div>
+
+      </div>
+
+      <!-- FORGOT PASSWORD PANE -->
+      <div class="pane" id="forgotPane">
+
+        <div id="forgotPhoneStep">
+          <p class="hint" style="margin-top:0;margin-bottom:14px">Weka namba ya simu iliyosajiliwa kwenye akaunti yako, tutakutumia code ya uthibitisho (OTP) kwa SMS.</p>
+          <div class="form-group"><label>Namba ya Simu</label><input id="forgotPhone" type="tel" placeholder="0700 000 000" required></div>
+          <button type="button" class="submit-btn" id="forgotSendBtn">Tuma Code ya Uthibitisho</button>
+        </div>
+
+        <div id="forgotCodeStep" style="display:none">
+          <div class="form-group">
+            <label>Weka Code Uliyopokea</label>
+            <input id="forgotCode" class="otp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" required>
+          </div>
+          <button type="button" class="submit-btn" id="forgotVerifyBtn">Thibitisha</button>
+          <div class="resend-row">
+            Hukupokea code? <button type="button" id="forgotResendBtn" disabled>Tuma tena (60s)</button>
+          </div>
+        </div>
+
+        <div id="forgotNewPasswordStep" style="display:none">
+          <div class="form-group">
+            <label>Password Mpya</label>
+            <div class="password-wrap">
+              <input id="forgotNewPassword" type="password" placeholder="••••••••" minlength="10" required>
+              <button type="button" class="toggle-password" id="toggleForgotPassword">Onyesha</button>
+            </div>
+            <div class="hint">Angalau herufi 10.</div>
+          </div>
+          <button type="button" class="submit-btn" id="forgotResetBtn">Badilisha Password</button>
+        </div>
+
+        <span class="back-link" id="forgotBackToLoginBtn">← Rudi kwenye login</span>
+      </div>
+
+      <span class="back-link" id="backBtn">← Rudi nyuma</span>
+    </div>
+  </div>
+
+  <div class="signup-row">Huna akaunti? <a href="/register.html">Fungua Akaunti</a></div>
+  <div class="footer-note">🔒 Taarifa za biashara yako ziko salama na faragha</div>
+  <div class="super-link"><a href="/super-admin-login.html">Super Admin</a></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function showMessage(text, type='error'){
+  const el = $('message');
+  el.textContent = text;
+  el.className = 'message ' + type;
+}
+function clearMessage(){ $('message').textContent = ''; $('message').className = 'message'; }
+
+$('showEmailBtn').addEventListener('click', () => {
+  $('providerButtons').style.display = 'none';
+  $('emailForm').classList.add('show');
+  clearMessage();
+});
+$('backBtn').addEventListener('click', () => {
+  $('emailForm').classList.remove('show');
+  $('providerButtons').style.display = 'block';
+  resetOtpPane();
+  $('forgotPane').classList.remove('show');
+  document.querySelector('.mode-toggle').style.display = 'flex';
+  $('pwModeBtn').classList.add('active');
+  $('otpModeBtn').classList.remove('active');
+  $('pwPane').classList.add('show');
+  clearMessage();
+});
+
+['appleBtn','googleBtn'].forEach(id => {
+  $(id).addEventListener('click', () => {
+    const provider = id === 'googleBtn' ? 'google' : 'apple';
+    window.location.href = '/api/auth/' + provider + '/start';
+  });
+});
+
+$('togglePassword').addEventListener('click', () => {
+  const inp = $('password');
+  if(inp.type === 'password'){ inp.type = 'text'; $('togglePassword').textContent = 'Ficha'; }
+  else { inp.type = 'password'; $('togglePassword').textContent = 'Onyesha'; }
+});
+
+/* ---------------- MODE TOGGLE (Password / OTP) ---------------- */
+
+$('pwModeBtn').addEventListener('click', () => {
+  $('pwModeBtn').classList.add('active');
+  $('otpModeBtn').classList.remove('active');
+  $('pwPane').classList.add('show');
+  $('otpPane').classList.remove('show');
+  clearMessage();
+});
+$('otpModeBtn').addEventListener('click', () => {
+  $('otpModeBtn').classList.add('active');
+  $('pwModeBtn').classList.remove('active');
+  $('otpPane').classList.add('show');
+  $('pwPane').classList.remove('show');
+  clearMessage();
+});
+
+/* ---------------- FORGOT PASSWORD ---------------- */
+
+function resetForgotPane(){
+  clearInterval(forgotResendTimer);
+  $('forgotPhoneStep').style.display = 'block';
+  $('forgotCodeStep').style.display = 'none';
+  $('forgotNewPasswordStep').style.display = 'none';
+  $('forgotPhone').value = '';
+  $('forgotCode').value = '';
+  $('forgotNewPassword').value = '';
+  forgotPhoneValue = '';
+  forgotVerifyToken = null;
+}
+
+$('forgotPasswordLink').addEventListener('click', () => {
+  clearMessage();
+  resetForgotPane();
+  document.querySelector('.mode-toggle').style.display = 'none';
+  $('pwPane').classList.remove('show');
+  $('otpPane').classList.remove('show');
+  $('forgotPane').classList.add('show');
+});
+
+$('forgotBackToLoginBtn').addEventListener('click', () => {
+  clearMessage();
+  $('forgotPane').classList.remove('show');
+  document.querySelector('.mode-toggle').style.display = 'flex';
+  $('pwModeBtn').classList.add('active');
+  $('otpModeBtn').classList.remove('active');
+  $('pwPane').classList.add('show');
+});
+
+$('toggleForgotPassword').addEventListener('click', () => {
+  const inp = $('forgotNewPassword');
+  if(inp.type === 'password'){ inp.type = 'text'; $('toggleForgotPassword').textContent = 'Ficha'; }
+  else { inp.type = 'password'; $('toggleForgotPassword').textContent = 'Onyesha'; }
+});
+
+function saveSession(data){
+  if(!data || !data.token || !data.user) throw new Error('Server haikurudisha taarifa sahihi za login.');
+  localStorage.setItem('dp_token', data.token);
+  localStorage.setItem('dp_user', JSON.stringify(data.user));
+}
+function clearSession(){
+  localStorage.removeItem('dp_token');
+  localStorage.removeItem('dp_user');
+}
+function redirectUser(user){
+  if(!user || !user.role){ clearSession(); window.location.replace('/login.html'); return; }
+  if(user.role === 'super_admin'){ window.location.replace('/super-admin.html'); return; }
+  if(user.role === 'owner'){ window.location.replace('/dashboard.html'); return; }
+  if(user.role === 'saler' || user.role === 'seller'){ window.location.replace('/saler.html'); return; }
+  clearSession();
+  showMessage('Role ya account haijatambuliwa. Wasiliana na administrator.');
+}
+
+async function api(path, options={}){
+  const headers = { 'Content-Type': 'application/json', ...(options.headers||{}) };
+  const token = localStorage.getItem('dp_token');
+  if(token) headers.Authorization = 'Bearer ' + token;
+  const response = await fetch(path, { ...options, headers });
+  let data = {};
+  try{ data = await response.json(); }catch{}
+  if(!response.ok){
+    const error = new Error(data.error || data.message || 'Kuna tatizo kwenye server.');
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+function errText(error, fallback){
+  if(error && error.data && (error.data.error || error.data.message)) return error.data.error || error.data.message;
+  if(error && error.message) return error.message;
+  return fallback;
+}
+
+$('loginForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  clearMessage();
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if(!email){ showMessage('Tafadhali ingiza barua pepe.'); return; }
+  if(!password){ showMessage('Tafadhali ingiza password.'); return; }
+
+  const btn = $('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inaingia...';
+
+  try{
+    const data = await api('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    saveSession(data);
+    showMessage('Login imefanikiwa. Tunaelekeza...', 'success');
+    setTimeout(() => redirectUser(data.user), 250);
+  }catch(error){
+    clearSession();
+    showMessage(errText(error, 'Barua pepe au password si sahihi.'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Ingia';
+  }
+});
+
+/* ---------------- OTP LOGIN ---------------- */
+
+let otpPhoneValue = '';
+let otpResendTimer = null;
+let forgotPhoneValue = '';
+let forgotVerifyToken = null;
+let forgotResendTimer = null;
+
+function resetOtpPane(){
+  clearTimeout(otpResendTimer);
+  $('otpPhoneStep').style.display = 'block';
+  $('otpCodeStep').style.display = 'none';
+  $('otpPhone').value = '';
+  $('otpCode').value = '';
+  otpPhoneValue = '';
+}
+
+function startResendCooldown(seconds=60){
+  const resendBtn = $('otpResendBtn');
+  let remaining = seconds;
+  resendBtn.disabled = true;
+  resendBtn.textContent = `Tuma tena (${remaining}s)`;
+  clearInterval(otpResendTimer);
+  otpResendTimer = setInterval(() => {
+    remaining--;
+    if(remaining <= 0){
+      clearInterval(otpResendTimer);
+      resendBtn.disabled = false;
+      resendBtn.textContent = 'Tuma tena';
+    }else{
+      resendBtn.textContent = `Tuma tena (${remaining}s)`;
+    }
+  }, 1000);
+}
+
+async function sendLoginOtp(){
+  clearMessage();
+  const phone = $('otpPhone').value.trim();
+  if(!phone){ showMessage('Tafadhali ingiza namba ya simu.'); return; }
+
+  const btn = $('otpSendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inatuma...';
+
+  try{
+    await api('/api/otp/send', { method:'POST', body: JSON.stringify({ phone, purpose:'login' }) });
+    otpPhoneValue = phone;
+    $('otpPhoneStep').style.display = 'none';
+    $('otpCodeStep').style.display = 'block';
+    $('otpCode').focus();
+    startResendCooldown(60);
+    showMessage('Code imetumwa kwa SMS. Iangalie kwenye simu yako.', 'info');
+  }catch(error){
+    showMessage(errText(error, 'Imeshindikana kutuma code. Jaribu tena.'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Tuma Namba ya Uthibitisho';
+  }
+}
+$('otpSendBtn').addEventListener('click', sendLoginOtp);
+
+$('otpResendBtn').addEventListener('click', async () => {
+  if($('otpResendBtn').disabled) return;
+  clearMessage();
+  try{
+    await api('/api/otp/send', { method:'POST', body: JSON.stringify({ phone: otpPhoneValue, purpose:'login' }) });
+    startResendCooldown(60);
+    showMessage('Code mpya imetumwa.', 'info');
+  }catch(error){
+    showMessage(errText(error, 'Imeshindikana kutuma code. Jaribu tena.'));
+  }
+});
+
+$('otpChangePhoneBtn').addEventListener('click', () => { clearMessage(); resetOtpPane(); });
+
+$('otpVerifyBtn').addEventListener('click', async () => {
+  clearMessage();
+  const code = $('otpCode').value.trim();
+  if(!code){ showMessage('Tafadhali ingiza code uliyopokea.'); return; }
+
+  const btn = $('otpVerifyBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inaingia...';
+
+  try{
+    const verify = await api('/api/otp/verify', { method:'POST', body: JSON.stringify({ phone: otpPhoneValue, purpose:'login', code }) });
+    const data = await api('/api/login/otp', { method:'POST', body: JSON.stringify({ phone: otpPhoneValue, verifyToken: verify.verifyToken }) });
+    saveSession(data);
+    showMessage('Login imefanikiwa. Tunaelekeza...', 'success');
+    setTimeout(() => redirectUser(data.user), 250);
+  }catch(error){
+    clearSession();
+    showMessage(errText(error, 'Code si sahihi au imeisha muda.'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Ingia';
+  }
+});
+
+function startForgotResendCooldown(seconds=60){
+  const btn = $('forgotResendBtn');
+  let remaining = seconds;
+  btn.disabled = true;
+  btn.textContent = `Tuma tena (${remaining}s)`;
+  clearInterval(forgotResendTimer);
+  forgotResendTimer = setInterval(() => {
+    remaining--;
+    if(remaining <= 0){
+      clearInterval(forgotResendTimer);
+      btn.disabled = false;
+      btn.textContent = 'Tuma tena';
+    }else{
+      btn.textContent = `Tuma tena (${remaining}s)`;
+    }
+  }, 1000);
+}
+
+async function sendForgotOtp(){
+  clearMessage();
+  const phone = $('forgotPhone').value.trim();
+  if(!phone){ showMessage('Tafadhali ingiza namba ya simu.'); return; }
+
+  const btn = $('forgotSendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inatuma...';
+
+  try{
+    await api('/api/otp/send', { method:'POST', body: JSON.stringify({ phone, purpose:'reset' }) });
+    forgotPhoneValue = phone;
+    $('forgotPhoneStep').style.display = 'none';
+    $('forgotCodeStep').style.display = 'block';
+    $('forgotCode').focus();
+    startForgotResendCooldown(60);
+    showMessage('Code imetumwa kwa SMS. Iangalie kwenye simu yako.', 'info');
+  }catch(error){
+    showMessage(errText(error, 'Imeshindikana kutuma code. Jaribu tena.'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Tuma Code ya Uthibitisho';
+  }
+}
+$('forgotSendBtn').addEventListener('click', sendForgotOtp);
+
+$('forgotResendBtn').addEventListener('click', async () => {
+  if($('forgotResendBtn').disabled) return;
+  clearMessage();
+  try{
+    await api('/api/otp/send', { method:'POST', body: JSON.stringify({ phone: forgotPhoneValue, purpose:'reset' }) });
+    startForgotResendCooldown(60);
+    showMessage('Code mpya imetumwa.', 'info');
+  }catch(error){
+    showMessage(errText(error, 'Imeshindikana kutuma code. Jaribu tena.'));
+  }
+});
+
+$('forgotVerifyBtn').addEventListener('click', async () => {
+  clearMessage();
+  const code = $('forgotCode').value.trim();
+  if(!code){ showMessage('Tafadhali ingiza code uliyopokea.'); return; }
+
+  const btn = $('forgotVerifyBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inathibitisha...';
+
+  try{
+    const data = await api('/api/otp/verify', { method:'POST', body: JSON.stringify({ phone: forgotPhoneValue, purpose:'reset', code }) });
+    forgotVerifyToken = data.verifyToken;
+    $('forgotCodeStep').style.display = 'none';
+    $('forgotNewPasswordStep').style.display = 'block';
+    $('forgotNewPassword').focus();
+    clearMessage();
+  }catch(error){
+    showMessage(errText(error, 'Code si sahihi au imeisha muda.'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Thibitisha';
+  }
+});
+
+$('forgotResetBtn').addEventListener('click', async () => {
+  clearMessage();
+  const newPassword = $('forgotNewPassword').value;
+  if(newPassword.length < 10){ showMessage('Password mpya inatakiwa kuwa angalau herufi 10.'); return; }
+  if(!forgotVerifyToken){ showMessage('Thibitisha OTP kwanza.'); return; }
+
+  const btn = $('forgotResetBtn');
+  btn.disabled = true;
+  btn.textContent = 'Inabadilisha...';
+
+  try{
+    await api('/api/forgot-password/reset', { method:'POST', body: JSON.stringify({ phone: forgotPhoneValue, verifyToken: forgotVerifyToken, newPassword }) });
+    showMessage('Password imebadilishwa. Sasa unaweza kuingia na password mpya.', 'success');
+    setTimeout(() => $('forgotBackToLoginBtn').click(), 1400);
+  }catch(error){
+    showMessage(errText(error, 'Imeshindikana kubadilisha password. Jaribu tena.'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Badilisha Password';
+  }
+});
+
+async function checkExistingSession(){
+  const token = localStorage.getItem('dp_token');
+  if(!token) return;
+  try{
+    const data = await api('/api/me');
+    if(data && data.user){
+      localStorage.setItem('dp_user', JSON.stringify(data.user));
+      redirectUser(data.user);
+    }
+  }catch{
+    clearSession();
+  }
+}
+checkExistingSession();
+</script>
+
+</body>
+</html>
