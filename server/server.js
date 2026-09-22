@@ -852,21 +852,17 @@ function phoneE164(s){
 function validPhone(s){
   return phoneKey(s).length === 9;
 }
-
-
 /* =========================================================
    SENDAFRICA SMS (OTP delivery)
-   Weka SENDAFRICA_API_KEY kwenye environment. Hiari:
-   SENDAFRICA_BASE_URL (default https://api.sendafrica.online/v1)
-   na SENDAFRICA_SENDER_ID (Sender ID iliyoidhinishwa).
    ========================================================= */
 
 const SENDAFRICA_API_KEY =
   process.env.SENDAFRICA_API_KEY || '';
 
 const SENDAFRICA_BASE_URL =
-  (process.env.SENDAFRICA_BASE_URL || 'https://api.sendafrica.online/v1')
-    .replace(/\/+$/,'');
+  (process.env.SENDAFRICA_BASE_URL ||
+    'https://api.sendafrica.online')
+    .replace(/\/+$/, '');
 
 const SENDAFRICA_SENDER_ID =
   process.env.SENDAFRICA_SENDER_ID || '';
@@ -880,372 +876,89 @@ async function sendSms(to, message){
   const dest = phoneE164(to);
 
   if(!smsConfigured()){
-    console.warn('[otp] SENDAFRICA_API_KEY haijawekwa kwenye server — SMS haikutumwa kwa '+dest+'. Ujumbe: '+message);
-    return { ok:false, reason:'not_configured' };
+
+    console.warn(
+      '[otp] SENDAFRICA_API_KEY haijawekwa kwenye server — SMS haikutumwa kwa ' +
+      dest +
+      '. Ujumbe: ' +
+      message
+    );
+
+    return {
+      ok:false,
+      reason:'not_configured'
+    };
   }
 
   try{
 
-    const payload = { to: dest, message };
-    if(SENDAFRICA_SENDER_ID) payload.sender = SENDAFRICA_SENDER_ID;
+    const payload = {
+      to: dest,
+      message
+    };
+
+    // SendAfrica hutumia "from", si "sender"
+    if(SENDAFRICA_SENDER_ID){
+      payload.from = SENDAFRICA_SENDER_ID;
+    }
 
     const resp = await fetch(
-      SENDAFRICA_BASE_URL + '/sms/send',
+      SENDAFRICA_BASE_URL + '/v1/sms/',
       {
         method:'POST',
+
         headers:{
           'Content-Type':'application/json',
           'X-API-Key': SENDAFRICA_API_KEY
         },
+
         body: JSON.stringify(payload)
       }
     );
 
     let data = {};
-    try{ data = await resp.json(); }catch{}
+
+    try{
+      data = await resp.json();
+    }catch{}
 
     if(!resp.ok){
-      console.error('[otp] SendAfrica imekataa ujumbe:', resp.status, data);
-      return { ok:false, status:resp.status, data };
-    }
 
-    return { ok:true, data };
+      console.error(
+        '[otp] SendAfrica imekataa ujumbe:',
+        resp.status,
+        data
+      );
 
-  }catch(e){
-    console.error('[otp] Imeshindwa kuwasiliana na SendAfrica:', e.message);
-    return { ok:false, reason:'network_error' };
-  }
-
-}
-
-
-/* =========================================================
-   OTP (kutuma na kuthibitisha namba ya simu)
-   ========================================================= */
-
-const OTP_TTL_MS = 5 * 60 * 1000;          // dakika 5 kuingiza code
-const OTP_RESEND_COOLDOWN_MS = 60 * 1000;  // sekunde 60 kati ya OTP mbili
-const OTP_VERIFY_TOKEN_TTL_MS = 15 * 60 * 1000; // dakika 15 kutumia verifyToken
-const OTP_MAX_ATTEMPTS = 5;
-
-function otpHashCode(code){
-  return crypto.createHash('sha256').update(String(code)).digest('hex');
-}
-
-function generateOtpCode(){
-  return String(crypto.randomInt(0,1000000)).padStart(6,'0');
-}
-
-function isoIn(ms){
-  return new Date(Date.now()+ms).toISOString();
-}
-
-async function issueOtp(phone, purpose){
-
-  const key = phoneKey(phone);
-
-  const last =
-    db.prepare(`
-      SELECT created_at FROM otp_codes
-      WHERE phone=? AND purpose=?
-      ORDER BY id DESC LIMIT 1
-    `)
-    .get(key, purpose);
-
-  if(last){
-    const elapsed = Date.now() - new Date(last.created_at+'Z').getTime();
-    if(elapsed < OTP_RESEND_COOLDOWN_MS){
       return {
         ok:false,
-        error:'Subiri sekunde chache kabla ya kuomba code nyingine.',
-        retryAfterMs: OTP_RESEND_COOLDOWN_MS - elapsed
+        status:resp.status,
+        data
       };
     }
-  }
 
-  const code = generateOtpCode();
-
-  db.prepare(`
-    INSERT INTO otp_codes(phone,purpose,code_hash,expires_at)
-    VALUES(?,?,?,?)
-  `)
-  .run(key, purpose, otpHashCode(code), isoIn(OTP_TTL_MS));
-
-  const label =
-    purpose === 'reset'
-      ? 'kurejesha password yako'
-      : 'kuthibitisha namba yako';
-
-  const sms = await sendSms(
-    phone,
-    `Daftari+: Namba yako ya uthibitisho ya ${label} ni ${code}. Haitumiki baada ya dakika 5. Usimpe mtu yeyote.`
-  );
-
-  return { ok:true, sms };
-
-}
-
-function verifyOtp(phone, purpose, code){
-
-  const key = phoneKey(phone);
-
-  const row =
-    db.prepare(`
-      SELECT * FROM otp_codes
-      WHERE phone=? AND purpose=? AND used=0
-      ORDER BY id DESC LIMIT 1
-    `)
-    .get(key, purpose);
-
-  if(!row){
-    return { ok:false, error:'Omba code mpya kwanza.' };
-  }
-
-  if(new Date(row.expires_at+'Z').getTime() < Date.now()){
-    return { ok:false, error:'Code imeisha muda wake. Omba nyingine.' };
-  }
-
-  if(row.attempts >= OTP_MAX_ATTEMPTS){
-    return { ok:false, error:'Majaribio mengi. Omba code mpya.' };
-  }
-
-  if(otpHashCode(code) !== row.code_hash){
-
-    db.prepare('UPDATE otp_codes SET attempts=attempts+1 WHERE id=?')
-      .run(row.id);
-
-    return { ok:false, error:'Code si sahihi.' };
-
-  }
-
-  const token = crypto.randomBytes(24).toString('hex');
-
-  db.prepare(`
-    UPDATE otp_codes
-    SET verified=1, verify_token=?, verify_token_expires_at=?
-    WHERE id=?
-  `)
-  .run(token, isoIn(OTP_VERIFY_TOKEN_TTL_MS), row.id);
-
-  return { ok:true, verifyToken: token };
-
-}
-
-function findOtpVerifyToken(phone, purpose, token){
-
-  const key = phoneKey(phone);
-
-  const row =
-    db.prepare(`
-      SELECT * FROM otp_codes
-      WHERE phone=? AND purpose=? AND verify_token=? AND verified=1 AND used=0
-      ORDER BY id DESC LIMIT 1
-    `)
-    .get(key, purpose, token);
-
-  if(!row) return null;
-
-  if(new Date(row.verify_token_expires_at+'Z').getTime() < Date.now())
-    return null;
-
-  return row;
-
-}
-
-/* Inatumika mara moja tu (register / reset password), kisha inafutika. */
-function consumeOtpVerifyToken(phone, purpose, token){
-
-  const row = findOtpVerifyToken(phone, purpose, token);
-
-  if(!row) return false;
-
-  db.prepare('UPDATE otp_codes SET used=1 WHERE id=?').run(row.id);
-
-  return true;
-
-}
-
-
-function hash(password){
-
-  const salt =
-    crypto.randomBytes(16).toString('hex');
-
-  return (
-    salt +
-    ':' +
-    crypto.scryptSync(
-      password,
-      salt,
-      64
-    ).toString('hex')
-  );
-
-}
-
-
-function verify(password,value){
-
-  try{
-
-    const [salt,h] =
-      value.split(':');
-
-    const a =
-      crypto.scryptSync(
-        password,
-        salt,
-        64
-      );
-
-    const b =
-      Buffer.from(h,'hex');
-
-    return (
-      b.length === a.length &&
-      crypto.timingSafeEqual(a,b)
+    console.log(
+      '[otp] SendAfrica SMS imekubaliwa:',
+      data
     );
 
-  }catch{
+    return {
+      ok:true,
+      data
+    };
 
-    return false;
+  }catch(e){
 
+    console.error(
+      '[otp] Imeshindwa kuwasiliana na SendAfrica:',
+      e.message
+    );
+
+    return {
+      ok:false,
+      reason:'network_error'
+    };
   }
-
-}
-
-
-function json(res,status,data){
-
-  const h={
-
-    'Content-Type':
-      'application/json; charset=utf-8',
-
-    'Cache-Control':
-      'no-store',
-
-    'Access-Control-Allow-Headers':
-      'Content-Type, Authorization',
-
-    'Access-Control-Allow-Methods':
-      'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-
-    'X-Content-Type-Options':
-      'nosniff',
-
-    'Referrer-Policy':
-      'strict-origin-when-cross-origin',
-
-    'Content-Security-Policy':
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'"
-
-  };
-
-
-  const origin =
-    process.env.FRONTEND_ORIGIN;
-
-  if(origin)
-    h['Access-Control-Allow-Origin']=origin;
-
-
-  res.writeHead(
-    status,
-    h
-  );
-
-  res.end(
-    JSON.stringify(data)
-  );
-
-}
-
-
-function body(req){
-
-  return new Promise(
-    (resolve,reject)=>{
-
-      let d='';
-
-      let too=false;
-
-
-      req.on(
-        'data',
-        c=>{
-
-          d+=c;
-
-          if(d.length>2e6){
-
-            too=true;
-
-            req.destroy();
-
-            reject(
-              new Error(
-                'Request too large'
-              )
-            );
-
-          }
-
-        }
-      );
-
-
-      req.on(
-        'end',
-        ()=>{
-
-          if(too)
-            return;
-
-          try{
-
-            resolve(
-              d
-                ? JSON.parse(d)
-                : {}
-            );
-
-          }catch{
-
-            reject(
-              new Error(
-                'JSON is invalid'
-              )
-            );
-
-          }
-
-        }
-      );
-
-
-      req.on(
-        'error',
-        reject
-      );
-
-    }
-  );
-
-}
-
-
-function q(req){
-
-  return Object.fromEntries(
-    new URL(
-      req.url,
-      'http://localhost'
-    )
-    .searchParams
-    .entries()
-  );
 
 }
 
