@@ -11467,10 +11467,15 @@ function billSmsText(row){
   if(bill.items.length > 6) lines.push(`+ bidhaa ${bill.items.length-6} nyingine`);
   return [
     bill.shop,
-    'BILI ' + bill.code,
+    'Bili: ' + bill.code,
+    ...(bill.customer ? ['Mteja: ' + bill.customer] : []),
+    '',
     ...lines,
-    'JUMLA: TZS ' + n(bill.total),
-    'LIPA NAMBA: ' + bill.lipa_namba + (bill.lipa_jina ? ' (' + bill.lipa_jina + ')' : ''),
+    '',
+    'Jumla: TZS ' + n(bill.total),
+    '',
+    'Lipa Namba: ' + bill.lipa_namba + (bill.lipa_jina ? ' (' + bill.lipa_jina + ')' : ''),
+    '',
     'Hakiki bili: ' + billVerifyUrl(bill.code)
   ].join('\n');
 }
