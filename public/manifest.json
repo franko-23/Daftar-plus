@@ -1,0 +1,16 @@
+{
+  "name": "Daftari+",
+  "short_name": "Daftari+",
+  "description": "Simamia mauzo, stock, matumizi na wafanyakazi wa biashara yako — kwa simu.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070c17",
+  "theme_color": "#070c17",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
