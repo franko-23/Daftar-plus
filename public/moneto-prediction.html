@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1854f0">
+<title>Prediction — Moneto Exchange</title>
+<style>
+:root{--bg:#fff;--ink:#0B1220;--muted:#6B7688;--line:#EAEDF5;--tint:#F6F8FD;--blue:#1854F0;--bt:#EEF2FE;--green:#0ECB81;--red:#F6465D}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+.wrap{max-width:460px;margin:0 auto;padding:0 20px 40px}
+.top{display:flex;align-items:center;gap:10px;padding:calc(16px + env(safe-area-inset-top,0px)) 0 10px}
+.top a{color:var(--ink);text-decoration:none;font-size:22px;line-height:1}
+.top b{font-size:16px;font-weight:800}
+.pts{margin-left:auto;background:var(--bt);color:var(--blue);padding:6px 12px;border-radius:16px;font-weight:800;font-size:12.5px}
+.tabs{display:flex;gap:20px;border-bottom:1px solid var(--line)}
+.tab{background:none;padding:10px 0;font-weight:700;color:var(--muted);border-bottom:2.5px solid transparent}
+.tab.on{color:var(--ink);border-color:var(--blue)}
+.search{width:100%;margin-top:12px;padding:11px 14px;border:0;border-radius:14px;background:var(--tint);font:inherit;outline:0}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:12px 0 4px}
+.chip{padding:8px 15px;border-radius:20px;background:var(--tint);color:var(--muted);font-weight:700;font-size:12.5px;white-space:nowrap}
+.chip.on{background:var(--ink);color:#fff}
+.st{font-size:11.5px;color:var(--muted);margin:10px 0;display:flex;justify-content:space-between}
+.live{color:var(--green);font-weight:700}
+.card{border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px;cursor:pointer}
+.ch{display:flex;gap:11px;align-items:flex-start}
+.ch img,.ph{width:36px;height:36px;border-radius:10px;object-fit:cover;background:var(--tint);flex-shrink:0}
+.q{font-weight:700;font-size:13.5px;line-height:1.35}
+.row{display:flex;align-items:center;gap:10px;margin-top:12px}
+.pct{font-size:19px;font-weight:800;width:52px;color:var(--green)}
+.bar{flex:1;height:8px;border-radius:8px;background:var(--tint);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green)}
+.cand{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-weight:600;font-size:12.5px}
+.cand b{color:var(--blue)}
+.meta{display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--muted);font-weight:600}
+.empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:13px;line-height:1.5}
+.bg{position:fixed;inset:0;background:rgba(11,18,32,.5);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.bg.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:460px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.sh{display:flex;gap:11px;align-items:flex-start;margin-bottom:12px}
+.sh h3{margin:0;flex:1;font-size:15px;line-height:1.35}
+.x{background:var(--tint);width:32px;height:32px;border-radius:50%;font-size:18px}
+.ivs{display:flex;gap:6px;margin:8px 0}
+.iv{padding:5px 11px;border-radius:14px;background:var(--tint);color:var(--muted);font-weight:700;font-size:12px}
+.iv.on{background:var(--ink);color:#fff}
+.cb{background:var(--tint);border-radius:14px;padding:8px;min-height:120px}
+.cb svg{width:100%;display:block}
+.out{display:flex;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-top:8px;font-weight:600;font-size:13px;cursor:pointer}
+.out.on{border-color:var(--blue);background:var(--bt)}
+.bet{border:1.5px solid var(--line);border-radius:16px;padding:14px;margin:14px 0}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.side{padding:12px;border-radius:12px;background:var(--tint);font-weight:800}
+.side.yes.on{background:var(--green);color:#fff}
+.side.no.on{background:var(--red);color:#fff}
+.stk{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.stk input{width:86px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:700}
+.prev{background:var(--tint);border-radius:12px;padding:10px 12px;line-height:1.7;margin:12px 0;font-size:12.5px}
+.g{color:var(--green);font-weight:800}.r{color:var(--red);font-weight:800}
+.go{width:100%;padding:13px;border-radius:14px;background:var(--blue);color:#fff;font-weight:800}
+.go:disabled{opacity:.5}
+.note{font-size:11.5px;color:var(--muted);line-height:1.5}
+.pill{padding:3px 10px;border-radius:12px;background:var(--tint);font-weight:700;font-size:11.5px}
+.pill.won{background:#E6F9F1;color:#0A9F63}.pill.lost{background:#FEECEE;color:var(--red)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:600;z-index:20;display:none;max-width:90%}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/dashboard" aria-label="Back">‹</a><b>Prediction</b><span class="pts" id="bal">—</span></div>
+  <div class="tabs"><button class="tab on" data-t="mkt">Markets</button><button class="tab" data-t="mine">My picks</button><button class="tab" data-t="how">How it works</button></div>
+
+  <div id="vm">
+    <input class="search" id="q" type="search" placeholder="Search markets">
+    <div class="chips" id="chips"></div>
+    <div class="st"><span class="live" id="live">● Live · Polymarket</span><span id="stt"></span></div>
+    <div id="list"></div>
+  </div>
+  <div id="vi" hidden style="padding-top:14px"></div>
+  <div id="vh" hidden class="note" style="padding-top:14px;font-size:13px">
+    <p><b>Moneto Points</b> are free play points. They are not your wallet balance and have no cash value.</p>
+    <p>You start with 1,000 points. Pick Yes or No on a market and stake 10–500 points.</p>
+    <p>If you are right you receive <b>stake ÷ price</b>. Example: 100 points on Yes at 40% returns 250 (profit +150). If you are wrong you lose the stake. If a market is cancelled, your stake is refunded.</p>
+    <p>One pick per market, no changes after confirming. Markets above 97% or below 3% are closed for picks. Results come from Polymarket once a market resolves.</p>
+    <p>Market data is live and read-only from Polymarket. Points are stored on this device only. Not financial advice.</p>
+  </div>
+</div>
+<div class="bg" id="bg"><div class="sheet" id="sh"></div></div>
+<div class="toast" id="tt"></div>
+
+<script>
+const G='https://gamma-api.polymarket.com',C='https://clob.polymarket.com';
+const CATS=[['crypto','Crypto'],['politics','Politics'],['sports','Sports'],['economy','Economy'],['tech','Tech'],['world','World'],['all','All']];
+const MIN=10,MAX=500,LO=.03,HI=.97,KEY='moneto_pred_v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pj=(v,f)=>{try{return typeof v==='string'?JSON.parse(v):(v||f)}catch(e){return f}};
+const fm=n=>n>=1e6?'$'+(n/1e6).toFixed(1)+'M':n>=1e3?'$'+(n/1e3).toFixed(0)+'K':'$'+Math.round(n);
+const pt=n=>Number(n||0).toLocaleString('en-US');
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+S=S&&Array.isArray(S.picks)?S:{bal:1000,picks:[]};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let cat='crypto',tab='mkt',evs=[],cur=null,tt;
+function toast(m){const t=$('#tt');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',2600)}
+function head(){$('#bal').textContent=pt(S.bal)+' pts'}
+function norm(e){
+  const ms=(e.markets||[]).filter(m=>m&&!m.closed&&m.active!==false).map(m=>({id:String(m.id),label:m.groupItemTitle||'',tok:(pj(m.clobTokenIds,[])[0])||null,yes:parseFloat(pj(m.outcomePrices,[])[0])})).filter(m=>isFinite(m.yes)).sort((a,b)=>b.yes-a.yes).slice(0,12);
+  return ms.length?{id:String(e.id),title:e.title||'',icon:e.icon||e.image||'',end:e.endDate,v:+e.volume24hr||+e.volume||0,ms}:null;
+}
+async function load(){
+  const c=cat;$('#list').innerHTML='<div class="empty">Loading…</div>';
+  const p=new URLSearchParams({active:'true',closed:'false',order:'volume24hr',ascending:'false',limit:'40'});
+  if(c!=='all')p.set('tag_slug',c);
+  try{
+    const r=await fetch(G+'/events?'+p);if(!r.ok)throw 0;
+    const j=await r.json();if(c!==cat)return;
+    evs=(Array.isArray(j)?j:j.events||[]).map(norm).filter(Boolean);
+    $('#stt').textContent=evs.length+' markets · '+new Date().toLocaleTimeString();
+    $('#live').style.opacity=1;render();
+  }catch(e){if(c!==cat)return;$('#live').style.opacity=.4;$('#list').innerHTML='<div class="empty">Could not load markets.<br><button class="chip on" onclick="load()" style="margin-top:12px">Retry</button></div>'}
+}
+function days(d){if(!d)return'';const n=Math.ceil((new Date(d)-Date.now())/864e5);return n<=0?'Closing':n+'d left'}
+function icon(e){return e.icon?`<img src="${esc(e.icon)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=ph></div>'">`:'<div class="ph"></div>'}
+function card(e){
+  const mine=S.picks.some(p=>p.eid===e.id);
+  const body=e.ms.length===1?`<div class="row"><div class="pct">${Math.round(e.ms[0].yes*100)}%</div><div class="bar"><i style="width:${Math.round(e.ms[0].yes*100)}%"></i></div></div>`
+    :e.ms.slice(0,3).map(m=>`<div class="cand"><span>${esc(m.label)}</span><b>${Math.round(m.yes*100)}%</b></div>`).join('');
+  return `<div class="card" data-id="${esc(e.id)}"><div class="ch">${icon(e)}<div class="q">${esc(e.title)}</div></div>${body}<div class="meta"><span>${fm(e.v)} vol</span><span>${days(e.end)}</span>${mine?'<span style="color:var(--blue)">Picked</span>':''}</div></div>`;
+}
+function render(){
+  const q=$('#q').value.trim().toLowerCase();
+  const l=evs.filter(e=>!q||e.title.toLowerCase().includes(q));
+  $('#list').innerHTML=l.length?l.map(card).join(''):'<div class="empty">No markets found.</div>';
+}
+function chips(){$('#chips').innerHTML=CATS.map(c=>`<button class="chip ${c[0]===cat?'on':''}" data-c="${c[0]}">${c[1]}</button>`).join('')}
+function show(t){
+  tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('#vm').hidden=t!=='mkt';$('#vi').hidden=t!=='mine';$('#vh').hidden=t!=='how';
+  if(t==='mine')mine();
+}
+const ST={pending:'Pending',won:'Won',lost:'Lost',void:'Refunded'};
+function mine(){
+  const w=S.picks.filter(p=>p.st==='won').length,l=S.picks.filter(p=>p.st==='lost').length,p=S.picks.filter(p=>p.st==='pending').length;
+  $('#vi').innerHTML=`<div class="meta" style="margin:0 0 14px;font-size:12.5px"><span>Won ${w}</span><span>Lost ${l}</span><span>Pending ${p}</span></div>`+(S.picks.length?S.picks.map(k=>{
+    const res=k.st==='pending'?`If right: +${pt(k.pot)} (profit +${pt(k.pot-k.stake)})`:k.st==='won'?`Received +${pt(k.pay)}`:k.st==='lost'?`Lost −${pt(k.stake)}`:`Refunded +${pt(k.pay)}`;
+    return `<div class="card" style="cursor:default"><div class="q">${esc(k.t)}</div><div class="note" style="margin:5px 0 8px">${esc(k.l?k.l+' · ':'')}<b>${k.side==='yes'?'Yes':'No'}</b> at ${Math.round(k.price*100)}% · stake ${pt(k.stake)}</div><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600"><span class="pill ${k.st}">${ST[k.st]}</span><span>${res}</span></div></div>`}).join(''):'<div class="empty">No picks yet. Open a market and choose Yes or No.</div>');
+}
+/* ---- market sheet ---- */
+function open(id){
+  const e=evs.find(x=>x.id===id);if(!e)return;
+  cur={e,i:0,side:'yes',stake:100,iv:'1w'};draw();$('#bg').classList.add('on');document.body.style.overflow='hidden';
+}
+function close(){$('#bg').classList.remove('on');document.body.style.overflow='';cur=null}
+function prev(){
+  const m=cur.e.ms[cur.i],sp=cur.side==='yes'?m.yes:1-m.yes,s=Math.floor(+cur.stake||0);
+  if(s<MIN||s>MAX)return`<span class="r">Stake ${MIN}–${MAX} points.</span>`;
+  if(s>S.bal)return`<span class="r">Not enough points (you have ${pt(S.bal)}).</span>`;
+  const p=Math.floor(s/Math.max(sp,.0001));
+  return`If right: <span class="g">+${pt(p)}</span> points (profit +${pt(p-s)})<br>If wrong: <span class="r">−${pt(s)}</span> points`;
+}
+function bet(){
+  const m=cur.e.ms[cur.i],mine=S.picks.find(p=>p.mid===m.id);
+  if(mine)return`<div class="bet"><b>You picked ${mine.side==='yes'?'Yes':'No'}</b> · stake ${pt(mine.stake)} at ${Math.round(mine.price*100)}%<br><span class="note">${mine.st==='pending'?`If right you receive +${pt(mine.pot)} points.`:ST[mine.st]}</span></div>`;
+  if(m.yes>=HI||m.yes<=LO)return'<div class="bet note">This market is almost decided, so picks are closed.</div>';
+  const y=Math.round(m.yes*100);
+  return`<div class="bet"><b>Predict${m.label?': '+esc(m.label):''}</b>
+  <div class="sides"><button class="side yes ${cur.side==='yes'?'on':''}" data-s="yes">Yes ${y}%</button><button class="side no ${cur.side==='no'?'on':''}" data-s="no">No ${100-y}%</button></div>
+  <div class="stk"><input id="stk" type="number" inputmode="numeric" min="${MIN}" max="${MAX}" value="${esc(cur.stake)}">${[50,100,250,500].map(v=>`<button class="iv ${+cur.stake===v?'on':''}" data-k="${v}">${v}</button>`).join('')}</div>
+  <div class="prev" id="prev">${prev()}</div><button class="go" id="go">Confirm prediction</button>
+  <p class="note" style="margin:10px 0 0">Final price is checked when you confirm. Picks cannot be changed.</p></div>`;
+}
+function draw(){
+  const e=cur.e,m=e.ms[cur.i];
+  $('#sh').innerHTML=`<div class="sh">${icon(e)}<h3>${esc(e.title)}</h3><button class="x" id="cl">×</button></div>
+  <div class="ivs">${[['1d','24H'],['1w','1W'],['1m','1M'],['max','All']].map(v=>`<button class="iv ${v[0]===cur.iv?'on':''}" data-i="${v[0]}">${v[1]}</button>`).join('')}</div>
+  <div class="cb" id="cb"><div class="empty">Loading chart…</div></div>
+  <div class="note" style="display:flex;justify-content:space-between;margin-top:6px"><span>${esc(m.label||'Yes')} · chance of Yes</span><b>${Math.round(m.yes*100)}%</b></div>
+  ${e.ms.length>1?e.ms.map((x,i)=>`<div class="out ${i===cur.i?'on':''}" data-o="${i}"><span>${esc(x.label)}${S.picks.some(p=>p.mid===x.id)?' ✓':''}</span><b>${Math.round(x.yes*100)}%</b></div>`).join(''):''}
+  <div id="bw">${bet()}</div>
+  <div class="meta"><span>${fm(e.v)} 24h vol</span><span>${days(e.end)}</span></div>`;
+  chart();
+}
+async function chart(){
+  const c=cur,i=c.i,v=c.iv,m=c.e.ms[i],cb=$('#cb');if(!cb)return;
+  if(!m.tok){cb.innerHTML='<div class="empty">No chart for this market.</div>';return}
+  const f={'1d':15,'1w':60,'1m':180,'max':720}[v];
+  try{
+    const r=await fetch(`${C}/prices-history?market=${m.tok}&interval=${v}&fidelity=${f}`);if(!r.ok)throw 0;
+    const h=((await r.json()).history||[]).map(x=>({t:+x.t,p:+x.p})).filter(x=>isFinite(x.t)&&isFinite(x.p));
+    if(cur!==c||c.i!==i||c.iv!==v)return;
+    if(!h.length){$('#cb').innerHTML='<div class="empty">No price history yet.</div>';return}
+    const a=h[0].t,b=h[h.length-1].t,W=320,H=130,X=t=>6+(t-a)/((b-a)||1)*(W-12),Y=p=>H-6-Math.max(0,Math.min(1,p))*(H-12);
+    $('#cb').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${[.25,.5,.75].map(g=>`<line x1="6" x2="${W-6}" y1="${Y(g)}" y2="${Y(g)}" stroke="#EAEDF5" stroke-dasharray="3 4"/>`).join('')}<path d="${h.map((x,k)=>(k?'L':'M')+X(x.t).toFixed(1)+' '+Y(x.p).toFixed(1)).join('')}" fill="none" stroke="#1854F0" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+  }catch(e){if(cur===c)$('#cb').innerHTML='<div class="empty">Chart unavailable.</div>'}
+}
+async function place(btn){
+  const {e,i,side}=cur,m=e.ms[i],s=Math.floor(+cur.stake||0);
+  if(S.picks.some(p=>p.mid===m.id))return toast('You already predicted this market');
+  if(s<MIN||s>MAX)return toast('Stake '+MIN+'–'+MAX+' points');
+  if(s>S.bal)return toast('Not enough points');
+  btn.disabled=true;let y;
+  try{
+    const r=await fetch(G+'/markets/'+encodeURIComponent(m.id));if(!r.ok)throw 0;const j=await r.json();
+    if(j.closed||j.active===false){btn.disabled=false;return toast('This market is closed')}
+    y=parseFloat(pj(j.outcomePrices,[])[0]);
+  }catch(x){btn.disabled=false;return toast('Could not confirm the price. Try again.')}
+  if(!(y>LO&&y<HI)){btn.disabled=false;return toast('Market is almost decided')}
+  const sp=Math.round((side==='yes'?y:1-y)*1000)/1000,pot=Math.floor(s/sp);
+  S.bal-=s;S.picks.unshift({mid:m.id,eid:e.id,t:e.title,l:m.label,side,price:sp,stake:s,pot,st:'pending',pay:0,ts:Date.now()});
+  save();head();toast('Prediction placed. If right: +'+pt(pot)+' points');
+  if(cur)$('#bw').innerHTML=bet();
+  if(tab==='mkt')render();
+}
+async function settle(){
+  let ch=false;
+  for(const p of S.picks.filter(k=>k.st==='pending').slice(0,30)){
+    try{
+      const r=await fetch(G+'/markets/'+encodeURIComponent(p.mid));if(!r.ok)continue;const j=await r.json();if(!j.closed)continue;
+      const pr=pj(j.outcomePrices,[]),y=+pr[0],n=+pr[1];
+      const res=y>=.99&&n<=.01?'yes':n>=.99&&y<=.01?'no':(Math.abs(y-.5)<.01&&Math.abs(n-.5)<.01)?'void':null;
+      if(!res)continue;
+      if(res==='void'){p.st='void';p.pay=p.stake}else if(res===p.side){p.st='won';p.pay=p.pot}else{p.st='lost';p.pay=0}
+      S.bal+=p.pay;ch=true;
+    }catch(e){}
+  }
+  if(ch){save();head();if(tab==='mine')mine();toast('Some predictions were settled')}
+}
+document.addEventListener('click',ev=>{
+  const t=ev.target,g=s=>t.closest(s);
+  if(g('#cl')||t.id==='bg')return close();
+  let a;
+  if(a=g('[data-t]'))return show(a.dataset.t);
+  if(a=g('[data-c]')){cat=a.dataset.c;chips();load();return}
+  if(a=g('[data-i]')){if(cur){cur.iv=a.dataset.i;draw()}return}
+  if(a=g('[data-o]')){if(cur){cur.i=+a.dataset.o;draw()}return}
+  if(a=g('[data-s]')){if(cur){cur.side=a.dataset.s;$('#bw').innerHTML=bet()}return}
+  if(a=g('[data-k]')){if(cur){cur.stake=+a.dataset.k;$('#bw').innerHTML=bet()}return}
+  if(g('#go')&&cur)return place(g('#go'));
+  if(a=g('.card[data-id]'))open(a.dataset.id);
+});
+document.addEventListener('input',e=>{if(e.target.id==='stk'&&cur){cur.stake=e.target.value;$('#prev').innerHTML=prev()}else if(e.target.id==='q')render()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cur)close()});
+if(window.self!==window.top){const b=document.querySelector('.top a');if(b)b.style.visibility='hidden'}
+head();chips();load();settle();
+setInterval(()=>{if(!cur&&tab==='mkt'&&!document.hidden)load()},60000);
+setInterval(settle,300000);
+</script>
+</body>
+</html>
